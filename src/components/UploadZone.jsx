@@ -1,39 +1,33 @@
 ﻿import { useState } from "react";
 
-export default function UploadZone({ onUpload, loading }) {
+export default function UploadZone({ onUpload }) {
   const [preview, setPreview] = useState(null);
 
-  const handleChange = (e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        setPreview(evt.target.result);
-        const base64 = evt.target.result.split(",")[1];
-        onUpload(base64);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setPreview(reader.result);
+      onUpload(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
-    <div className="border-2 border-dashed border-amber-500 rounded-lg p-8 text-center">
+    <div className="border-2 border-dashed border-amber-500 p-8 rounded-lg text-center">
       <input
         type="file"
-        accept="image/*"
-        onChange={handleChange}
-        disabled={loading}
+        accept="image/*,.pdf"
+        onChange={handleFileChange}
         className="hidden"
-        id="upload"
+        id="file-input"
       />
-      <label htmlFor="upload" className="cursor-pointer">
-        {preview ? (
-          <img src={preview} alt="preview" className="max-h-64 mx-auto mb-4" />
-        ) : (
-          <p className="text-slate-400">📸 Clique ou glisse ton image</p>
-        )}
+      <label htmlFor="file-input" className="cursor-pointer text-slate-100">
+        Prends une photo ou upload un PDF
       </label>
-      {loading && <p className="text-amber-500 mt-2">Analyse en cours...</p>}
+      {preview && <img src={preview} alt="preview" className="mt-4 max-w-sm mx-auto" />}
     </div>
   );
 }
