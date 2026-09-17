@@ -1,6 +1,6 @@
 ﻿import { useState } from "react";
 
-export default function UploadZone({ onUpload }) {
+export default function UploadZone({ onUpload, loading }) {
   const [preview, setPreview] = useState(null);
 
   const handleFileChange = (e) => {
@@ -25,7 +25,7 @@ export default function UploadZone({ onUpload }) {
         id="file-input"
       />
       <label htmlFor="file-input" className="cursor-pointer text-slate-100">
-        Prends une photo ou upload un PDF
+        {loading ? "Analyse en cours…" : "Prends une photo ou upload un PDF"}
       </label>
       {preview && <img src={preview} alt="preview" className="mt-4 max-w-sm mx-auto" />}
     </div>

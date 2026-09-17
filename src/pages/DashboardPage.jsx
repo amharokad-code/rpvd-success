@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from "react";
-import UploadZone from "./components/UploadZone";
-import AnalysisDisplay from "./components/AnalysisDisplay";
+import UploadZone from "../components/UploadZone";
+import AnalysisDisplay from "../components/AnalysisDisplay";
 
 export default function Dashboard({ user, supabase }) {
   const [credits, setCredits] = useState(3);
