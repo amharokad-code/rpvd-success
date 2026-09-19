@@ -8,6 +8,7 @@ const { HttpError, preflight, json, header, handleError } = require('./_lib/http
 const { rpc } = require('./_lib/supabase');
 const { sendEmail, premiumCodeEmail } = require('./_lib/email');
 const { PLANS, PREMIUM_CODE_VALIDITY_DAYS } = require('./_lib/codes');
+const { sendPurchaseEvent } = require('./_lib/meta-capi');
 
 let stripeClient = null;
 function getStripe() {
@@ -71,6 +72,20 @@ exports.handler = async (event) => {
     // Tableau vide = session déjà traitée (idempotence).
     if (!Array.isArray(codes) || codes.length === 0) {
       return json(200, { received: true });
+    }
+
+    // CAPI 'Purchase' : best-effort, ne doit jamais faire échouer la réponse au webhook.
+    // On l'attend (le runtime Netlify peut geler le process dès le `return`) mais on avale
+    // toute erreur : `eventId` = session.id pour dédupliquer côté Meta si le pixel front l'envoie aussi.
+    try {
+      await sendPurchaseEvent({
+        email,
+        value: PLANS[plan].amount / 100,
+        currency: 'CAD',
+        eventId: session.id,
+      });
+    } catch (err) {
+      console.error('[stripe-webhook] sendPurchaseEvent a levé :', err && err.message);
     }
 
     if (!email) {
