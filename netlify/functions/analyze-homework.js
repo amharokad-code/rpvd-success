@@ -1,26 +1,149 @@
-﻿const { createClient } = require("@supabase/supabase-js");
+'use strict';
+// POST /.netlify/functions/analyze-homework
+// Ordre strict : auth → empreinte → rate-limit → validation → consume_credit → Gemini
+// (remboursement si échec) → insert submission → 200.
+// L'image n'est jamais stockée ni journalisée : seule l'analyse est conservée.
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
-);
+const { HttpError, preflight, parseBody, json, getIp, sha256, handleError } = require('./_lib/http');
+const { getServiceClient, getUserFromRequest, getFingerprint, rpc } = require('./_lib/supabase');
+const { assertRateLimit } = require('./_lib/ratelimit');
+const { analyzeImage } = require('./_lib/gemini');
+
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+// Quadri-langue (contrat §3) : qc/fr = français, us/uk = anglais (ton distinct chacun).
+const REGIONS = ['qc', 'fr', 'us', 'uk'];
+const MAX_DECODED_BYTES = 8 * 1024 * 1024;
+const GEMINI_RATE_LIMIT = 5;
+const GEMINI_RATE_WINDOW_SECONDS = 3600;
+
+// Taille décodée d'une chaîne base64 sans la décoder.
+function decodedSize(base64) {
+  const length = base64.length;
+  if (length === 0) return 0;
+  let padding = 0;
+  if (base64.endsWith('==')) padding = 2;
+  else if (base64.endsWith('=')) padding = 1;
+  return Math.floor((length * 3) / 4) - padding;
+}
+
+// Valide le body : base64 propre (sans préfixe data:), MIME autorisé, région optionnelle.
+function validateBody(body) {
+  let base64 = typeof body.imageBase64 === 'string' ? body.imageBase64 : '';
+  const commaIndex = base64.startsWith('data:') ? base64.indexOf(',') : -1;
+  if (commaIndex !== -1) base64 = base64.slice(commaIndex + 1);
+  base64 = base64.replace(/\s+/g, '');
+  if (!base64) throw new HttpError(400, 'BAD_REQUEST', 'Image manquante.');
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(base64)) throw new HttpError(400, 'BAD_REQUEST', 'Image mal encodée.');
+  if (decodedSize(base64) > MAX_DECODED_BYTES) throw new HttpError(413, 'PAYLOAD_TOO_LARGE');
+
+  const mimeType = typeof body.mimeType === 'string' ? body.mimeType.trim().toLowerCase() : '';
+  if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
+    throw new HttpError(400, 'BAD_REQUEST', 'Format non supporté (JPEG, PNG, WebP ou PDF).');
+  }
+
+  const region = REGIONS.includes(body.region) ? body.region : null;
+  return { base64, mimeType, region };
+}
 
 exports.handler = async (event) => {
+  const early = preflight(event);
+  if (early) return early;
+
   try {
-    const { imageBase64, userId, region } = JSON.parse(event.body);
-    const { data: user } = await supabase.from("users").select("credits").eq("id", userId).single();
-    if (!user || user.credits < 1) return { statusCode: 400, body: JSON.stringify({ error: "No credits" }) };
-    await supabase.from("users").update({ credits: user.credits - 1 }).eq("id", userId);
-    const geminiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + process.env.GOOGLE_AI_STUDIO_API_KEY, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ contents: [{ parts: [{ inlineData: { mimeType: "image/jpeg", data: imageBase64 } }, { text: "Analyse cet exercice. JSON: {\"level_1\":\"...\",\"level_2\":\"...\",\"level_3_steps\":[]}" }] }] })
-    });
-    const geminiData = await geminiResponse.json();
-    const json = JSON.parse(geminiData.candidates[0].content.parts[0].text);
-    await supabase.from("submissions").insert({ user_id: userId, problem_type: "generic", level_1_response: json.level_1, level_2_response: json.level_2, level_3_response: JSON.stringify(json.level_3_steps) });
-    return { statusCode: 200, body: JSON.stringify(json) };
-  } catch (error) {
-    return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
+    // 1. Authentification (session Supabase anonyme).
+    const user = await getUserFromRequest(event);
+    if (!user) throw new HttpError(401, 'UNAUTHORIZED');
+
+    // 2. Empreinte d'appareil obligatoire.
+    const fingerprint = getFingerprint(event);
+    if (!fingerprint) throw new HttpError(400, 'BAD_REQUEST', "Empreinte d'appareil manquante.");
+
+    // 3. Rate-limit Gemini par utilisateur.
+    await assertRateLimit(`gemini:user:${user.id}`, GEMINI_RATE_LIMIT, GEMINI_RATE_WINDOW_SECONDS);
+
+    // 4. Validation du body.
+    const { base64, mimeType, region: bodyRegion } = validateBody(parseBody(event));
+
+    // Préférences utilisateur (notation + région par défaut).
+    const { data: profile, error: profileError } = await getServiceClient()
+      .from('users')
+      .select('preferred_notation, region')
+      .eq('id', user.id)
+      .maybeSingle();
+    if (profileError) throw profileError;
+    const region = bodyRegion || (profile && REGIONS.includes(profile.region) ? profile.region : 'qc');
+    const preferredNotation = (profile && profile.preferred_notation) || '';
+
+    // 5. Consommation atomique d'un crédit (NO_CREDITS → 402, FINGERPRINT_MISMATCH → 403).
+    // Le RAISE EXCEPTION de consume_credit annule sa transaction (donc son propre insert
+    // security_events) : c'est au backend de journaliser l'incident (contrat §0/§2).
+    let consumed;
+    try {
+      consumed = await rpc('consume_credit', { p_user_id: user.id, p_fingerprint: fingerprint });
+    } catch (err) {
+      if (err instanceof HttpError && err.code === 'FINGERPRINT_MISMATCH') {
+        await getServiceClient()
+          .from('security_events')
+          .insert({
+            user_id: user.id,
+            kind: 'fingerprint_mismatch',
+            details: { ip_hash: sha256(getIp(event)), fingerprint: fingerprint.slice(0, 12), fn: 'analyze-homework' },
+          })
+          .then(() => {}, (e) => console.error('[security_events]', e.message));
+      }
+      throw err;
+    }
+    const creditsRemaining = Number(consumed && consumed.credits_remaining) || 0;
+
+    // 6. Analyse Gemini ; remboursement du crédit en cas d'échec.
+    let analysis;
+    try {
+      analysis = await analyzeImage({ base64, mimeType, region, preferredNotation });
+    } catch (err) {
+      try {
+        await rpc('refund_credit', { p_user_id: user.id });
+      } catch (refundError) {
+        console.error('[analyze-homework] Remboursement impossible :', refundError && refundError.message);
+      }
+      throw err instanceof HttpError ? err : new HttpError(502, 'AI_ERROR');
+    }
+
+    // 7. Enregistrement de la soumission (sans l'image).
+    const { data: submission, error: insertError } = await getServiceClient()
+      .from('submissions')
+      .insert({
+        user_id: user.id,
+        problem_type: analysis.problem_type,
+        level_1_response: analysis.level_1,
+        level_2_response: analysis.level_2,
+        level_3_response: analysis.level_3_steps,
+        analysis,
+        region,
+      })
+      .select('id')
+      .single();
+
+    let submissionId = null;
+    if (insertError) {
+      // L'analyse est valide et le crédit consommé : on la renvoie quand même, sans id.
+      console.error('[analyze-homework] Insert submission échoué :', insertError.message);
+    } else {
+      submissionId = submission.id;
+    }
+
+    // 7bis. Gamification (contrat §6) : une analyse RÉUSSIE compte pour la flamme du jour.
+    // Best-effort — un souci ici n'invalide jamais une analyse déjà payée et livrée.
+    let streakDays = null;
+    try {
+      const streak = await rpc('bump_streak', { p_user_id: user.id });
+      streakDays = Number(streak && streak.streak_days) || null;
+    } catch (streakError) {
+      console.error('[analyze-homework] bump_streak échoué :', streakError && streakError.message);
+    }
+
+    // 8. Succès.
+    return json(200, { submission_id: submissionId, credits_remaining: creditsRemaining, streak_days: streakDays, analysis });
+  } catch (err) {
+    return handleError(err, 'analyze-homework');
   }
 };

@@ -1,0 +1,158 @@
+// Page réglages (contrat §3) : région QC/FR et convention de notation personnelle.
+import { useEffect, useRef, useState } from 'react'
+import GlassCard from '../components/ui/GlassCard'
+import Button from '../components/ui/Button'
+import { useCopy } from '../context/RegionContext'
+import { ApiError, savePreferences } from '../lib/api'
+import { supabase } from '../lib/supabase'
+
+function getSearch() {
+  if (typeof window === 'undefined') return ''
+  return window.location.search
+}
+
+// Mode démo (contrat §0) : pas d'appel réseau, la sauvegarde est simulée.
+const IS_DEMO = import.meta.env.DEV && new URLSearchParams(getSearch()).has('demo')
+const NOTATION_MAX_LENGTH = 300
+const SAVED_FEEDBACK_MS = 2500
+// Quadri-langue (contrat §3) : 2 régions FR + 2 régions EN, chacune avec son propre ton.
+const REGION_OPTIONS = ['qc', 'fr', 'us', 'uk']
+
+export default function SettingsPage({ profile, onProfileChange }) {
+  const { t, region, setRegion } = useCopy()
+  const [notation, setNotation] = useState(() => (profile?.preferred_notation ?? '').slice(0, NOTATION_MAX_LENGTH))
+  const [status, setStatus] = useState('idle') // 'idle' | 'saving' | 'saved' | 'error'
+  const [error, setError] = useState(null)
+  const [loggingOut, setLoggingOut] = useState(false)
+  const timerRef = useRef(null)
+  // SettingsPage est démonté (pas caché) par App.jsx au changement d'onglet.
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    // Réarme le drapeau à chaque (re)montage : en dev, StrictMode monte/nettoie/remonte
+    // une fois pour détecter les effets sans nettoyage — sans ce `= true` ici, le
+    // nettoyage simulé laisserait `mountedRef` bloqué à `false` pour de bon.
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+      clearTimeout(timerRef.current)
+    }
+  }, [])
+
+  // La région s'applique tout de suite à l'interface ; elle est persistée côté serveur au « Sauvegarder ».
+  function chooseRegion(next) {
+    if (next === region) return
+    setRegion(next)
+    if (status === 'saved') setStatus('idle')
+  }
+
+  async function handleSave(event) {
+    event.preventDefault()
+    if (status === 'saving') return
+    setStatus('saving')
+    setError(null)
+    const preferred_notation = notation.trim().slice(0, NOTATION_MAX_LENGTH)
+    try {
+      if (!IS_DEMO) await savePreferences({ preferred_notation, region })
+      onProfileChange?.({ ...(profile ?? {}), preferred_notation, region })
+      if (!mountedRef.current) return
+      setNotation(preferred_notation)
+      setStatus('saved')
+      clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => {
+        if (mountedRef.current) setStatus('idle')
+      }, SAVED_FEEDBACK_MS)
+    } catch (err) {
+      if (!mountedRef.current) return
+      const code = err instanceof ApiError ? err.code : 'SERVER_ERROR'
+      setError(t.errors[code] ?? t.errors.SERVER_ERROR)
+      setStatus('error')
+    }
+  }
+
+  async function handleLogout() {
+    if (loggingOut) return
+    setLoggingOut(true)
+    await supabase.auth.signOut()
+    // App.jsx écoute onAuthStateChange : la déconnexion bascule automatiquement sur LoginPage.
+  }
+
+  return (
+    <div className="mx-auto flex w-full max-w-md flex-col gap-6">
+      <GlassCard className="motion-safe:animate-bop">
+        <h1 className="font-display text-3xl font-extrabold text-slate-50">{t.settings.title}</h1>
+
+        <form onSubmit={handleSave} className="mt-6 flex flex-col gap-8">
+          <fieldset className="flex flex-col gap-3">
+            <legend className="text-sm font-semibold text-slate-300">{t.settings.region}</legend>
+            {/* Grille 2x2 (plutôt qu'une pilule unique) : 4 langues, dont deux libellés longs
+                (« English (US/UK) ») qui ne tiendraient pas confortablement sur une seule ligne. */}
+            <div role="group" aria-label={t.settings.region} className="grid grid-cols-2 gap-2">
+              {REGION_OPTIONS.map((option) => {
+                const active = option === region
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => chooseRegion(option)}
+                    className={`focus-ring min-h-[48px] rounded-2xl px-3 text-sm font-semibold transition-colors duration-200 ${
+                      active
+                        ? 'bg-amber-500 text-slate-900 shadow-glow-amber'
+                        : 'squishy glass text-slate-300 hover:bg-slate-700/50 hover:text-slate-100'
+                    }`}
+                  >
+                    {t.settings[option]}
+                  </button>
+                )
+              })}
+            </div>
+          </fieldset>
+
+          <label className="flex flex-col gap-3">
+            <span className="text-sm font-semibold text-slate-300">{t.settings.notation}</span>
+            <textarea
+              value={notation}
+              onChange={(event) => setNotation(event.target.value.slice(0, NOTATION_MAX_LENGTH))}
+              placeholder={t.settings.notationPlaceholder}
+              maxLength={NOTATION_MAX_LENGTH}
+              rows={4}
+              className="focus-ring w-full resize-y rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 leading-relaxed text-slate-100 placeholder:text-slate-500"
+            />
+            <span className="flex items-start justify-between gap-4 text-xs text-slate-400">
+              <span className="leading-relaxed">{t.settings.notationHelp}</span>
+              <span className="shrink-0 font-mono tabular-nums" aria-hidden="true">
+                {notation.length}/{NOTATION_MAX_LENGTH}
+              </span>
+            </span>
+          </label>
+
+          {error && (
+            <p role="alert" className="rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+              {error}
+            </p>
+          )}
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Button type="submit" variant="primary" size="lg" loading={status === 'saving'} className="w-full sm:flex-1">
+              {t.settings.save}
+            </Button>
+            <p role="status" aria-live="polite" className="min-h-[24px] text-center text-sm font-semibold text-emerald-400 sm:flex-1">
+              {status === 'saved' && <span className="inline-block motion-safe:animate-spring-in">{t.settings.saved}</span>}
+            </p>
+          </div>
+        </form>
+      </GlassCard>
+
+      {!IS_DEMO && (
+        <GlassCard as="section" className="motion-safe:animate-rise" style={{ animationDelay: '120ms' }}>
+          <h2 className="font-display text-xl font-bold text-slate-50">{t.settings.account}</h2>
+          {profile?.email && <p className="mt-2 leading-relaxed text-slate-300">{t.settings.loggedInAs(profile.email)}</p>}
+          <Button variant="secondary" onClick={handleLogout} loading={loggingOut} className="mt-5 w-full">
+            {t.settings.logout}
+          </Button>
+        </GlassCard>
+      )}
+    </div>
+  )
+}

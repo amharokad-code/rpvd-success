@@ -3,6 +3,10 @@ command = "npm run build"
 functions = "netlify/functions"
 publish = "dist"
 
+[functions]
+node_bundler = "esbuild"
+included_files = ["netlify/functions/_lib/**"]
+
 [dev]
 command = "npm run dev"
 port = 5173
