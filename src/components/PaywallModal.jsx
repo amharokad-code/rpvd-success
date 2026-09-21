@@ -23,11 +23,15 @@ const priceFormatter = new Intl.NumberFormat('fr-CA', {
 const COUNTDOWN_MS = 15 * 60 * 1000
 const COUNTDOWN_KEY = 'rpvd_paywall_deadline'
 
-// Lit (ou crée) l'échéance persistée : un rafraîchissement de page ne redonne pas 15:00 pleines.
+// Échéance réelle de LA session en cours, persistée pour survivre à un refresh — mais jamais
+// régénérée après une vraie expiration. Un chrono qui se relance silencieusement à chaque
+// visite reproduirait une fausse urgence permanente (problème de conformité, pas cosmétique) :
+// une fois expiré, `getDeadline` retourne l'échéance passée telle quelle, et l'UI passe en
+// état « expired » explicite (CTA désactivés) plutôt que de faire semblant qu'il reste du temps.
 function getDeadline() {
   try {
     const stored = Number(window.localStorage.getItem(COUNTDOWN_KEY))
-    if (stored && stored > Date.now()) return stored
+    if (stored) return stored
   } catch {
     // localStorage indisponible (mode privé, etc.) : le chrono reste en mémoire seulement.
   }
@@ -68,8 +72,10 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
     return () => clearInterval(interval)
   }, [open])
 
+  const expired = remainingMs <= 0
+
   async function choosePlan(plan) {
-    if (busyPlan) return
+    if (busyPlan || expired) return
     setBusyPlan(plan)
     setError(null)
     try {
@@ -99,7 +105,7 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {PLANS.map((plan) => {
           const isBusy = busyPlan === plan.id
-          const isDisabled = Boolean(busyPlan)
+          const isDisabled = Boolean(busyPlan) || expired
           return (
             <button
               key={plan.id}
@@ -107,9 +113,10 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
               onClick={() => choosePlan(plan.id)}
               disabled={isDisabled}
               aria-busy={isBusy || undefined}
+              aria-disabled={expired || undefined}
               className={`glass focus-ring flex min-h-[44px] w-full flex-col items-start gap-2 p-5 text-left transition-colors duration-200 ${
                 plan.featured ? 'border-amber-500/60 shadow-glow-amber' : 'hover:border-white/15'
-              } ${isDisabled ? 'cursor-wait opacity-60' : 'squishy'}`}
+              } ${expired ? 'cursor-not-allowed opacity-40 grayscale' : isDisabled ? 'cursor-wait opacity-60' : 'squishy'}`}
             >
               <span className="flex w-full items-baseline justify-between gap-3">
                 <span className="font-display text-2xl font-bold text-slate-50">{t.paywall[plan.id]}</span>
@@ -144,12 +151,14 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
       <p
         role="timer"
         aria-live="off"
-        className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-2 text-center font-mono text-base font-bold tabular-nums text-rose-300"
+        className={`mt-4 flex items-center justify-center gap-2 rounded-2xl border px-4 py-2 text-center font-mono text-base font-bold tabular-nums ${
+          expired ? 'border-slate-700 bg-slate-800/60 text-slate-400' : 'border-rose-500/30 bg-rose-500/10 text-rose-300'
+        }`}
       >
-        {t.paywall.urgencyLabel} {formatCountdown(remainingMs)}
+        {expired ? t.paywall.expired : `${t.paywall.urgencyLabel} ${formatCountdown(remainingMs)}`}
       </p>
 
-      <p className="mt-3 text-center text-xs leading-relaxed text-slate-400">{t.paywall.pressureText}</p>
+      {!expired && <p className="mt-3 text-center text-xs leading-relaxed text-slate-400">{t.paywall.pressureText}</p>}
 
       {error && (
         <p role="alert" className="mt-4 rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">

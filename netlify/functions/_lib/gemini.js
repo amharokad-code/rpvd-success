@@ -63,6 +63,20 @@ const RESPONSE_SCHEMA = {
       },
     },
     final_answer: { type: 'STRING' },
+    cheminement: {
+      type: 'ARRAY',
+      description:
+        "Extraction du niveau 1 (« template ») en séquence linéaire d'étapes pour l'Arbre de Cheminement — PAS une nouvelle génération pédagogique, juste un parsing typé du même contenu.",
+      items: {
+        type: 'OBJECT',
+        properties: {
+          type: { type: 'STRING', format: 'enum', enum: ['concept', 'action'] },
+          text: { type: 'STRING', description: 'Mot-clé ou formule courte, extrait du template.' },
+          isFormula: { type: 'BOOLEAN' },
+        },
+        required: ['type', 'text', 'isFormula'],
+      },
+    },
   },
   required: [
     'problem_type',
@@ -74,6 +88,7 @@ const RESPONSE_SCHEMA = {
     'level_3_steps',
     'final_answer',
     'ocr_fail',
+    'cheminement',
   ],
 };
 
@@ -135,6 +150,7 @@ function buildSystemInstruction({ region, preferredNotation }) {
     '8. « problem_type » : nom court et clair du type de problème, dans la langue de réponse.',
     `9. « subject_guess » : une valeur parmi ${SUBJECTS.join(', ')} (toujours en anglais, c\'est une clé technique, pas du texte affiché).`,
     "10. « ocr_fail » = true si la photo est floue, vide, mal cadrée, ou ne montre clairement pas un exercice — indépendamment de la langue. Dans ce cas : problem_type = un nom court signalant le souci (dans la langue de réponse), subject_guess = « autre », template = \"\", slots = [], final_answer = \"\", et level_1_fallback/level_2_fallback expliquent gentiment (dans la langue de réponse) qu'il faut reprendre la photo avec plus de lumière/de netteté, avec level_3_steps donnant 2 conseils photo concrets. S'il y a plusieurs exercices lisibles, prends le premier et mets ocr_fail = false.",
+    "11. « cheminement » : PAS une nouvelle explication — découpe le « template » (niveau 1) en 3 à 8 étapes séquentielles courtes, dans l'ordre où elles apparaissent dans la phrase. Chaque étape a un « type » : « concept » (mot-clé théorique, ex. « l'inconnue » / « the unknown ») ou « action » (geste concret ou formule isolée, ex. « x = -b/2a »). « isFormula » = true seulement si « text » est une expression mathématique isolée (pas une phrase). Si ocr_fail est true, cheminement = [].",
   ];
   if (notation) {
     lines.push('', `Formule l'explication en respectant strictement cette convention : ${notation}.`);
@@ -191,6 +207,23 @@ function normalizeSteps(raw) {
   return steps;
 }
 
+// Parsing typé du niveau 1 pour l'Arbre de Cheminement — pas une nouvelle génération pédagogique,
+// juste une extraction bornée et filtrée de ce que Gemini a déjà produit dans `cheminement`.
+const CHEMINEMENT_TYPES = ['concept', 'action'];
+const MAX_CHEMINEMENT_STEPS = 10;
+function normalizeCheminement(raw) {
+  if (!Array.isArray(raw)) return [];
+  const steps = [];
+  for (const item of raw) {
+    const type = CHEMINEMENT_TYPES.includes(item && item.type) ? item.type : null;
+    const text = cleanString(item && item.text);
+    if (!type || !text) continue;
+    steps.push({ type, text, isFormula: Boolean(item && item.isFormula) });
+    if (steps.length >= MAX_CHEMINEMENT_STEPS) break;
+  }
+  return steps;
+}
+
 // Valide la sortie brute de Gemini et construit l'objet Analysis (fallback si template invalide).
 function buildAnalysis(raw) {
   if (!raw || typeof raw !== 'object') throw new HttpError(502, 'AI_ERROR');
@@ -217,6 +250,7 @@ function buildAnalysis(raw) {
   const slots = normalizeSlots(raw.slots);
   const level1 = slots ? renderTemplate(template, slots, 'generic') : null;
   const level2 = slots ? renderTemplate(template, slots, 'value') : null;
+  const cheminement = normalizeCheminement(raw.cheminement);
 
   if (level1 && level2) {
     return {
@@ -228,6 +262,7 @@ function buildAnalysis(raw) {
       level_2: level2,
       level_3_steps: steps,
       final_answer: finalAnswer,
+      cheminement,
     };
   }
 
@@ -244,6 +279,7 @@ function buildAnalysis(raw) {
     level_2: fallback2,
     level_3_steps: steps,
     final_answer: finalAnswer,
+    cheminement,
   };
 }
 

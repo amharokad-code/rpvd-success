@@ -6,6 +6,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useCopy } from '../context/RegionContext'
 import Button from './ui/Button'
 import GlassCard from './ui/GlassCard'
+import ArbreCheminement from './ArbreCheminement'
 
 const SLOT_PATTERN = /\{\{(\d+)\}\}/g
 const VALUE_STAGGER_MS = 60
@@ -87,6 +88,9 @@ export default function AnalysisEngine({ analysis, onDone, onSave, onNew }) {
   const [done, setDone] = useState(false)
   const [firstTry, setFirstTry] = useState(false)
   const [animateValues, setAnimateValues] = useState(false)
+  // État partagé texte ↔ Arbre de Cheminement : une seule source de vérité, pilotée ici,
+  // jamais par un IntersectionObserver interne à ArbreCheminement (désync scroll/mobile).
+  const [activeStepIndex, setActiveStepIndex] = useState(-1)
 
   // Nouvelle analyse → on repart du niveau 1.
   useEffect(() => {
@@ -94,6 +98,7 @@ export default function AnalysisEngine({ analysis, onDone, onSave, onNew }) {
     setDone(false)
     setFirstTry(false)
     setAnimateValues(false)
+    setActiveStepIndex(-1)
   }, [analysis])
 
   const template = analysis?.template
@@ -106,6 +111,7 @@ export default function AnalysisEngine({ analysis, onDone, onSave, onNew }) {
 
   const mode = level >= 2 ? 'value' : 'generic'
   const patternTitle = level >= 2 ? t.analysis.level2Title : t.analysis.level1Title
+  const cheminement = Array.isArray(analysis?.cheminement) ? analysis.cheminement : []
 
   function goToLevel2() {
     setAnimateValues(true)
@@ -127,7 +133,7 @@ export default function AnalysisEngine({ analysis, onDone, onSave, onNew }) {
   return (
     <section className="space-y-4">
       {/* Zone des niveaux annoncée aux lecteurs d'écran ; les boutons restent en dehors. */}
-      <div aria-live="polite" className="space-y-4">
+      <div aria-live="polite" className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
         {/* Carte du pattern : niveau 1 (génériques) → niveau 2 (valeurs, transformation en place). */}
         <GlassCard className="motion-safe:animate-bop">
           {problemType && (
@@ -159,9 +165,13 @@ export default function AnalysisEngine({ analysis, onDone, onSave, onNew }) {
           )}
         </GlassCard>
 
+        {cheminement.length > 0 && (
+          <ArbreCheminement steps={cheminement} activeStepIndex={activeStepIndex} onStepSelect={setActiveStepIndex} />
+        )}
+
         {/* Niveau 3 : étapes en cascade + réponse finale. */}
         {level >= 3 && (
-          <GlassCard as="article" className="motion-safe:animate-rise">
+          <GlassCard as="article" className="motion-safe:animate-rise lg:col-span-2">
             <h2 className="font-display text-xl font-bold leading-snug text-slate-50 sm:text-2xl">{t.analysis.level3Title}</h2>
 
             {steps.length > 0 && (

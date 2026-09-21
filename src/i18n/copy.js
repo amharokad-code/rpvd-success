@@ -86,6 +86,7 @@ const qc = {
     badgeAlt: 'Accès limité',
     discountBadge: (pct) => `-${pct}%`,
     urgencyLabel: "🔥 L'offre expire dans :",
+    expired: "⏳ L'offre a expiré — reviens plus tard pour un nouveau prix.",
     pressureText: "Moins cher qu'une seule heure de tuteur. Bloque ce prix avant la fin du chrono pour garantir ton accès.",
   },
 
@@ -239,6 +240,7 @@ const fr = {
     badgeAlt: 'Accès limité',
     discountBadge: (pct) => `-${pct}%`,
     urgencyLabel: "🔥 L'offre expire dans :",
+    expired: "⏳ L'offre a expiré — reviens plus tard pour un nouveau prix.",
     pressureText: "Moins cher qu'une seule heure de tuteur. Bloque ce prix avant la fin du chrono pour garantir ton accès.",
   },
 
@@ -392,6 +394,7 @@ const us = {
     badgeAlt: 'Limited access',
     discountBadge: (pct) => `-${pct}%`,
     urgencyLabel: '🔥 Offer expires in:',
+    expired: '⏳ Offer expired — come back later for a new price.',
     pressureText: 'Cheaper than one hour with a tutor. Lock in this price before the timer runs out.',
   },
 
@@ -545,6 +548,7 @@ const uk = {
     badgeAlt: 'Limited access',
     discountBadge: (pct) => `-${pct}%`,
     urgencyLabel: '🔥 Offer expires in:',
+    expired: '⏳ Offer expired — come back later for a new price.',
     pressureText: 'Cheaper than one hour with a tutor. Lock in this price before the timer runs out.',
   },
 
