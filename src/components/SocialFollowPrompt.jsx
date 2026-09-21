@@ -9,9 +9,9 @@ const STORAGE_KEY = 'rpvd_social_prompt_dismissed'
 
 // URLs réelles à fournir — jamais deviner un lien de marque.
 const SOCIAL_LINKS = {
-  facebook: '',
-  instagram: '',
-  tiktok: '',
+  facebook: 'https://www.facebook.com/profile.php?id=61594698173423',
+  instagram: 'https://www.instagram.com/rpvdsuccess/',
+  tiktok: 'https://www.tiktok.com/@rpvd_success',
 }
 
 function FacebookIcon() {
