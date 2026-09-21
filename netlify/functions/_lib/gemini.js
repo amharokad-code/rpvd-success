@@ -356,7 +356,11 @@ async function analyzeImage({ base64, mimeType, region = DEFAULT_REGION, preferr
       responseMimeType: 'application/json',
       responseSchema: RESPONSE_SCHEMA,
       temperature: 0.4,
-      maxOutputTokens: 2048,
+      // 2048 suffisait avant l'ajout de `cheminement` (contrat rebrand) : le schéma JSON plus
+      // gros (jusqu'à 10 étapes en plus des slots/level_3_steps/template) dépassait le budget
+      // et Gemini tronquait la réponse en plein milieu (finishReason: MAX_TOKENS), donc un JSON
+      // invalide → 502 systématique en prod. Vu en direct dans les logs Netlify.
+      maxOutputTokens: 8192,
     },
   };
 
