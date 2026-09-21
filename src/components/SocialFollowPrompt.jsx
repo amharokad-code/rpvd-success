@@ -102,10 +102,10 @@ export default function SocialFollowPrompt() {
           type="button"
           onClick={close}
           aria-label="Fermer"
-          className="focus-ring squishy absolute -bottom-4 -right-4 flex h-11 w-11 items-center justify-center rounded-full border border-pyramid-grey/30 bg-slate-800 text-slate-300 shadow-glass hover:bg-slate-700 hover:text-slate-100"
+          className="focus-ring squishy absolute -bottom-4 -right-4 flex h-11 w-11 items-center justify-center rounded-full border border-pyramid-grey/20 bg-slate-800/50 text-slate-400/70 backdrop-blur-sm transition-colors duration-200 hover:bg-slate-700/70 hover:text-slate-100"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
           </svg>
         </button>
       </GlassCard>
