@@ -24,7 +24,10 @@ const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const TIMEOUT_MS = 12000;
 const SUBJECTS = ['math', 'chimie', 'physique', 'sciences', 'francais', 'anglais', 'autre'];
 const MIN_STEPS = 2;
-const MAX_STEPS = 7;
+// Plafond relevé (contrat) : un exercice complexe doit pouvoir produire une décomposition
+// aussi longue que nécessaire plutôt que d'être artificiellement coupée à 7 étapes — l'UI
+// (AnalysisEngine/ArbreCheminement) scrolle désormais au lieu de déborder.
+const MAX_STEPS = 14;
 const MAX_NOTATION_CHARS = 300;
 
 // Index du premier modèle qui a répondu (mémorisé le temps de vie du conteneur).
@@ -152,12 +155,12 @@ function buildSystemInstruction({ region, preferredNotation }) {
     '3. « template » : une ou deux phrases qui décrivent la méthode générale, avec des trous numérotés {{0}}, {{1}}, {{2}}... (0-indexés, sans saut de numéro, chaque numéro apparaît au moins une fois). La phrase doit rester correcte quand on remplace chaque trou par son nom générique OU par sa valeur concrète.',
     "4. « slots » : un objet par trou, dans l'ordre (slots[i] correspond à {{i}}). « generic » = le rôle en mots simples avec son article, dans la langue de réponse (ex. « l'inconnue » / « the unknown »). « value » = la valeur exacte de l'exercice (ex. « x », « 7 », « 3 »). Entre 2 et 6 trous. Si deux trous ont le même rôle, répète le même generic.",
     '5. « level_1_fallback » = le template avec chaque {{i}} remplacé par slots[i].generic. « level_2_fallback » = le template avec chaque {{i}} remplacé par slots[i].value. Mot pour mot.',
-    `6. « level_3_steps » : entre ${MIN_STEPS} et ${MAX_STEPS} étapes. « title » : 3 à 8 mots, une action concrète (ex. « On enlève 7 des deux bords » / « We subtract 7 from both sides »). « text » : 1 à 3 phrases, chaque calcul écrit au complet (ex. « 3x + 7 − 7 = 22 − 7, donc 3x = 15. »).`,
+    `6. « level_3_steps » : entre ${MIN_STEPS} et ${MAX_STEPS} étapes — LE NOMBRE DOIT SUIVRE LA VRAIE COMPLEXITÉ DE L'EXERCICE, pas une longueur fixe. Un exercice simple (ex. une équation à une étape) : ${MIN_STEPS}-3 étapes, ne rallonge pas artificiellement. Un exercice avec plusieurs sous-parties, plusieurs règles appliquées successivement, ou un raisonnement en plusieurs étapes distinctes (ex. système d'équations, problème à plusieurs inconnues, preuve, exercice à plusieurs questions) : va jusqu'à ${MAX_STEPS} étapes s'il le faut réellement, ne saute aucune étape intermédiaire juste pour rester court. « title » : 3 à 8 mots, une action concrète (ex. « On enlève 7 des deux bords » / « We subtract 7 from both sides »). « text » : 1 à 3 phrases, chaque calcul écrit au complet (ex. « 3x + 7 − 7 = 22 − 7, donc 3x = 15. »).`,
     '7. « final_answer » : la réponse finale, courte (ex. « x = 5 »).',
     '8. « problem_type » : nom court et clair du type de problème, dans la langue de réponse.',
     `9. « subject_guess » : une valeur parmi ${SUBJECTS.join(', ')} (toujours en anglais, c\'est une clé technique, pas du texte affiché).`,
     "10. « ocr_fail » = true si la photo est floue, vide, mal cadrée, ou ne montre clairement pas un exercice — indépendamment de la langue. Dans ce cas : problem_type = un nom court signalant le souci (dans la langue de réponse), subject_guess = « autre », template = \"\", slots = [], final_answer = \"\", et level_1_fallback/level_2_fallback expliquent gentiment (dans la langue de réponse) qu'il faut reprendre la photo avec plus de lumière/de netteté, avec level_3_steps donnant 2 conseils photo concrets. S'il y a plusieurs exercices lisibles, prends le premier et mets ocr_fail = false.",
-    "11. « cheminement » : PAS une nouvelle explication — découpe le « template » (niveau 1) en 3 à 8 étapes séquentielles courtes, dans l'ordre où elles apparaissent dans la phrase. Chaque étape a un « type » : « concept » (mot-clé théorique, ex. « l'inconnue » / « the unknown ») ou « action » (geste concret ou formule isolée, ex. « x = -b/2a »). « isFormula » = true seulement si « text » est une expression mathématique isolée (pas une phrase). Si ocr_fail est true, cheminement = [].",
+    "11. « cheminement » : PAS une nouvelle explication — découpe le « template » (niveau 1) en étapes séquentielles courtes, dans l'ordre où elles apparaissent dans la phrase. MÊME PRINCIPE que la règle 6 : la longueur suit la complexité réelle, pas un nombre fixe — un exercice simple donne 3-5 étapes, un exercice qui enchaîne plusieurs règles/sous-parties peut aller jusqu'à 16 étapes si c'est justifié par le contenu du template. Chaque étape a un « type » : « concept » (mot-clé théorique, ex. « l'inconnue » / « the unknown ») ou « action » (geste concret ou formule isolée, ex. « x = -b/2a »). « isFormula » = true seulement si « text » est une expression mathématique isolée (pas une phrase). Si ocr_fail est true, cheminement = [].",
   ];
   if (notation) {
     lines.push('', `Formule l'explication en respectant strictement cette convention : ${notation}.`);
@@ -217,7 +220,9 @@ function normalizeSteps(raw) {
 // Parsing typé du niveau 1 pour l'Arbre de Cheminement — pas une nouvelle génération pédagogique,
 // juste une extraction bornée et filtrée de ce que Gemini a déjà produit dans `cheminement`.
 const CHEMINEMENT_TYPES = ['concept', 'action'];
-const MAX_CHEMINEMENT_STEPS = 10;
+// Plafond relevé en même temps que MAX_STEPS — un exercice complexe a droit à un cheminement
+// aussi long que le niveau 3, l'UI scrolle plutôt que de tronquer.
+const MAX_CHEMINEMENT_STEPS = 16;
 function normalizeCheminement(raw) {
   if (!Array.isArray(raw)) return [];
   const steps = [];
@@ -390,7 +395,9 @@ async function analyzeImage({
       // gros (jusqu'à 10 étapes en plus des slots/level_3_steps/template) dépassait le budget
       // et Gemini tronquait la réponse en plein milieu (finishReason: MAX_TOKENS), donc un JSON
       // invalide → 502 systématique en prod. Vu en direct dans les logs Netlify.
-      maxOutputTokens: 8192,
+      // Relevé avec MAX_STEPS/MAX_CHEMINEMENT_STEPS (14/16) : un exercice complexe qui utilise
+      // vraiment tout ce plafond produit un JSON plus gros que ce que 8192 couvrait.
+      maxOutputTokens: 12288,
       // Réflexion prolongée (contrat) : même modèle flash-lite, budget de raisonnement interne
       // plus généreux avant de répondre — meilleure qualité pédagogique sur les cas ambigus,
       // sans changer de modèle ni retomber sur la famille flash-3.x instable.

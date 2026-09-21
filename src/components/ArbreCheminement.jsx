@@ -65,9 +65,11 @@ export default function ArbreCheminement({ steps, activeStepIndex, onStepSelect 
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="glass rounded-2xl p-5"
+      className="glass flex max-h-[32rem] flex-col rounded-2xl p-5"
     >
-      <ol className="flex flex-col">
+      {/* Exercices complexes = cheminement plus long (contrat) : ça scrolle dans sa propre
+          carte plutôt que de déborder ou de forcer une troncature arbitraire du contenu. */}
+      <ol className="flex flex-col overflow-y-auto pr-1">
         {steps.map((step, index) => (
           <StepBubble key={index} step={step} index={index} active={index === activeStepIndex} onSelect={onStepSelect} />
         ))}

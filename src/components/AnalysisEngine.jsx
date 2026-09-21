@@ -174,8 +174,10 @@ export default function AnalysisEngine({ analysis, onDone, onSave, onNew }) {
           <GlassCard as="article" className="motion-safe:animate-rise lg:col-span-2">
             <h2 className="font-display text-xl font-bold leading-snug text-slate-50 sm:text-2xl">{t.analysis.level3Title}</h2>
 
+            {/* Exercices complexes = plus d'étapes (contrat) : scroll interne au-delà d'une
+                certaine hauteur plutôt que de laisser la carte s'étirer indéfiniment. */}
             {steps.length > 0 && (
-              <ol className="mt-5 space-y-5" role="list">
+              <ol className="mt-5 max-h-[40rem] space-y-5 overflow-y-auto pr-1" role="list">
                 {steps.map((step, i) => (
                   <li
                     key={i}
