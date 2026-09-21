@@ -28,13 +28,20 @@ function siteUrl() {
 // quadri-langue) — un seul plan tarifaire avec des conversions fournies, pas de Price ID Stripe
 // persistant (qui serait figé sur une seule devise et désynchroniserait le prix affiché).
 function lineItemFor(plan, currency) {
-  const { amounts, label, credits } = PLANS[plan];
+  const { amounts, label, credits, codesPerPurchase } = PLANS[plan];
   const unitAmount = amounts[currency] ?? amounts.cad;
+  // `credits` est PAR CODE (contrat) — le nom affiché sur la page Stripe doit refléter le
+  // vrai contenu du pack (3 codes séparés pour Trio), sinon l'acheteur croit payer pour
+  // 50 analyses au total plutôt que 3 codes de 50 (un par personne/appareil).
+  const name =
+    codesPerPurchase > 1
+      ? `RPVD Success ${label} — ${codesPerPurchase} codes de ${credits} analyses, 3 mois chacun`
+      : `RPVD Success ${label} — ${credits} analyses, 3 mois`;
   return {
     price_data: {
       currency,
       unit_amount: unitAmount,
-      product_data: { name: `RPVD Success ${label} — ${credits} analyses, 3 mois` },
+      product_data: { name },
     },
     quantity: 1,
   };

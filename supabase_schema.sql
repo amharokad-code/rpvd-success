@@ -75,11 +75,17 @@ create table if not exists public.activation_codes (
   used_at           timestamptz,
   expires_at        timestamptz,
   created_at        timestamptz default now(),
-  -- Noms de contraintes explicites : create_activation_codes distingue une
-  -- collision de code (on regénère) d'une collision de session Stripe (erreur).
-  constraint activation_codes_code_key unique (code),
-  constraint activation_codes_stripe_session_id_key unique (stripe_session_id)
+  -- Nom de contrainte explicite : create_activation_codes distingue une
+  -- collision de code (on regénère) d'une autre violation (propagée).
+  constraint activation_codes_code_key unique (code)
 );
+
+-- Un achat Trio génère 3 codes qui PARTAGENT le même stripe_session_id (un code par
+-- personne/appareil, contrat) — l'ancienne contrainte UNIQUE sur cette colonne n'autorisait
+-- qu'un seul code par paiement et doit être retirée si elle existe encore (idempotence).
+alter table public.activation_codes drop constraint if exists activation_codes_stripe_session_id_key;
+create index if not exists activation_codes_stripe_session_id_idx
+  on public.activation_codes (stripe_session_id);
 
 -- Idempotence : si la table existait déjà avec l'ancienne contrainte RESTRICT
 -- implicite sur used_by, on la remplace par ON DELETE SET NULL (permet de
@@ -562,6 +568,14 @@ begin
   end if;
   if p_credits is null or p_credits <= 0 or p_count is null or p_count <= 0 then
     raise exception 'BAD_REQUEST';
+  end if;
+
+  -- Verrou transactionnel par session Stripe : sans lui, deux livraisons concurrentes du
+  -- même webhook (Stripe retente parfois) pourraient toutes deux passer le test d'idempotence
+  -- ci-dessous avant qu'aucune n'ait inséré de ligne, et générer chacune leurs 3 codes en double.
+  -- Relâché automatiquement à la fin de la transaction appelante.
+  if p_stripe_session_id is not null then
+    perform pg_advisory_xact_lock(hashtextextended(p_stripe_session_id, 0));
   end if;
 
   -- Idempotence webhook Stripe : session déjà traitée → rien à faire.

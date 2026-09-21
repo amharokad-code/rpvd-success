@@ -103,21 +103,32 @@ function trialCodesEmail({ codes, region = 'qc' }) {
   return { subject: text.subject, html: layout(content), text: plainText(content) };
 }
 
-// Courriel du code premium après paiement Stripe.
-function premiumCodeEmail({ code, plan, credits }) {
+// Courriel du/des code(s) premium après paiement Stripe. Trio = 3 codes séparés (un par
+// personne/appareil, contrat) — chaque compte reste verrouillé à 1 seul appareil pour toujours ;
+// ce n'est PAS 1 compte partagé à 150 crédits.
+function premiumCodeEmail({ codes, plan, credits }) {
   const label = plan === 'trio' ? 'Trio' : 'Solo';
+  const multiple = codes.length > 1;
   const content = {
-    title: `Merci ! Voici ton code ${label} ⚡`,
-    paragraphs: [
-      `Ton paiement est passé. Ce code débloque ${credits} analyses, valides 3 mois à partir de l'activation.`,
-    ],
-    codes: [code],
+    title: multiple ? `Merci ! Voici tes ${codes.length} codes ${label} ⚡` : `Merci ! Voici ton code ${label} ⚡`,
+    paragraphs: multiple
+      ? [
+          `Ton paiement est passé. Voici ${codes.length} codes distincts, chacun bon pour ${credits} analyses (3 mois à partir de l'activation) sur UN appareil — un pour toi, les 2 autres pour tes amis ou tes autres appareils.`,
+        ]
+      : [`Ton paiement est passé. Ce code débloque ${credits} analyses, valides 3 mois à partir de l'activation.`],
+    codes,
     outro: [
-      "Pour activer : ouvre l'app RPVD Success, va dans « J'ai un code », tape-le et c'est parti.",
-      'Garde ce courriel précieusement : le code est à usage unique.',
+      multiple
+        ? "Pour activer : chacun ouvre l'app RPVD Success sur SON appareil, va dans « J'ai un code », tape un des codes ci-dessus (un code par appareil)."
+        : "Pour activer : ouvre l'app RPVD Success, va dans « J'ai un code », tape-le et c'est parti.",
+      'Garde ce courriel précieusement : chaque code est à usage unique.',
     ],
   };
-  return { subject: `Ton code RPVD Success (${label}) ⚡`, html: layout(content), text: plainText(content) };
+  return {
+    subject: multiple ? `Tes ${codes.length} codes RPVD Success (${label}) ⚡` : `Ton code RPVD Success (${label}) ⚡`,
+    html: layout(content),
+    text: plainText(content),
+  };
 }
 
 // Courriel de confirmation après activation d'un code.

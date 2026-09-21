@@ -12,14 +12,19 @@ const DEFAULT_CURRENCY = 'cad';
 
 // Montants en plus petite unité (cents), un jeu de valeurs par devise (conversions fournies,
 // pas calculées à la volée à partir d'un taux de change qui bougerait).
+// « credits » = crédits PAR CODE (chaque code s'active sur un compte/appareil distinct — un
+// compte reste verrouillé à 1 seul appareil pour toujours, contrat). Trio = 3 codes séparés
+// (une personne ou un appareil chacun), pas 1 compte partagé à 150 crédits.
 const PLANS = {
   solo: {
     credits: 50,
+    codesPerPurchase: 1,
     label: 'Solo',
     amounts: { cad: 1754, usd: 1299, eur: 1182, gbp: 1013 },
   },
   trio: {
-    credits: 150,
+    credits: 50,
+    codesPerPurchase: 3,
     label: 'Trio',
     amounts: { cad: 3374, usd: 2499, eur: 2274, gbp: 1949 },
   },

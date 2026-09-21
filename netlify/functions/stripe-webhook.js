@@ -58,11 +58,13 @@ exports.handler = async (event) => {
     const email = (session.customer_details && session.customer_details.email) || session.customer_email || null;
     const expiresAt = new Date(Date.now() + PREMIUM_CODE_VALIDITY_DAYS * 24 * 3600 * 1000).toISOString();
 
+    // Trio = 3 codes séparés (un par personne/appareil, contrat), pas 1 compte partagé :
+    // chaque code garde le même stripe_session_id pour l'idempotence webhook (voir la RPC).
     const codes = await rpc('create_activation_codes', {
       p_type: 'premium',
       p_plan: plan,
       p_credits: PLANS[plan].credits,
-      p_count: 1,
+      p_count: PLANS[plan].codesPerPurchase,
       p_email: email,
       p_batch_id: null,
       p_stripe_session_id: session.id,
@@ -97,7 +99,7 @@ exports.handler = async (event) => {
 
     const { sent } = await sendEmail({
       to: email,
-      ...premiumCodeEmail({ code: codes[0], plan, credits: PLANS[plan].credits }),
+      ...premiumCodeEmail({ codes, plan, credits: PLANS[plan].credits }),
     });
     if (!sent) console.error(`[stripe-webhook] Courriel non envoyé pour la session ${session.id} (code en base).`);
 
