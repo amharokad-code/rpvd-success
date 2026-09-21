@@ -7,7 +7,7 @@ const Stripe = require('stripe');
 const { HttpError, preflight, json, header, handleError } = require('./_lib/http');
 const { rpc } = require('./_lib/supabase');
 const { sendEmail, premiumCodeEmail } = require('./_lib/email');
-const { PLANS, PREMIUM_CODE_VALIDITY_DAYS } = require('./_lib/codes');
+const { PLANS, PREMIUM_CODE_REDEMPTION_WINDOW_DAYS } = require('./_lib/codes');
 const { sendPurchaseEvent } = require('./_lib/meta-capi');
 
 let stripeClient = null;
@@ -56,7 +56,7 @@ exports.handler = async (event) => {
     }
 
     const email = (session.customer_details && session.customer_details.email) || session.customer_email || null;
-    const expiresAt = new Date(Date.now() + PREMIUM_CODE_VALIDITY_DAYS * 24 * 3600 * 1000).toISOString();
+    const expiresAt = new Date(Date.now() + PREMIUM_CODE_REDEMPTION_WINDOW_DAYS * 24 * 3600 * 1000).toISOString();
 
     // Trio = 3 codes séparés (un par personne/appareil, contrat), pas 1 compte partagé :
     // chaque code garde le même stripe_session_id pour l'idempotence webhook (voir la RPC).

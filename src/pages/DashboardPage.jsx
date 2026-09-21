@@ -13,6 +13,7 @@ import StreakFlame from '../components/StreakFlame'
 import Logo from '../components/Logo'
 import NotationBlock from '../components/NotationBlock'
 import SocialFollowPrompt from '../components/SocialFollowPrompt'
+import Flag from '../components/Flag'
 import { useCopy } from '../context/RegionContext'
 import { ApiError, analyzeHomework } from '../lib/api'
 import { DEMO_ANALYSIS } from '../fixtures/demoAnalysis'
@@ -29,6 +30,9 @@ const DEMO_DELAY_MS = 1200
 const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || ''
 
 const noop = () => {}
+// Mêmes 4 régions que Settings (contrat quadri-langue) — ici juste les drapeaux, sans texte,
+// pour un accès rapide depuis l'accueil sans y consacrer une section complète.
+const REGION_OPTIONS = ['qc', 'fr', 'us', 'uk']
 
 // Libère l'URL d'aperçu créée par `prepareFile` (seulement les blobs, les data: URL sont inertes).
 function releasePreview(file) {
@@ -36,7 +40,7 @@ function releasePreview(file) {
 }
 
 export default function DashboardPage({ profile, onProfileChange, onOpenActivate }) {
-  const { t, region } = useCopy()
+  const { t, region, setRegion } = useCopy()
   // Phases : 'upload' (zone de dépôt) → 'ready' (aperçu + bouton) → 'loading' → 'result' | 'error'.
   const [phase, setPhase] = useState('upload')
   const [file, setFile] = useState(null) // { base64, mimeType, previewUrl }
@@ -188,6 +192,25 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
             <StreakFlame days={profile?.streak_days ?? 0} />
             <CreditsBadge credits={credits} onClick={openPaywall} />
           </div>
+        </div>
+        <div role="group" aria-label={t.settings.region} className="flex items-center gap-1.5 self-start">
+          {REGION_OPTIONS.map((option) => {
+            const active = option === region
+            return (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={active}
+                aria-label={t.settings[option]}
+                onClick={() => setRegion(option)}
+                className={`focus-ring squishy flex h-8 w-10 items-center justify-center rounded-lg transition-all duration-200 ${
+                  active ? 'glass shadow-glow-amber ring-1 ring-amber-400/60' : 'opacity-50 hover:opacity-90'
+                }`}
+              >
+                <Flag region={option} className="h-4 w-6 rounded-sm" />
+              </button>
+            )
+          })}
         </div>
       </header>
 

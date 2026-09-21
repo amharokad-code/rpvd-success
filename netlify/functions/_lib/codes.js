@@ -4,7 +4,9 @@
 const TRIAL_CREDITS = 3;
 const TRIAL_CODES_PER_EMAIL = 3;
 const TRIAL_VALIDITY_DAYS = 30;
-const PREMIUM_CODE_VALIDITY_DAYS = 365;
+// Délai pour ACTIVER un code après achat (pas la durée d'usage du forfait, qui est de 90 jours
+// APRÈS activation — voir activate_code() dans supabase_schema.sql).
+const PREMIUM_CODE_REDEMPTION_WINDOW_DAYS = 365;
 
 // Devise selon la région (contrat §3 quadri-langue) — un seul plan tarifaire, converti.
 const REGION_CURRENCY = { qc: 'cad', fr: 'eur', us: 'usd', uk: 'gbp' };
@@ -56,7 +58,7 @@ module.exports = {
   TRIAL_CREDITS,
   TRIAL_CODES_PER_EMAIL,
   TRIAL_VALIDITY_DAYS,
-  PREMIUM_CODE_VALIDITY_DAYS,
+  PREMIUM_CODE_REDEMPTION_WINDOW_DAYS,
   PLANS,
   REGION_CURRENCY,
   DEFAULT_CURRENCY,
