@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
 import Flag from '../components/Flag'
+import foundersPhoto from '../assets/founders.jpg'
 import { useCopy } from '../context/RegionContext'
 import { ApiError, savePreferences } from '../lib/api'
 import { supabase } from '../lib/supabase'
@@ -135,6 +136,21 @@ export default function SettingsPage({ profile, onProfileChange }) {
           </Button>
         </GlassCard>
       )}
+
+      <GlassCard as="section" className="motion-safe:animate-rise" style={{ animationDelay: '200ms' }}>
+        <h2 className="font-display text-xl font-bold text-slate-50">À propos</h2>
+        <img
+          src={foundersPhoto}
+          alt="Abdel-Majid et Ismael, fondateurs de RPVD Success"
+          className="mt-4 w-full rounded-2xl border border-pyramid-grey/30 object-cover"
+        />
+        <p className="mt-4 font-display text-lg font-bold text-slate-100">Abdel-Majid &amp; Ismael</p>
+        <p className="mt-2 leading-relaxed text-slate-300">
+          On a fondé RPVD Success parce qu&rsquo;on s&rsquo;est tannés de voir des élèves copier une réponse sans
+          jamais comprendre la logique derrière. Pas de raccourci ici : on te montre le pattern, tu l&rsquo;appliques
+          toi-même. On construit ça comme si c&rsquo;était pour notre propre petit frère ou notre propre petite sœur.
+        </p>
+      </GlassCard>
     </div>
   )
 }
