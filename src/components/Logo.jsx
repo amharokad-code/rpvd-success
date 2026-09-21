@@ -1,34 +1,20 @@
 // Logo RPVD Success — pyramide 4 bandes + wordmark, jamais recoloré (les 4 teintes viennent
 // du fichier source ; c'est la palette du site qui s'aligne sur le logo, pas l'inverse).
-// variant="full" : pyramide + "RPVD SUCCESS" + baseline (header/nav).
-// variant="icon" : pictogramme seul, recadré sur la partie gauche du fichier source (favicon,
-//   splash screen) — pas d'asset séparé disponible, donc recadrage CSS via object-position.
-// variant="watermark" : pictogramme seul, très faible opacité (empty states, footer).
+// variant="full" : pyramide + "RPVD SUCCESS" + baseline (header/nav) — fichier avec wordmark.
+// variant="icon"/"watermark" : pictogramme isolé (asset dédié, fourni séparément — plus de
+//   recadrage CSS approximatif sur le fichier avec wordmark).
 import logoSrc from '../assets/rpvd-logo.webp'
-
-const ICON_CROP_STYLE = {
-  width: '1em',
-  height: '1em',
-  objectFit: 'cover',
-  // Le fichier source est ~1920×1920 avec la pyramide dans le quart supérieur-gauche ;
-  // on zoome/recentre dessus plutôt que d'afficher tout le wordmark en miniature.
-  objectPosition: '18% 30%',
-  transform: 'scale(3.2)',
-}
+import iconSrc from '../assets/rpvd-icon.png'
 
 export default function Logo({ variant = 'full', className = '' }) {
   if (variant === 'icon') {
-    return (
-      <span className={`inline-block overflow-hidden rounded-lg bg-black ${className}`} style={{ fontSize: 'inherit' }}>
-        <img src={logoSrc} alt="RPVD Success" style={ICON_CROP_STYLE} />
-      </span>
-    )
+    return <img src={iconSrc} alt="RPVD Success" className={`rounded-lg ${className}`} />
   }
 
   if (variant === 'watermark') {
     return (
       <img
-        src={logoSrc}
+        src={iconSrc}
         alt=""
         aria-hidden="true"
         className={`pointer-events-none select-none opacity-10 grayscale ${className}`}

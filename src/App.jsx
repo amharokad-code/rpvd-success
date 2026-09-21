@@ -117,7 +117,7 @@ function BootScreen({ t }) {
         transition={{ duration: 0.5, ease: 'easeOut' }}
         className="flex w-full max-w-sm flex-col items-center gap-5 text-center"
       >
-        <Logo variant="icon" className="text-6xl" />
+        <Logo variant="icon" className="h-24 w-24" />
         <span className="h-1.5 w-40 overflow-hidden rounded-full bg-pyramid-grey/30" aria-hidden="true">
           <span
             className="block h-full w-full bg-[linear-gradient(90deg,transparent,rgba(242,153,74,.7),transparent)] motion-safe:animate-shimmer"
