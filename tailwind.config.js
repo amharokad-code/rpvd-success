@@ -10,6 +10,11 @@ const PYRAMID_ORANGE = '#f2994a'
 const PYRAMID_ORANGE_DEEP = '#e07b2e'
 const PYRAMID_WHITE = '#f5f5f0'
 const PYRAMID_GREY = '#6b6d70'
+// Ambre "terne" (contrat design v2, demande explicite) : moins de saturation que l'orange pur
+// du logo, réservé maintenant à un usage de PETITES touches (CTA, badges, glow) plutôt qu'aux
+// grandes surfaces — `pyramid.orange` (vif) reste disponible pour le logo et les accents ciblés.
+const MUTED_AMBER = '#c98a52'
+const MUTED_AMBER_DEEP = '#a8692f'
 
 module.exports = {
   content: ['./index.html', './src/**/*.{js,jsx}'],
@@ -20,11 +25,11 @@ module.exports = {
         'coral-soft': '#FFB4A0',
         // Override de la teinte `amber` native : rebrand global sans sed sur les composants.
         amber: {
-          300: '#f6b273',
-          400: PYRAMID_ORANGE,
-          500: PYRAMID_ORANGE,
-          600: PYRAMID_ORANGE_DEEP,
-          700: '#c2631f',
+          300: '#d9ab7c',
+          400: MUTED_AMBER,
+          500: MUTED_AMBER,
+          600: MUTED_AMBER_DEEP,
+          700: '#8a5426',
         },
         // Tokens nommés du logo, pour les usages explicitement "marque" (Logo.jsx, tokens 1:1).
         pyramid: {
@@ -85,6 +90,21 @@ module.exports = {
           '0%, 100%': { boxShadow: '0 0 0 rgba(242,153,74,0)' },
           '50%': { boxShadow: '0 0 15px rgba(242,153,74,0.45)' },
         },
+        // Dérive très lente de la grille de fond (contrat design v2 : "mini vivant").
+        'grid-drift': {
+          '0%': { backgroundPosition: '0 0' },
+          '100%': { backgroundPosition: '48px 48px' },
+        },
+        // Flottement quasi imperceptible (logo, icônes de statut).
+        float: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-4px)' },
+        },
+        // Reflet qui balaie un bouton plein au repos, discret, pour signaler "vivant".
+        sweep: {
+          '0%': { backgroundPosition: '-150% 0' },
+          '60%, 100%': { backgroundPosition: '150% 0' },
+        },
       },
       animation: {
         bop: 'bop 300ms ease-out both',
@@ -93,6 +113,9 @@ module.exports = {
         'spring-in': 'spring-in 480ms cubic-bezier(.34,1.56,.64,1) both',
         shimmer: 'shimmer 1.6s linear infinite',
         'glow-pulse': 'glow-pulse 1.8s ease-in-out infinite',
+        'grid-drift': 'grid-drift 22s linear infinite',
+        float: 'float 5s ease-in-out infinite',
+        sweep: 'sweep 6s ease-in-out infinite',
       },
       transitionTimingFunction: {
         spring: 'cubic-bezier(.34,1.56,.64,1)',

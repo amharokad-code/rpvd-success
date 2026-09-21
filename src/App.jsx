@@ -233,13 +233,18 @@ function AppShell() {
   }
 
   return (
-    <div className="min-h-screen">
-      {/* Barre de navigation : fixe en bas sur mobile, collée en haut à partir de sm. */}
+    <div className="min-h-screen sm:flex">
+      {/* Navigation : rail fixe à gauche à partir de sm (place pour de futures sections),
+          barre collée en bas sur mobile où un rail latéral prendrait trop de largeur utile. */}
       <nav
         aria-label={t.brand}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/5 bg-slate-900/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:sticky sm:bottom-auto sm:top-0 sm:border-b sm:border-t-0"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/5 bg-slate-900/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:sticky sm:inset-auto sm:top-0 sm:h-screen sm:w-20 sm:shrink-0 sm:flex-col sm:border-t-0 sm:border-r sm:pb-0 lg:w-56"
       >
-        <ul className="mx-auto flex w-full max-w-3xl items-stretch justify-around px-2 sm:justify-center sm:gap-2 sm:py-2">
+        <div className="hidden sm:flex sm:h-16 sm:items-center sm:justify-center lg:justify-start lg:px-5">
+          <Logo variant="icon" className="h-9 w-9 motion-safe:animate-float lg:hidden" />
+          <Logo className="hidden h-8 w-auto lg:block" />
+        </div>
+        <ul className="mx-auto flex w-full max-w-3xl items-stretch justify-around px-2 sm:mx-0 sm:max-w-none sm:flex-col sm:items-stretch sm:justify-start sm:gap-1 sm:px-3 sm:py-2">
           {NAV_TABS.map((key) => {
             const active = tab === key
             return (
@@ -248,12 +253,14 @@ function AppShell() {
                   type="button"
                   aria-current={active ? 'page' : undefined}
                   onClick={() => selectTab(key)}
-                  className={`squishy focus-ring flex min-h-[56px] w-full flex-col items-center justify-center gap-1 rounded-2xl px-3 text-xs font-semibold transition-colors duration-200 sm:min-h-[44px] sm:flex-row sm:gap-2 sm:px-5 sm:text-sm ${
-                    active ? 'bg-amber-500/10 text-amber-400' : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
+                  className={`squishy focus-ring flex min-h-[56px] w-full flex-col items-center justify-center gap-1 rounded-2xl px-3 text-xs font-semibold transition-colors duration-200 sm:min-h-[48px] sm:flex-row sm:justify-center sm:gap-3 sm:px-3 sm:text-sm lg:justify-start lg:px-4 ${
+                    active
+                      ? 'bg-amber-500/10 text-amber-400 sm:border-l-2 sm:border-amber-400'
+                      : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'
                   }`}
                 >
                   <TabIcon name={key} />
-                  <span>{t.nav[key]}</span>
+                  <span className="sm:hidden lg:inline">{t.nav[key]}</span>
                 </button>
               </li>
             )
@@ -261,7 +268,7 @@ function AppShell() {
         </ul>
       </nav>
 
-      <main className="mx-auto w-full max-w-3xl px-4 pb-28 pt-6 sm:px-6 sm:pb-16 sm:pt-10">
+      <main className="mx-auto w-full max-w-3xl px-4 pb-28 pt-6 sm:min-w-0 sm:flex-1 sm:px-6 sm:pb-16 sm:pt-10">
         {/* L'analyse reste montée (masquée) pour ne pas perdre un résultat en visitant la bibliothèque. */}
         <div hidden={tab !== 'analyze'}>
           <DashboardPage
