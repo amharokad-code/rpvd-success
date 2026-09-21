@@ -4,15 +4,16 @@
 
 const { HttpError } = require('./http');
 
-// gemini-1.5-flash, gemini-2.0-flash et gemini-2.5-flash sont tous retirés pour
-// les nouvelles clés (vérifié en direct : /v1beta/models les liste encore, mais
-// generateContent répond 404 « no longer available to new users », Google
-// recommandant gemini-3.6-flash). On démarre directement dessus pour éviter des
-// 404 inutiles à chaque appel, et on garde les anciens noms en repli au cas où
-// une autre clé (plus ancienne) les supporterait encore.
-const GEMINI_MODEL = 'gemini-3.6-flash';
-// Chaîne de repli si un modèle répond 404 (retiré ou indisponible pour la clé).
-const MODEL_CHAIN = [GEMINI_MODEL, 'gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
+// gemini-1.5/2.0/2.5-flash sont retirés pour cette clé (404 « no longer available to new
+// users », malgré /v1beta/models qui les liste encore). Et gemini-3.6/3.7/3.5-flash + flash-latest
+// (essayés ensuite) sont des modèles trop récents/« preview » : vus en prod ET en test direct
+// répondant 503 « high demand » de façon quasi systématique, avec des latences de 7 à 30s même
+// quand ils finissent par répondre — instables au point de faire échouer TOUTE la chaîne de repli
+// en même temps (les 4 à la fois, un soir de test réel). gemini-3.1-flash-lite est un modèle
+// « lite » établi, moins demandé : 6/6 succès sur deux séries de tests avec le payload réel
+// (vision + schéma JSON complet), 1-3.5s à chaque fois. Nouveau modèle principal.
+const GEMINI_MODEL = 'gemini-3.1-flash-lite';
+const MODEL_CHAIN = [GEMINI_MODEL, 'gemini-flash-lite-latest', 'gemini-3.1-flash-lite-preview', 'gemini-3.5-flash'];
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 // 12s par modèle (pas 25s) : vu en prod, un essai qui traîne jusqu'à ~25.8s au total flirtait
 // avec la limite d'exécution de la plateforme Netlify elle-même (le process se ferait tuer AVANT
