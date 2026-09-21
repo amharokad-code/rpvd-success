@@ -86,8 +86,8 @@ export async function requestTrial(email) {
   return callFunction('request-trial', { email })
 }
 
-export async function createCheckout(plan) {
-  return callFunction('create-checkout', { plan })
+export async function createCheckout(plan, region) {
+  return callFunction('create-checkout', { plan, region })
 }
 
 // --- RPC Supabase (SECURITY INVOKER / garde auth.uid()) ---------------------

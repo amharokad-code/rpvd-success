@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
+import Flag from '../components/Flag'
 import { useCopy } from '../context/RegionContext'
 import { ApiError, savePreferences } from '../lib/api'
 import { supabase } from '../lib/supabase'
@@ -94,12 +95,13 @@ export default function SettingsPage({ profile, onProfileChange }) {
                     type="button"
                     aria-pressed={active}
                     onClick={() => chooseRegion(option)}
-                    className={`focus-ring min-h-[48px] rounded-2xl px-3 text-sm font-semibold transition-colors duration-200 ${
+                    className={`focus-ring flex min-h-[48px] items-center justify-center gap-2 rounded-2xl px-3 text-sm font-semibold transition-colors duration-200 ${
                       active
                         ? 'bg-amber-500 text-slate-900 shadow-glow-amber'
                         : 'squishy glass text-slate-300 hover:bg-slate-700/50 hover:text-slate-100'
                     }`}
                   >
+                    <Flag region={option} />
                     {t.settings[option]}
                   </button>
                 )

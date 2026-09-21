@@ -4,9 +4,10 @@
 
 const Stripe = require('stripe');
 const { HttpError, preflight, parseBody, json, handleError } = require('./_lib/http');
-const { PLANS } = require('./_lib/codes');
+const { PLANS, currencyForRegion } = require('./_lib/codes');
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const REGIONS = ['qc', 'fr', 'us', 'uk'];
 
 let stripeClient = null;
 function getStripe() {
@@ -23,15 +24,16 @@ function siteUrl() {
   return url.replace(/\/+$/, '');
 }
 
-// Ligne de commande : Price ID Stripe si configuré, sinon price_data à la volée.
-function lineItemFor(plan) {
-  const priceId = plan === 'solo' ? process.env.STRIPE_PRICE_SOLO : process.env.STRIPE_PRICE_TRIO;
-  if (priceId) return { price: priceId, quantity: 1 };
-  const { amount, label, credits } = PLANS[plan];
+// Ligne de commande : price_data à la volée, montant selon la devise de la région (contrat
+// quadri-langue) — un seul plan tarifaire avec des conversions fournies, pas de Price ID Stripe
+// persistant (qui serait figé sur une seule devise et désynchroniserait le prix affiché).
+function lineItemFor(plan, currency) {
+  const { amounts, label, credits } = PLANS[plan];
+  const unitAmount = amounts[currency] ?? amounts.cad;
   return {
     price_data: {
-      currency: 'cad',
-      unit_amount: amount,
+      currency,
+      unit_amount: unitAmount,
       product_data: { name: `RPVD Success ${label} — ${credits} analyses, 3 mois` },
     },
     quantity: 1,
@@ -47,13 +49,16 @@ exports.handler = async (event) => {
     const plan = typeof body.plan === 'string' ? body.plan.trim().toLowerCase() : '';
     if (!PLANS[plan]) throw new HttpError(400, 'BAD_REQUEST', 'Plan inconnu.');
 
+    const region = REGIONS.includes(body.region) ? body.region : null;
+    const currency = currencyForRegion(region);
+
     const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
     const base = siteUrl();
 
     const params = {
       mode: 'payment',
-      line_items: [lineItemFor(plan)],
-      metadata: { plan },
+      line_items: [lineItemFor(plan, currency)],
+      metadata: { plan, currency },
       success_url: `${base}/?checkout=success`,
       cancel_url: `${base}/?checkout=cancel`,
       // Managed Payments (activé par défaut sur certains comptes Stripe) exige un

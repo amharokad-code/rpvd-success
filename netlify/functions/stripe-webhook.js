@@ -77,11 +77,13 @@ exports.handler = async (event) => {
     // CAPI 'Purchase' : best-effort, ne doit jamais faire échouer la réponse au webhook.
     // On l'attend (le runtime Netlify peut geler le process dès le `return`) mais on avale
     // toute erreur : `eventId` = session.id pour dédupliquer côté Meta si le pixel front l'envoie aussi.
+    // Valeur/devise RÉELLES de la session (contrat multi-devises) — jamais PLANS[plan] figé en
+    // CAD, sinon un achat en USD/EUR/GBP serait mal rapporté à Meta.
     try {
       await sendPurchaseEvent({
         email,
-        value: PLANS[plan].amount / 100,
-        currency: 'CAD',
+        value: (session.amount_total ?? 0) / 100,
+        currency: (session.currency || 'cad').toUpperCase(),
         eventId: session.id,
       });
     } catch (err) {

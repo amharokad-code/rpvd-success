@@ -8,21 +8,16 @@ import Modal from './ui/Modal'
 import Button from './ui/Button'
 import { useCopy } from '../context/RegionContext'
 import { ApiError, createCheckout } from '../lib/api'
+import { formatPlanPrice } from '../lib/pricing'
 
-// Forfaits du contrat §0 (prix réels en CAD, ceux envoyés à Stripe/Supabase).
+// Forfaits du contrat §0 — un seul plan tarifaire, converti par devise (voir lib/pricing.js).
 const PLANS = [
-  { id: 'solo', price: 12.99, featured: false },
-  { id: 'trio', price: 24.99, featured: true },
+  { id: 'solo', featured: false },
+  { id: 'trio', featured: true },
 ]
 
-const priceFormatter = new Intl.NumberFormat('fr-CA', {
-  style: 'currency',
-  currency: 'CAD',
-  minimumFractionDigits: 2,
-})
-
 export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
-  const { t } = useCopy()
+  const { t, region } = useCopy()
   const [busyPlan, setBusyPlan] = useState(null)
   const [error, setError] = useState(null)
 
@@ -37,7 +32,7 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
     setBusyPlan(plan)
     setError(null)
     try {
-      const { url } = await createCheckout(plan)
+      const { url } = await createCheckout(plan, region)
       if (!url) throw new ApiError('SERVER_ERROR')
       window.location.assign(url)
     } catch (err) {
@@ -69,7 +64,7 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
               <span className="flex w-full items-baseline justify-between gap-3">
                 <span className="font-display text-2xl font-bold text-slate-50">{t.paywall[plan.id]}</span>
                 <span className="font-mono text-xl font-bold tabular-nums text-emerald-400">
-                  {priceFormatter.format(plan.price)}
+                  {formatPlanPrice(plan.id, region)}
                 </span>
               </span>
               <span className="text-sm leading-relaxed text-slate-300">{t.paywall[`${plan.id}Desc`]}</span>
