@@ -1,8 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Carré arrondi amber, motif abstrait : un trait slate relie trois points emerald (le « pattern »). -->
-  <rect x="0" y="0" width="512" height="512" rx="112" ry="112" fill="#f59e0b"/>
-  <polyline points="160,336 256,256 352,176" fill="none" stroke="#0f172a" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="160" cy="336" r="34" fill="#10b981"/>
-  <circle cx="256" cy="256" r="34" fill="#10b981"/>
-  <circle cx="352" cy="176" r="34" fill="#10b981"/>
+  <!-- Pictogramme "Pyramid Ascension" : triangle à 4 bandes (mêmes teintes que le logo officiel) sur fond noir pur. -->
+  <rect x="0" y="0" width="512" height="512" fill="#000000"/>
+  <clipPath id="tri"><polygon points="256,96 432,416 80,416"/></clipPath>
+  <g clip-path="url(#tri)">
+    <rect x="0" y="96" width="512" height="80" fill="#f2994a"/>
+    <rect x="0" y="176" width="512" height="80" fill="#e07b2e"/>
+    <rect x="0" y="256" width="512" height="80" fill="#f5f5f0"/>
+    <rect x="0" y="336" width="512" height="80" fill="#6b6d70"/>
+  </g>
 </svg>

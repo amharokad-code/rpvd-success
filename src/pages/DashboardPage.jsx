@@ -10,6 +10,7 @@ import LibraryModal from '../components/LibraryModal'
 import PaywallModal from '../components/PaywallModal'
 import CreditsBadge from '../components/CreditsBadge'
 import StreakFlame from '../components/StreakFlame'
+import Logo from '../components/Logo'
 import { useCopy } from '../context/RegionContext'
 import { ApiError, analyzeHomework } from '../lib/api'
 import { DEMO_ANALYSIS } from '../fixtures/demoAnalysis'
@@ -170,8 +171,8 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-center justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="font-display text-3xl font-extrabold text-amber-400 sm:text-4xl">{t.brand}</h1>
-          <p className="mt-1 leading-relaxed text-slate-400">{t.tagline}</p>
+          <Logo />
+          <p className="mt-2 leading-relaxed text-slate-400">{t.tagline}</p>
         </div>
         <div className="flex items-center gap-2">
           <StreakFlame days={profile?.streak_days ?? 0} />

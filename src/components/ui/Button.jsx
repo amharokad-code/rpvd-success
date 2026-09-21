@@ -1,4 +1,5 @@
-// Bouton « squishy » (contrat §3) : cible ≥ 44 px, coins rounded-2xl, focus visible.
+// Bouton « squishy » (contrat §3) : cible ≥ 44 px, coins rounded-lg (Pyramid Ascension : formes
+// plus "architecturales", moins arrondies que le rounded-2xl générique d'avant), focus visible.
 // Variantes : primary (amber = action), success (emerald), secondary, ghost, coral (micro-feedback).
 
 // Dégradés (plutôt que des aplats) + liseré « glossy » (shadow-glow-*, voir tailwind.config.js)
@@ -53,7 +54,7 @@ export default function Button({
       type={type}
       disabled={isDisabled}
       aria-busy={loading || undefined}
-      className={`inline-flex items-center justify-center gap-2 rounded-2xl font-semibold leading-tight select-none focus-ring ${variantClasses} ${sizeClasses} ${stateClasses} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg font-semibold leading-tight select-none focus-ring ${variantClasses} ${sizeClasses} ${stateClasses} ${className}`}
       {...props}
     >
       {loading && <Spinner />}

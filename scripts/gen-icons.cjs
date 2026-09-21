@@ -1,6 +1,8 @@
 // Génère public/icons/icon-192.png et icon-512.png en Node pur (zlib + CRC32 maison).
-// Motif identique à public/icons/icon.svg : carré arrondi amber, trait slate reliant trois points emerald.
-// Usage : node scripts/gen-icons.cjs
+// Pictogramme "Pyramid Ascension" : triangle à 4 bandes horizontales (orange → orange foncé →
+// blanc → gris, mêmes teintes que le logo officiel) sur fond noir pur — pas le logo recoloré,
+// une reconstruction fidèle à sa géométrie (aucune lib d'image dispo pour recadrer le fichier
+// source directement). Usage : node scripts/gen-icons.cjs
 'use strict'
 
 const fs = require('node:fs')
@@ -10,22 +12,21 @@ const zlib = require('node:zlib')
 const OUT_DIR = path.join(__dirname, '..', 'public', 'icons')
 const SIZES = [192, 512]
 
-// Couleurs (RGB).
-const AMBER = [0xf5, 0x9e, 0x0b]
-const EMERALD = [0x10, 0xb9, 0x81]
-const SLATE = [0x0f, 0x17, 0x2a]
+// Couleurs (RGB) — palette "Pyramid Ascension", identiques à tailwind.config.js.
+const BLACK = [0x00, 0x00, 0x00]
+const ORANGE = [0xf2, 0x99, 0x4a]
+const ORANGE_DEEP = [0xe0, 0x7b, 0x2e]
+const WHITE = [0xf5, 0xf5, 0xf0]
+const GREY = [0x6b, 0x6d, 0x70]
 
 // Géométrie exprimée dans un repère 512×512, mise à l'échelle par taille.
+// Triangle isocèle centré, coupé en 4 bandes horizontales égales (sommet → base).
 const DESIGN = {
   size: 512,
-  cornerRadius: 112,
-  dots: [
-    [160, 336],
-    [256, 256],
-    [352, 176],
-  ],
-  dotRadius: 34,
-  strokeWidth: 28,
+  apex: [256, 96],
+  baseY: 416,
+  halfBaseWidth: 176,
+  bands: [ORANGE, ORANGE, ORANGE_DEEP, WHITE, GREY], // 4 bandes, la 1re dupliquée pour l'épaisseur du sommet
 }
 
 // --- CRC32 (table calculée une fois) ----------------------------------------
@@ -78,87 +79,43 @@ function encodePng(width, height, rgba) {
   return Buffer.concat([signature, chunk('IHDR', ihdr), chunk('IDAT', idat), chunk('IEND', Buffer.alloc(0))])
 }
 
-// --- Rendu par distance signée ----------------------------------------------
+// --- Rendu du triangle -------------------------------------------------------
 
-// Couverture anti-aliasée : 1 à l'intérieur, 0 dehors, dégradé sur ~1 px autour du bord.
-function coverage(signedDistance) {
-  return Math.min(1, Math.max(0, 0.5 - signedDistance))
-}
-
-// Distance signée à un carré arrondi centré, demi-côté `half`, rayon `r`.
-function roundedSquareDistance(x, y, half, r) {
-  const qx = Math.abs(x) - (half - r)
-  const qy = Math.abs(y) - (half - r)
-  const outside = Math.hypot(Math.max(qx, 0), Math.max(qy, 0))
-  const inside = Math.min(Math.max(qx, qy), 0)
-  return outside + inside - r
-}
-
-// Distance d'un point au segment [a, b].
-function segmentDistance(px, py, ax, ay, bx, by) {
-  const abx = bx - ax
-  const aby = by - ay
-  const lengthSq = abx * abx + aby * aby
-  let t = lengthSq === 0 ? 0 : ((px - ax) * abx + (py - ay) * aby) / lengthSq
-  t = Math.min(1, Math.max(0, t))
-  return Math.hypot(px - (ax + abx * t), py - (ay + aby * t))
-}
-
-// Composition « source over » d'une couleur opaque avec une couverture donnée.
-function blend(pixel, color, alpha) {
-  if (alpha <= 0) return pixel
-  const [r, g, b, a] = pixel
-  const outA = alpha + a * (1 - alpha)
-  if (outA === 0) return [0, 0, 0, 0]
-  return [
-    (color[0] * alpha + r * a * (1 - alpha)) / outA,
-    (color[1] * alpha + g * a * (1 - alpha)) / outA,
-    (color[2] * alpha + b * a * (1 - alpha)) / outA,
-    outA,
-  ]
+// À une hauteur y donnée (entre apex.y et baseY), demi-largeur du triangle à cette hauteur.
+function halfWidthAt(y, apex, baseY, halfBaseWidth) {
+  const t = Math.max(0, Math.min(1, (y - apex[1]) / (baseY - apex[1])))
+  return t * halfBaseWidth
 }
 
 function renderIcon(size) {
   const scale = size / DESIGN.size
-  const half = size / 2
-  const cornerRadius = DESIGN.cornerRadius * scale
-  const dotRadius = DESIGN.dotRadius * scale
-  const strokeHalf = (DESIGN.strokeWidth * scale) / 2
-  const dots = DESIGN.dots.map(([x, y]) => [x * scale, y * scale])
+  const apex = [DESIGN.apex[0] * scale, DESIGN.apex[1] * scale]
+  const baseY = DESIGN.baseY * scale
+  const halfBaseWidth = DESIGN.halfBaseWidth * scale
+  const bandCount = DESIGN.bands.length
+  const bandHeight = (baseY - apex[1]) / bandCount
 
   const rgba = Buffer.alloc(size * size * 4)
 
   for (let y = 0; y < size; y += 1) {
     for (let x = 0; x < size; x += 1) {
-      // Échantillon au centre du pixel.
       const px = x + 0.5
       const py = y + 0.5
-      let pixel = [0, 0, 0, 0]
+      let color = BLACK
 
-      // 1) Carré arrondi amber, coins transparents.
-      const squareCoverage = coverage(roundedSquareDistance(px - half, py - half, half, cornerRadius))
-      pixel = blend(pixel, AMBER, squareCoverage)
-
-      // 2) Trait slate reliant les points (extrémités arrondies).
-      let strokeDistance = Infinity
-      for (let i = 0; i < dots.length - 1; i += 1) {
-        const [ax, ay] = dots[i]
-        const [bx, by] = dots[i + 1]
-        strokeDistance = Math.min(strokeDistance, segmentDistance(px, py, ax, ay, bx, by))
+      if (py >= apex[1] && py <= baseY) {
+        const halfWidth = halfWidthAt(py, apex, baseY, halfBaseWidth)
+        if (Math.abs(px - apex[0]) <= halfWidth) {
+          const bandIndex = Math.min(bandCount - 1, Math.floor((py - apex[1]) / bandHeight))
+          color = DESIGN.bands[bandIndex]
+        }
       }
-      // Le trait reste confiné au carré : on le multiplie par la couverture du fond.
-      pixel = blend(pixel, SLATE, coverage(strokeDistance - strokeHalf) * squareCoverage)
-
-      // 3) Trois points emerald par-dessus.
-      let dotDistance = Infinity
-      for (const [cx, cy] of dots) dotDistance = Math.min(dotDistance, Math.hypot(px - cx, py - cy))
-      pixel = blend(pixel, EMERALD, coverage(dotDistance - dotRadius) * squareCoverage)
 
       const offset = (y * size + x) * 4
-      rgba[offset] = Math.round(pixel[0])
-      rgba[offset + 1] = Math.round(pixel[1])
-      rgba[offset + 2] = Math.round(pixel[2])
-      rgba[offset + 3] = Math.round(pixel[3] * 255)
+      rgba[offset] = color[0]
+      rgba[offset + 1] = color[1]
+      rgba[offset + 2] = color[2]
+      rgba[offset + 3] = 255
     }
   }
 

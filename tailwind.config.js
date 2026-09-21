@@ -2,27 +2,54 @@
 // Tailwind v4 charge ce fichier via `@config "../tailwind.config.js"` dans src/index.css.
 // CommonJS (package.json a "type":"commonjs") pour éviter l'avertissement Node
 // « Failed to load the ES module » lors du chargement natif par Tailwind/Vite.
+// Palette « Pyramid Ascension » extraite du logo (contrat rebrand) : l'orange remplace
+// l'ambre Tailwind générique PARTOUT en overridant la teinte `amber` elle-même plutôt qu'en
+// renommant chaque classe dans 14 fichiers — tout `amber-400/500/600` existant hérite donc
+// automatiquement du nouvel orange, sans toucher au JSX des composants.
+const PYRAMID_ORANGE = '#f2994a'
+const PYRAMID_ORANGE_DEEP = '#e07b2e'
+const PYRAMID_WHITE = '#f5f5f0'
+const PYRAMID_GREY = '#6b6d70'
+
 module.exports = {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
-      // Accent chaud réservé au micro-feedback (jamais en fond, jamais en masse).
       colors: {
         coral: '#FF8E72',
         'coral-soft': '#FFB4A0',
+        // Override de la teinte `amber` native : rebrand global sans sed sur les composants.
+        amber: {
+          300: '#f6b273',
+          400: PYRAMID_ORANGE,
+          500: PYRAMID_ORANGE,
+          600: PYRAMID_ORANGE_DEEP,
+          700: '#c2631f',
+        },
+        // Tokens nommés du logo, pour les usages explicitement "marque" (Logo.jsx, tokens 1:1).
+        pyramid: {
+          orange: PYRAMID_ORANGE,
+          'orange-deep': PYRAMID_ORANGE_DEEP,
+          white: PYRAMID_WHITE,
+          grey: PYRAMID_GREY,
+        },
+        void: '#000000',
+        surface: '#0d0d0f',
+        'surface-raised': '#17171a',
       },
       fontFamily: {
-        display: ['"Baloo 2"', 'Inter', 'system-ui', 'sans-serif'],
+        // Bold condensée proche du wordmark du logo, réservée aux titres.
+        display: ['"Space Grotesk"', 'Inter', 'system-ui', 'sans-serif'],
         sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
-        mono: ['Inconsolata', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+        mono: ['"Fira Code"', 'Inconsolata', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       boxShadow: {
         // Glow + liseré « glossy » combinés, pour les boutons pleins en dégradé.
-        'glow-amber': 'inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.1), 0 0 15px rgba(245,158,11,0.45)',
+        'glow-amber': `inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.1), 0 0 15px rgba(242,153,74,0.45)`,
         'glow-emerald': 'inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.1), 0 0 15px rgba(16,185,129,0.45)',
         'glow-coral': 'inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.1), 0 0 18px rgba(255,142,114,0.5)',
         // Liseré clair en haut de carte (verre biseauté) + ombre portée douce.
-        glass: 'inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.35)',
+        glass: 'inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.5)',
       },
       keyframes: {
         // Apparition « pop » d'une carte.
@@ -33,8 +60,8 @@ module.exports = {
         },
         // Pulsation des valeurs de l'élève lors du passage niveau 1 → 2.
         'value-pulse': {
-          '0%': { color: '#fbbf24', transform: 'scale(1)' },
-          '40%': { color: '#fbbf24', transform: 'scale(1.12)' },
+          '0%': { color: PYRAMID_ORANGE, transform: 'scale(1)' },
+          '40%': { color: PYRAMID_ORANGE, transform: 'scale(1.12)' },
           '100%': { transform: 'scale(1)' },
         },
         // Montée douce en cascade (étapes du niveau 3).
@@ -53,10 +80,10 @@ module.exports = {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
         },
-        // Halo amber qui respire (dernier crédit).
+        // Halo orange pyramide qui respire (dernier crédit).
         'glow-pulse': {
-          '0%, 100%': { boxShadow: '0 0 0 rgba(245,158,11,0)' },
-          '50%': { boxShadow: '0 0 15px rgba(245,158,11,0.45)' },
+          '0%, 100%': { boxShadow: '0 0 0 rgba(242,153,74,0)' },
+          '50%': { boxShadow: '0 0 15px rgba(242,153,74,0.45)' },
         },
       },
       animation: {

@@ -11,8 +11,10 @@ import { useCallback, useEffect, useState } from 'react'
 import { RegionProvider, useCopy } from './context/RegionContext'
 import { supabase } from './lib/supabase'
 import { ApiError, fetchProfile } from './lib/api'
+import { motion } from 'framer-motion'
 import Button from './components/ui/Button'
 import GlassCard from './components/ui/GlassCard'
+import Logo from './components/Logo'
 import DashboardPage from './pages/DashboardPage'
 import LibraryPage from './pages/LibraryPage'
 import SettingsPage from './pages/SettingsPage'
@@ -106,21 +108,24 @@ function TabIcon({ name }) {
 // Écran de chargement « verre » affiché pendant la session et le profil.
 function BootScreen({ t }) {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <GlassCard
+    <div className="flex min-h-screen items-center justify-center bg-black px-4">
+      <motion.div
         role="status"
         aria-live="polite"
-        className="flex w-full max-w-sm flex-col items-center gap-5 text-center motion-safe:animate-bop"
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="flex w-full max-w-sm flex-col items-center gap-5 text-center"
       >
-        <span className="font-display text-3xl font-extrabold text-amber-400">{t.brand}</span>
-        <span className="h-1.5 w-40 overflow-hidden rounded-full bg-slate-700/60" aria-hidden="true">
+        <Logo variant="icon" className="text-6xl" />
+        <span className="h-1.5 w-40 overflow-hidden rounded-full bg-pyramid-grey/30" aria-hidden="true">
           <span
-            className="block h-full w-full bg-[linear-gradient(90deg,transparent,rgba(245,158,11,.7),transparent)] motion-safe:animate-shimmer"
+            className="block h-full w-full bg-[linear-gradient(90deg,transparent,rgba(242,153,74,.7),transparent)] motion-safe:animate-shimmer"
             style={{ backgroundSize: '200% 100%' }}
           />
         </span>
         <span className="text-sm text-slate-400">{t.common.loading}</span>
-      </GlassCard>
+      </motion.div>
     </div>
   )
 }

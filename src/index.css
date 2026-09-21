@@ -9,23 +9,18 @@
   }
 
   body {
-    @apply min-h-screen bg-slate-900 text-slate-100 font-sans antialiased;
-    /* Halo radial discret amber/emerald en haut + un fin motif de points (grille de
-       repères mathématiques, abstrait) — le tout très en retrait pour rester lisible. */
+    @apply min-h-screen bg-void text-slate-100 font-sans antialiased;
+    /* Noir pur (identique au fond du logo) : pas de dégradé slate générique. Un noise SVG
+       fractal très léger (2-3%) évite l'effet "écran éteint" sans réintroduire de glow néon
+       ni de mesh gradient coloré — le noir reste dominant. */
     background-image:
-      radial-gradient(60rem 30rem at 20% -10%, rgba(245, 158, 11, 0.09), transparent 60%),
-      radial-gradient(50rem 26rem at 85% -5%, rgba(16, 185, 129, 0.07), transparent 60%),
-      radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size:
-      auto,
-      auto,
-      28px 28px;
-    background-repeat: no-repeat, no-repeat, repeat;
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    background-repeat: repeat;
     background-attachment: fixed;
   }
 
   ::selection {
-    @apply bg-amber-400 text-slate-900;
+    @apply bg-amber-400 text-black;
   }
 
   /* Barre de défilement fine et sombre. */
@@ -56,15 +51,37 @@
 /* Utilitaires composés (contrat §3). */
 @layer components {
   .focus-ring {
-    @apply outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900;
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
   }
 
   .squishy {
     @apply transition-transform duration-150 ease-out motion-safe:hover:scale-105 motion-safe:active:scale-95;
   }
 
+  /* Cartes "Pyramid Ascension" : bg-surface, bordure fine grise (pas colorée par défaut —
+     la couleur n'apparaît qu'à l'état actif/hover, décidé au cas par cas par chaque composant),
+     rounded-xl (moins arrondi, plus "architectural" que le rounded-3xl générique d'avant). */
   .glass {
-    @apply bg-slate-800/50 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-glass;
+    @apply bg-surface/70 backdrop-blur-2xl border border-pyramid-grey/20 rounded-xl shadow-glass;
+  }
+
+  /* Motif triangulaire discret (contour de la pyramide, pas le logo entier) : accent de coin
+     réutilisable sur les cartes premium — ::before en clip-path, opacity faible. */
+  .pyramid-accent {
+    position: relative;
+  }
+  .pyramid-accent::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, #f2994a 0%, transparent 70%);
+    clip-path: polygon(100% 0, 100% 100%, 0 0);
+    opacity: 0.18;
+    border-top-right-radius: inherit;
+    pointer-events: none;
   }
 }
 
