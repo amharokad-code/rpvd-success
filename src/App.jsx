@@ -240,9 +240,8 @@ function AppShell() {
         aria-label={t.brand}
         className="fixed inset-x-0 bottom-0 z-40 border-t border-white/5 bg-slate-900/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl sm:sticky sm:inset-auto sm:top-0 sm:h-screen sm:w-20 sm:shrink-0 sm:flex-col sm:border-t-0 sm:border-r sm:pb-0 lg:w-56"
       >
-        <div className="hidden sm:flex sm:h-16 sm:items-center sm:justify-center lg:justify-start lg:px-5">
-          <Logo variant="icon" className="h-9 w-9 motion-safe:animate-float lg:hidden" />
-          <Logo className="hidden h-8 w-auto lg:block" />
+        <div className="hidden sm:flex sm:h-16 sm:items-center sm:justify-center">
+          <Logo variant="icon" className="h-9 w-9 motion-safe:animate-float" />
         </div>
         <ul className="mx-auto flex w-full max-w-3xl items-stretch justify-around px-2 sm:mx-0 sm:max-w-none sm:flex-col sm:items-stretch sm:justify-start sm:gap-1 sm:px-3 sm:py-2">
           {NAV_TABS.map((key) => {
