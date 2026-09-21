@@ -12,8 +12,11 @@ const { HttpError } = require('./http');
 // en même temps (les 4 à la fois, un soir de test réel). gemini-3.1-flash-lite est un modèle
 // « lite » établi, moins demandé : 6/6 succès sur deux séries de tests avec le payload réel
 // (vision + schéma JSON complet), 1-3.5s à chaque fois. Nouveau modèle principal.
+// Chaîne 100% « lite » — plus aucun membre de la famille flash-3.x/3.6/3.7 instable, y compris
+// en dernier repli (gemini-3.5-flash a été retiré : même famille surchargée que la primaire
+// d'avant, ça n'aurait fait que reproduire le même problème une fois les 2 premiers replis épuisés).
 const GEMINI_MODEL = 'gemini-3.1-flash-lite';
-const MODEL_CHAIN = [GEMINI_MODEL, 'gemini-flash-lite-latest', 'gemini-3.1-flash-lite-preview', 'gemini-3.5-flash'];
+const MODEL_CHAIN = [GEMINI_MODEL, 'gemini-flash-lite-latest', 'gemini-3.1-flash-lite-preview'];
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 // 12s par modèle (pas 25s) : vu en prod, un essai qui traîne jusqu'à ~25.8s au total flirtait
 // avec la limite d'exécution de la plateforme Netlify elle-même (le process se ferait tuer AVANT
