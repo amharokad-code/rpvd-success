@@ -42,7 +42,27 @@ function validateBody(body) {
   }
 
   const region = REGIONS.includes(body.region) ? body.region : null;
-  return { base64, mimeType, region };
+
+  // Image de référence optionnelle (exemple de notation) — mêmes règles que l'image principale,
+  // simplement pas obligatoire.
+  let notationImage = null;
+  if (typeof body.notationImageBase64 === 'string' && body.notationImageBase64) {
+    let notationBase64 = body.notationImageBase64;
+    const nCommaIndex = notationBase64.startsWith('data:') ? notationBase64.indexOf(',') : -1;
+    if (nCommaIndex !== -1) notationBase64 = notationBase64.slice(nCommaIndex + 1);
+    notationBase64 = notationBase64.replace(/\s+/g, '');
+    const notationMimeType = typeof body.notationMimeType === 'string' ? body.notationMimeType.trim().toLowerCase() : '';
+    if (
+      notationBase64 &&
+      /^[A-Za-z0-9+/]+={0,2}$/.test(notationBase64) &&
+      decodedSize(notationBase64) <= MAX_DECODED_BYTES &&
+      ALLOWED_MIME_TYPES.includes(notationMimeType)
+    ) {
+      notationImage = { base64: notationBase64, mimeType: notationMimeType };
+    }
+  }
+
+  return { base64, mimeType, region, notationImage };
 }
 
 exports.handler = async (event) => {
@@ -62,7 +82,11 @@ exports.handler = async (event) => {
     await assertRateLimit(`gemini:user:${user.id}`, GEMINI_RATE_LIMIT, GEMINI_RATE_WINDOW_SECONDS);
 
     // 4. Validation du body.
-    const { base64, mimeType, region: bodyRegion } = validateBody(parseBody(event));
+    const parsedBody = parseBody(event);
+    const { base64, mimeType, region: bodyRegion, notationImage } = validateBody(parsedBody);
+    // Notation saisie pour CETTE analyse (nouveau bloc au-dessus de la zone d'upload) — prioritaire
+    // sur la préférence enregistrée au profil, sans l'écraser silencieusement.
+    const bodyNotation = typeof parsedBody.notationText === 'string' ? parsedBody.notationText.trim().slice(0, 300) : '';
 
     // Préférences utilisateur (notation + région par défaut).
     const { data: profile, error: profileError } = await getServiceClient()
@@ -72,7 +96,7 @@ exports.handler = async (event) => {
       .maybeSingle();
     if (profileError) throw profileError;
     const region = bodyRegion || (profile && REGIONS.includes(profile.region) ? profile.region : 'qc');
-    const preferredNotation = (profile && profile.preferred_notation) || '';
+    const preferredNotation = bodyNotation || (profile && profile.preferred_notation) || '';
 
     // 5. Consommation atomique d'un crédit (NO_CREDITS → 402, FINGERPRINT_MISMATCH → 403).
     // Le RAISE EXCEPTION de consume_credit annule sa transaction (donc son propre insert
@@ -98,7 +122,7 @@ exports.handler = async (event) => {
     // 6. Analyse Gemini ; remboursement du crédit en cas d'échec.
     let analysis;
     try {
-      analysis = await analyzeImage({ base64, mimeType, region, preferredNotation });
+      analysis = await analyzeImage({ base64, mimeType, region, preferredNotation, notationImage });
     } catch (err) {
       try {
         await rpc('refund_credit', { p_user_id: user.id });

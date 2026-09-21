@@ -13,14 +13,14 @@ function getSearch() {
 
 // Mode démo (contrat §0) : pas d'appel réseau, la sauvegarde est simulée.
 const IS_DEMO = import.meta.env.DEV && new URLSearchParams(getSearch()).has('demo')
-const NOTATION_MAX_LENGTH = 300
 const SAVED_FEEDBACK_MS = 2500
 // Quadri-langue (contrat §3) : 2 régions FR + 2 régions EN, chacune avec son propre ton.
 const REGION_OPTIONS = ['qc', 'fr', 'us', 'uk']
 
+// La notation (contrat) a déménagé au-dessus de la zone d'upload (voir NotationBlock.jsx) :
+// c'est là que l'élève en a besoin, pas enterré dans les réglages.
 export default function SettingsPage({ profile, onProfileChange }) {
   const { t, region, setRegion } = useCopy()
-  const [notation, setNotation] = useState(() => (profile?.preferred_notation ?? '').slice(0, NOTATION_MAX_LENGTH))
   const [status, setStatus] = useState('idle') // 'idle' | 'saving' | 'saved' | 'error'
   const [error, setError] = useState(null)
   const [loggingOut, setLoggingOut] = useState(false)
@@ -51,12 +51,10 @@ export default function SettingsPage({ profile, onProfileChange }) {
     if (status === 'saving') return
     setStatus('saving')
     setError(null)
-    const preferred_notation = notation.trim().slice(0, NOTATION_MAX_LENGTH)
     try {
-      if (!IS_DEMO) await savePreferences({ preferred_notation, region })
-      onProfileChange?.({ ...(profile ?? {}), preferred_notation, region })
+      if (!IS_DEMO) await savePreferences({ preferred_notation: profile?.preferred_notation ?? '', region })
+      onProfileChange?.({ ...(profile ?? {}), region })
       if (!mountedRef.current) return
-      setNotation(preferred_notation)
       setStatus('saved')
       clearTimeout(timerRef.current)
       timerRef.current = setTimeout(() => {
@@ -108,24 +106,6 @@ export default function SettingsPage({ profile, onProfileChange }) {
               })}
             </div>
           </fieldset>
-
-          <label className="flex flex-col gap-3">
-            <span className="text-sm font-semibold text-slate-300">{t.settings.notation}</span>
-            <textarea
-              value={notation}
-              onChange={(event) => setNotation(event.target.value.slice(0, NOTATION_MAX_LENGTH))}
-              placeholder={t.settings.notationPlaceholder}
-              maxLength={NOTATION_MAX_LENGTH}
-              rows={4}
-              className="focus-ring w-full resize-y rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 leading-relaxed text-slate-100 placeholder:text-slate-500"
-            />
-            <span className="flex items-start justify-between gap-4 text-xs text-slate-400">
-              <span className="leading-relaxed">{t.settings.notationHelp}</span>
-              <span className="shrink-0 font-mono tabular-nums" aria-hidden="true">
-                {notation.length}/{NOTATION_MAX_LENGTH}
-              </span>
-            </span>
-          </label>
 
           {error && (
             <p role="alert" className="rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">

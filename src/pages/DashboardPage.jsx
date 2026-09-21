@@ -11,6 +11,7 @@ import PaywallModal from '../components/PaywallModal'
 import CreditsBadge from '../components/CreditsBadge'
 import StreakFlame from '../components/StreakFlame'
 import Logo from '../components/Logo'
+import NotationBlock from '../components/NotationBlock'
 import { useCopy } from '../context/RegionContext'
 import { ApiError, analyzeHomework } from '../lib/api'
 import { DEMO_ANALYSIS } from '../fixtures/demoAnalysis'
@@ -43,6 +44,7 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
   const [paywallOpen, setPaywallOpen] = useState(false)
   const [libraryOpen, setLibraryOpen] = useState(false)
   const [savedInfo, setSavedInfo] = useState(null) // { subject, topicName }
+  const [notationImage, setNotationImage] = useState(null) // { base64, mimeType, previewUrl }
   const timerRef = useRef(null)
   const fileRef = useRef(null)
 
@@ -121,7 +123,13 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
     }
 
     try {
-      const data = await analyzeHomework({ base64: source.base64, mimeType: source.mimeType, region })
+      const data = await analyzeHomework({
+        base64: source.base64,
+        mimeType: source.mimeType,
+        region,
+        notationText: profile?.preferred_notation,
+        notationImage,
+      })
       setResult({ submission_id: data.submission_id, analysis: data.analysis })
       if (typeof data.credits_remaining === 'number') {
         const extra = typeof data.streak_days === 'number' ? { streak_days: data.streak_days } : undefined
@@ -182,6 +190,16 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
 
       {phase === 'upload' && (
         <div className="flex flex-col gap-4 motion-safe:animate-bop">
+          <NotationBlock
+            profile={profile}
+            onProfileChange={onProfileChange}
+            notationImage={notationImage}
+            onNotationImageChange={(next) => {
+              if (notationImage?.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(notationImage.previewUrl)
+              setNotationImage(next)
+            }}
+          />
+
           {/* Verrouillée nativement par `disabled` (aria-disabled, tabIndex=-1, ZONE_DISABLED) ;
               le clic bulle jusqu'ici (pas de stopPropagation dans UploadVortex) pour ouvrir le mur de paiement. */}
           <div onClick={isLocked ? openPaywall : undefined}>

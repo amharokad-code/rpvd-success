@@ -350,24 +350,38 @@ async function callModel(model, body, key) {
 }
 
 // Point d'entrée : image/PDF en base64 → Analysis. Lance HttpError(502, 'AI_ERROR') en cas d'échec.
-async function analyzeImage({ base64, mimeType, region = DEFAULT_REGION, preferredNotation = '' }) {
+// `notationImage` (optionnel) : photo d'exemple de la notation demandée par l'élève — jamais
+// stockée (contrat vie privée), envoyée telle quelle en pièce jointe supplémentaire à Gemini,
+// juste pour cette analyse.
+async function analyzeImage({
+  base64,
+  mimeType,
+  region = DEFAULT_REGION,
+  preferredNotation = '',
+  notationImage = null,
+}) {
   const key = getApiKey();
   if (!key) {
     console.error('[gemini] GEMINI_API_KEY manquante.');
     throw new HttpError(502, 'AI_ERROR');
   }
 
+  const userParts = [
+    { inlineData: { mimeType, data: base64 } },
+    { text: "Voici le devoir. Analyse-le et renvoie uniquement le JSON demandé." },
+  ];
+  if (notationImage && notationImage.base64 && notationImage.mimeType) {
+    userParts.push(
+      { inlineData: { mimeType: notationImage.mimeType, data: notationImage.base64 } },
+      {
+        text: "L'image ci-dessus est un EXEMPLE de la notation/démarche demandée par l'élève (pas un exercice à résoudre) — imite ce style d'écriture dans level_1/level_2/level_3_steps.",
+      },
+    );
+  }
+
   const body = {
     systemInstruction: { parts: [{ text: buildSystemInstruction({ region, preferredNotation }) }] },
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          { inlineData: { mimeType, data: base64 } },
-          { text: "Voici le devoir. Analyse-le et renvoie uniquement le JSON demandé." },
-        ],
-      },
-    ],
+    contents: [{ role: 'user', parts: userParts }],
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: RESPONSE_SCHEMA,
@@ -377,6 +391,10 @@ async function analyzeImage({ base64, mimeType, region = DEFAULT_REGION, preferr
       // et Gemini tronquait la réponse en plein milieu (finishReason: MAX_TOKENS), donc un JSON
       // invalide → 502 systématique en prod. Vu en direct dans les logs Netlify.
       maxOutputTokens: 8192,
+      // Réflexion prolongée (contrat) : même modèle flash-lite, budget de raisonnement interne
+      // plus généreux avant de répondre — meilleure qualité pédagogique sur les cas ambigus,
+      // sans changer de modèle ni retomber sur la famille flash-3.x instable.
+      thinkingConfig: { thinkingBudget: 4096 },
     },
   };
 
