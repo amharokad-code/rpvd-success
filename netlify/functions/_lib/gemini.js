@@ -307,7 +307,10 @@ function extractJson(payload) {
   }
 }
 
-// Un appel generateContent sur un modèle donné, avec timeout. Marque les 404 modèle.
+// Un appel generateContent sur un modèle donné, avec timeout. Marque les 404 modèle ET les
+// erreurs transitoires (503 « high demand », 429 quota) comme repliables sur le modèle suivant —
+// vu en prod : gemini-3.6-flash renvoie parfois 503 UNAVAILABLE sous forte charge, et ça ne doit
+// pas se traduire par un 502 immédiat côté client alors que gemini-2.5-flash répond, lui.
 async function callModel(model, body, key) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -322,6 +325,12 @@ async function callModel(model, body, key) {
       const notFound = new Error(`Modèle ${model} introuvable (404)`);
       notFound.modelNotFound = true;
       throw notFound;
+    }
+    if (response.status === 503 || response.status === 429) {
+      const detail = await response.text().catch(() => '');
+      const transient = new Error(`Gemini HTTP ${response.status} (transitoire) : ${detail.slice(0, 300)}`);
+      transient.modelNotFound = true;
+      throw transient;
     }
     if (!response.ok) {
       const detail = await response.text().catch(() => '');
