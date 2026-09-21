@@ -177,14 +177,14 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-center justify-between gap-4">
-        <div className="min-w-0">
-          <Logo />
-          <p className="mt-2 leading-relaxed text-slate-400">{t.tagline}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <StreakFlame days={profile?.streak_days ?? 0} />
-          <CreditsBadge credits={credits} onClick={openPaywall} />
+      <header className="flex flex-col gap-4">
+        <Logo className="w-full" />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <p className="leading-relaxed text-slate-400">{t.tagline}</p>
+          <div className="flex items-center gap-2">
+            <StreakFlame days={profile?.streak_days ?? 0} />
+            <CreditsBadge credits={credits} onClick={openPaywall} />
+          </div>
         </div>
       </header>
 
