@@ -14,7 +14,10 @@ const GEMINI_MODEL = 'gemini-3.6-flash';
 // Chaîne de repli si un modèle répond 404 (retiré ou indisponible pour la clé).
 const MODEL_CHAIN = [GEMINI_MODEL, 'gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'];
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
-const TIMEOUT_MS = 25000;
+// 12s par modèle (pas 25s) : vu en prod, un essai qui traîne jusqu'à ~25.8s au total flirtait
+// avec la limite d'exécution de la plateforme Netlify elle-même (le process se ferait tuer AVANT
+// notre propre AbortController). À 12s/modèle, deux essais (principal + repli) tiennent sous 26s.
+const TIMEOUT_MS = 12000;
 const SUBJECTS = ['math', 'chimie', 'physique', 'sciences', 'francais', 'anglais', 'autre'];
 const MIN_STEPS = 2;
 const MAX_STEPS = 7;
@@ -381,11 +384,15 @@ async function analyzeImage({ base64, mimeType, region = DEFAULT_REGION, preferr
       activeModelIndex = i;
       break;
     } catch (err) {
-      if (err && err.modelNotFound && i + 1 < MODEL_CHAIN.length) {
-        console.warn(`[gemini] ${model} indisponible, repli sur ${MODEL_CHAIN[i + 1]}.`);
+      // Repliable : modèle retiré (404), surcharge transitoire (503/429, voir callModel) OU
+      // délai dépassé (souvent le même symptôme qu'un 503 — le modèle rame sous forte charge).
+      const isTimeout = err && err.name === 'AbortError';
+      const retryable = Boolean(err && err.modelNotFound) || isTimeout;
+      const reason = isTimeout ? `délai dépassé (${TIMEOUT_MS} ms)` : scrub(err && err.message, key);
+      if (retryable && i + 1 < MODEL_CHAIN.length) {
+        console.warn(`[gemini] ${model} indisponible (${reason}), repli sur ${MODEL_CHAIN[i + 1]}.`);
         continue;
       }
-      const reason = err && err.name === 'AbortError' ? `délai dépassé (${TIMEOUT_MS} ms)` : scrub(err && err.message, key);
       console.error(`[gemini] Échec ${model} : ${reason}`);
       throw new HttpError(502, 'AI_ERROR');
     }
