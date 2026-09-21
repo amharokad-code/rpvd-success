@@ -12,6 +12,7 @@ import CreditsBadge from '../components/CreditsBadge'
 import StreakFlame from '../components/StreakFlame'
 import Logo from '../components/Logo'
 import NotationBlock from '../components/NotationBlock'
+import SocialFollowPrompt from '../components/SocialFollowPrompt'
 import { useCopy } from '../context/RegionContext'
 import { ApiError, analyzeHomework } from '../lib/api'
 import { DEMO_ANALYSIS } from '../fixtures/demoAnalysis'
@@ -177,6 +178,8 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
 
   return (
     <div className="flex flex-col gap-6">
+      <SocialFollowPrompt />
+
       <header className="flex flex-col gap-4">
         <Logo className="w-full" />
         <div className="flex flex-wrap items-center justify-between gap-4">
