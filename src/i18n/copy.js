@@ -75,7 +75,7 @@ const qc = {
   paywall: {
     title: 'Plus de crédits ? Pas de panique.',
     subtitle: 'Choisis ton forfait — pas de petits caractères, pas de renouvellement automatique.',
-    priceLine: (total, monthly) => `${total} / 3 mois (=${monthly}/mois)`,
+    monthlyPrice: (monthly) => `${monthly}/mois pendant 3 mois`,
     solo: 'Solo',
     soloDesc: '50 crédits pour 3 mois, sur 1 appareil. Pour un élève qui veut comprendre.',
     trio: 'Trio',
@@ -233,7 +233,7 @@ const fr = {
   paywall: {
     title: 'Plus de crédits ? Pas de panique.',
     subtitle: 'Choisis ton forfait — pas de petits caractères, pas de renouvellement automatique.',
-    priceLine: (total, monthly) => `${total} / 3 mois (=${monthly}/mois)`,
+    monthlyPrice: (monthly) => `${monthly}/mois pendant 3 mois`,
     solo: 'Solo',
     soloDesc: '50 crédits pour 3 mois, sur 1 appareil. Pour un élève qui veut comprendre.',
     trio: 'Trio',
@@ -391,7 +391,7 @@ const us = {
   paywall: {
     title: 'Out of credits? No worries.',
     subtitle: 'Pick your plan — no fine print, no auto-renewal.',
-    priceLine: (total, monthly) => `${total} / 3 months (=${monthly}/month)`,
+    monthlyPrice: (monthly) => `${monthly}/month for 3 months`,
     solo: 'Solo',
     soloDesc: '50 credits for 3 months, on 1 device. For a student who wants to get it.',
     trio: 'Trio',
@@ -549,7 +549,7 @@ const uk = {
   paywall: {
     title: 'Out of credits? No bother.',
     subtitle: 'Pick your plan — no fine print, no auto-renewal.',
-    priceLine: (total, monthly) => `${total} / 3 months (=${monthly}/month)`,
+    monthlyPrice: (monthly) => `${monthly}/month for 3 months`,
     solo: 'Solo',
     soloDesc: '50 credits for 3 months, on 1 device. For a student who wants to get it.',
     trio: 'Trio',

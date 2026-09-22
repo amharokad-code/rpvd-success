@@ -100,14 +100,17 @@ export default function PaywallModal({ open, credits, plan, onClose, onHaveCode 
                 plan.featured ? 'border-amber-500/60 shadow-glow-amber' : 'hover:border-white/15'
               } ${isDisabled ? 'cursor-wait opacity-60' : 'squishy'}`}
             >
-              <span className="flex w-full items-baseline justify-between gap-3">
-                <span className="font-display text-2xl font-bold text-slate-50">{t.paywall[plan.id]}</span>
-              </span>
               {(() => {
                 const { total, monthly } = formatPlanPriceBreakdown(plan.id, region)
                 return (
-                  <span className="font-mono text-lg font-bold tabular-nums text-emerald-400">
-                    {t.paywall.priceLine(total, monthly)}
+                  <span className="flex w-full items-start justify-between gap-3">
+                    <span className="flex flex-col">
+                      <span className="font-display text-2xl font-bold text-slate-50">{t.paywall[plan.id]}</span>
+                      <span className="font-mono text-xs font-semibold tabular-nums text-slate-400">
+                        {t.paywall.monthlyPrice(monthly)}
+                      </span>
+                    </span>
+                    <span className="font-mono text-xl font-bold tabular-nums text-emerald-400">{total}</span>
                   </span>
                 )
               })()}
