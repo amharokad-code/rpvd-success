@@ -131,6 +131,21 @@ function premiumCodeEmail({ codes, plan, credits }) {
   };
 }
 
+// Courriel de mise à niveau Base → Premium (contrat pricing v2) : pas de code, les crédits et
+// le plan sont déjà appliqués au compte au moment de l'envoi.
+function premiumUpgradeEmail({ plan, credits }) {
+  const label = plan === 'premium_trio' ? 'Premium Trio' : 'Premium';
+  const content = {
+    title: `Bienvenue dans le ${label} ⚡`,
+    paragraphs: [
+      `Ton paiement est passé. Ton compte a maintenant ${credits} crédits (3 mois à partir d'aujourd'hui) sur cet appareil — rien à activer, c'est déjà fait.`,
+    ],
+    codes: [],
+    outro: ['Prends ton prochain devoir en photo, et on décortique ça ensemble.'],
+  };
+  return { subject: `Mise à niveau ${label} confirmée ⚡`, html: layout(content), text: plainText(content) };
+}
+
 // Courriel de confirmation après activation d'un code.
 function activationConfirmedEmail({ plan, credits }) {
   const labels = { trial: 'Essai gratuit', solo: 'Solo', trio: 'Trio' };
@@ -177,4 +192,11 @@ async function sendEmail({ to, subject, html, text }) {
   }
 }
 
-module.exports = { sendEmail, trialCodesEmail, premiumCodeEmail, activationConfirmedEmail, escapeHtml };
+module.exports = {
+  sendEmail,
+  trialCodesEmail,
+  premiumCodeEmail,
+  premiumUpgradeEmail,
+  activationConfirmedEmail,
+  escapeHtml,
+};

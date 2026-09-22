@@ -6,7 +6,7 @@
 const Stripe = require('stripe');
 const { HttpError, preflight, json, header, handleError } = require('./_lib/http');
 const { rpc } = require('./_lib/supabase');
-const { sendEmail, premiumCodeEmail } = require('./_lib/email');
+const { sendEmail, premiumCodeEmail, premiumUpgradeEmail } = require('./_lib/email');
 const { PLANS, PREMIUM_CODE_REDEMPTION_WINDOW_DAYS } = require('./_lib/codes');
 const { sendPurchaseEvent } = require('./_lib/meta-capi');
 
@@ -56,6 +56,44 @@ exports.handler = async (event) => {
     }
 
     const email = (session.customer_details && session.customer_details.email) || session.customer_email || null;
+
+    // Mise à niveau Base → Premium (contrat pricing v2) : même compte/appareil, on augmente
+    // juste ses crédits et son plan — pas de nouveau code à générer/activer.
+    if (session.metadata && session.metadata.upgrade === 'true') {
+      const userId = session.client_reference_id;
+      if (!userId) {
+        console.error(`[stripe-webhook] Upgrade sans client_reference_id pour la session ${session.id}.`);
+        return json(200, { received: true });
+      }
+
+      const applied = await rpc('apply_premium_upgrade', {
+        p_user_id: userId,
+        p_plan: plan,
+        p_credits: PLANS[plan].credits,
+        p_stripe_session_id: session.id,
+      });
+
+      if (!applied) return json(200, { received: true }); // déjà traité (idempotence)
+
+      try {
+        await sendPurchaseEvent({
+          email,
+          value: (session.amount_total ?? 0) / 100,
+          currency: (session.currency || 'cad').toUpperCase(),
+          eventId: session.id,
+        });
+      } catch (err) {
+        console.error('[stripe-webhook] sendPurchaseEvent (upgrade) a levé :', err && err.message);
+      }
+
+      if (email) {
+        const { sent } = await sendEmail({ to: email, ...premiumUpgradeEmail({ plan, credits: PLANS[plan].credits }) });
+        if (!sent) console.error(`[stripe-webhook] Courriel upgrade non envoyé pour la session ${session.id}.`);
+      }
+
+      return json(200, { received: true });
+    }
+
     const expiresAt = new Date(Date.now() + PREMIUM_CODE_REDEMPTION_WINDOW_DAYS * 24 * 3600 * 1000).toISOString();
 
     // Trio = 3 codes séparés (un par personne/appareil, contrat), pas 1 compte partagé :

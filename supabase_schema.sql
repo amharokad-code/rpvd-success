@@ -44,7 +44,7 @@ create table if not exists public.users (
   id                    uuid primary key references auth.users (id) on delete cascade,
   email                 text,
   credits               int not null default 0 check (credits >= 0),
-  plan                  text not null default 'free' check (plan in ('free', 'trial', 'solo', 'trio')),
+  plan                  text not null default 'free' check (plan in ('free', 'trial', 'solo', 'trio', 'premium_solo', 'premium_trio')),
   plan_expires_at       timestamptz,
   device_fingerprint    text,
   fingerprint_locked_at timestamptz,
@@ -66,7 +66,7 @@ create table if not exists public.activation_codes (
   code              text not null,
   type              text not null check (type in ('trial', 'premium')),
   credits           int not null check (credits > 0),
-  plan              text not null check (plan in ('trial', 'solo', 'trio')),
+  plan              text not null check (plan in ('trial', 'solo', 'trio', 'premium_solo', 'premium_trio')),
   email             text,
   batch_id          uuid,
   stripe_session_id text,
@@ -83,6 +83,12 @@ create table if not exists public.activation_codes (
 -- Un achat Trio génère 3 codes qui PARTAGENT le même stripe_session_id (un code par
 -- personne/appareil, contrat) — l'ancienne contrainte UNIQUE sur cette colonne n'autorisait
 -- qu'un seul code par paiement et doit être retirée si elle existe encore (idempotence).
+-- Élargi aux forfaits Premium (120/360 crédits, contrat pricing v2) : remplace l'ancienne
+-- contrainte trial/solo/trio uniquement, y compris sur une base qui avait déjà ce schéma.
+alter table public.activation_codes drop constraint if exists activation_codes_plan_check;
+alter table public.activation_codes add constraint activation_codes_plan_check
+  check (plan in ('trial', 'solo', 'trio', 'premium_solo', 'premium_trio'));
+
 alter table public.activation_codes drop constraint if exists activation_codes_stripe_session_id_key;
 create index if not exists activation_codes_stripe_session_id_idx
   on public.activation_codes (stripe_session_id);
@@ -164,7 +170,8 @@ alter table public.users
 alter table public.users drop constraint if exists users_credits_check;
 alter table public.users add constraint users_credits_check check (credits >= 0);
 alter table public.users drop constraint if exists users_plan_check;
-alter table public.users add constraint users_plan_check check (plan in ('free', 'trial', 'solo', 'trio'));
+alter table public.users add constraint users_plan_check
+  check (plan in ('free', 'trial', 'solo', 'trio', 'premium_solo', 'premium_trio'));
 -- Élargi à us/uk (quadri-langue) : remplace l'ancienne contrainte qc/fr uniquement,
 -- y compris sur une base qui avait déjà ce schéma avant l'ajout des 2 locales anglaises.
 alter table public.users drop constraint if exists users_region_check;
@@ -649,6 +656,62 @@ revoke execute on function public.create_activation_codes(text, text, int, int, 
   from public, anon, authenticated;
 grant  execute on function public.create_activation_codes(text, text, int, int, text, uuid, text, timestamptz)
   to service_role;
+
+-- Mise à niveau Base (solo/trio) → Premium (contrat pricing v2) : la différence de prix a déjà
+-- été facturée par Stripe côté function (webhook), cette RPC applique juste le nouveau total de
+-- crédits + le nouveau plan sur le compte, sans générer de code (même appareil, pas de nouvelle
+-- activation à saisir). Idempotente par stripe_session_id comme create_activation_codes ci-dessus.
+create or replace function public.apply_premium_upgrade(
+  p_user_id           uuid,
+  p_plan              text,
+  p_credits           int,
+  p_stripe_session_id text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_code text;
+begin
+  if p_plan is null or p_plan not in ('premium_solo', 'premium_trio') then
+    raise exception 'BAD_REQUEST';
+  end if;
+  if p_credits is null or p_credits <= 0 or p_user_id is null then
+    raise exception 'BAD_REQUEST';
+  end if;
+
+  if p_stripe_session_id is not null then
+    perform pg_advisory_xact_lock(hashtextextended(p_stripe_session_id, 0));
+    if exists (select 1 from public.activation_codes where stripe_session_id = p_stripe_session_id) then
+      return false; -- session déjà traitée (retry webhook Stripe)
+    end if;
+  end if;
+
+  update public.users
+     set credits         = p_credits,
+         plan             = p_plan,
+         plan_expires_at  = now() + interval '90 days'
+   where id = p_user_id;
+
+  if not found then
+    raise exception 'NOT_FOUND';
+  end if;
+
+  -- Trace d'audit dans la même table que les codes (déjà "utilisée" : aucune saisie requise).
+  v_code := 'UPGRADE-' || upper(substr(p_user_id::text, 1, 8)) || '-' || to_char(now(), 'HH24MISSMS');
+  insert into public.activation_codes
+    (code, type, credits, plan, email, batch_id, stripe_session_id, is_used, used_by, used_at, expires_at)
+  values
+    (v_code, 'premium', p_credits, p_plan, null, null, p_stripe_session_id, true, p_user_id, now(), null);
+
+  return true;
+end;
+$$;
+
+revoke execute on function public.apply_premium_upgrade(uuid, text, int, text) from public, anon, authenticated;
+grant  execute on function public.apply_premium_upgrade(uuid, text, int, text) to service_role;
 
 
 -- =============================================================================

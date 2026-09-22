@@ -90,6 +90,12 @@ export async function createCheckout(plan, region) {
   return callFunction('create-checkout', { plan, region })
 }
 
+// Mise à niveau Base → Premium (contrat pricing v2) : le serveur revérifie l'éligibilité
+// (forfait de base + crédits épuisés) à partir du compte authentifié, jamais sur la foi de `plan`.
+export async function createUpgradeCheckout(region) {
+  return callFunction('create-checkout', { upgrade: true, region })
+}
+
 // --- RPC Supabase (SECURITY INVOKER / garde auth.uid()) ---------------------
 
 export async function fetchProfile() {

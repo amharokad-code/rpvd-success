@@ -7,8 +7,8 @@ import { useEffect, useState } from 'react'
 import Modal from './ui/Modal'
 import Button from './ui/Button'
 import { useCopy } from '../context/RegionContext'
-import { ApiError, createCheckout } from '../lib/api'
-import { formatPlanPrice } from '../lib/pricing'
+import { ApiError, createCheckout, createUpgradeCheckout } from '../lib/api'
+import { formatPlanPrice, formatUpgradePrice, UPGRADE_TARGET } from '../lib/pricing'
 
 // Forfaits du contrat §0 — un seul plan tarifaire, converti par devise (voir lib/pricing.js).
 const PLANS = [
@@ -16,7 +16,7 @@ const PLANS = [
   { id: 'trio', featured: true },
 ]
 
-export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
+export default function PaywallModal({ open, credits, plan, onClose, onHaveCode }) {
   const { t, region } = useCopy()
   const [busyPlan, setBusyPlan] = useState(null)
   const [error, setError] = useState(null)
@@ -26,6 +26,10 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
     setBusyPlan(null)
     setError(null)
   }, [open])
+
+  // Éligible à la mise à niveau Premium (contrat pricing v2) : forfait de base déjà payé et
+  // épuisé — le serveur revérifie tout, ceci ne pilote que l'affichage.
+  const upgradeEligible = credits === 0 && Boolean(UPGRADE_TARGET[plan])
 
   async function choosePlan(plan) {
     if (busyPlan) return
@@ -42,9 +46,44 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
     }
   }
 
+  async function chooseUpgrade() {
+    if (busyPlan) return
+    setBusyPlan('upgrade')
+    setError(null)
+    try {
+      const { url } = await createUpgradeCheckout(region)
+      if (!url) throw new ApiError('SERVER_ERROR')
+      window.location.assign(url)
+    } catch (err) {
+      const code = err instanceof ApiError ? err.code : 'SERVER_ERROR'
+      setError(t.errors[code] ?? t.errors.SERVER_ERROR)
+      setBusyPlan(null)
+    }
+  }
+
   return (
     <Modal open={open} onClose={onClose} title={t.paywall.title}>
       <p className="text-slate-300 leading-relaxed">{t.paywall.subtitle}</p>
+
+      {upgradeEligible && (
+        <button
+          type="button"
+          onClick={chooseUpgrade}
+          disabled={Boolean(busyPlan)}
+          aria-busy={busyPlan === 'upgrade' || undefined}
+          className={`glass squishy focus-ring mt-4 flex w-full flex-col items-start gap-1 border-amber-500/50 p-4 text-left shadow-glow-amber transition-colors duration-200 ${
+            busyPlan ? 'cursor-wait opacity-60' : ''
+          }`}
+        >
+          <span className="font-display text-lg font-bold text-amber-300">{t.paywall.upgradeTitle}</span>
+          <span className="text-sm leading-relaxed text-slate-300">
+            {t.paywall.upgradeDesc(formatUpgradePrice(plan, region))}
+          </span>
+          <span className="mt-2 font-display text-sm font-bold text-amber-400">
+            {t.paywall.upgradeCta(formatUpgradePrice(plan, region))} →
+          </span>
+        </button>
+      )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {PLANS.map((plan) => {

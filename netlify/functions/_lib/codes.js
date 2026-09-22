@@ -30,7 +30,37 @@ const PLANS = {
     label: 'Trio',
     amounts: { cad: 3374, usd: 2499, eur: 2274, gbp: 1949 },
   },
+  // Premium (contrat pricing v2, remplace l'idée initiale de "crédits illimités à 5$") :
+  // même structure que Solo/Trio (credits = PAR CODE), juste plus de crédits par code.
+  premium_solo: {
+    credits: 120,
+    codesPerPurchase: 1,
+    label: 'Premium',
+    amounts: { cad: 3499, usd: 2599, eur: 2358, gbp: 2021 },
+  },
+  premium_trio: {
+    credits: 120,
+    codesPerPurchase: 3,
+    label: 'Premium Trio',
+    amounts: { cad: 5999, usd: 4499, eur: 4043, gbp: 3466 },
+  },
 };
+
+// Mise à niveau : un compte Solo/Trio épuisé (0 crédit) peut passer au Premium correspondant en
+// ne payant que la différence de prix plutôt que le plein tarif Premium (contrat pricing v2).
+const UPGRADE_TARGET = { solo: 'premium_solo', trio: 'premium_trio' };
+
+// Différence de prix (en plus petite unité) entre le forfait de base déjà payé et son Premium,
+// dans une devise donnée — jamais négative (un plancher évite un montant Stripe à 0/rejeté si
+// les tarifs venaient à changer et rendaient le Premium moins cher que le combo déjà payé).
+const MIN_UPGRADE_AMOUNT = 100; // 1,00 dans la devise (cents/pence)
+function upgradeAmount(basePlan, currency) {
+  const targetPlan = UPGRADE_TARGET[basePlan];
+  if (!targetPlan) return null;
+  const base = PLANS[basePlan].amounts[currency] ?? PLANS[basePlan].amounts.cad;
+  const target = PLANS[targetPlan].amounts[currency] ?? PLANS[targetPlan].amounts.cad;
+  return Math.max(target - base, MIN_UPGRADE_AMOUNT);
+}
 
 function currencyForRegion(region) {
   return REGION_CURRENCY[region] || DEFAULT_CURRENCY;
@@ -60,6 +90,8 @@ module.exports = {
   TRIAL_VALIDITY_DAYS,
   PREMIUM_CODE_REDEMPTION_WINDOW_DAYS,
   PLANS,
+  UPGRADE_TARGET,
+  upgradeAmount,
   REGION_CURRENCY,
   DEFAULT_CURRENCY,
   currencyForRegion,

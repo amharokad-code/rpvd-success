@@ -388,6 +388,7 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
       <PaywallModal
         open={paywallOpen}
         credits={credits}
+        plan={profile?.plan}
         onClose={() => setPaywallOpen(false)}
         onHaveCode={() => {
           setPaywallOpen(false)

@@ -3,7 +3,13 @@
 export const PLAN_AMOUNTS = {
   solo: { cad: 1754, usd: 1299, eur: 1182, gbp: 1013 },
   trio: { cad: 3374, usd: 2499, eur: 2274, gbp: 1949 },
+  premium_solo: { cad: 3499, usd: 2599, eur: 2358, gbp: 2021 },
+  premium_trio: { cad: 5999, usd: 4499, eur: 4043, gbp: 3466 },
 }
+
+// Base éligible → son Premium (miroir de UPGRADE_TARGET côté function).
+export const UPGRADE_TARGET = { solo: 'premium_solo', trio: 'premium_trio' }
+const MIN_UPGRADE_AMOUNT = 100
 
 const REGION_CURRENCY = { qc: 'cad', fr: 'eur', us: 'usd', uk: 'gbp' }
 const CURRENCY_LOCALE = { cad: 'fr-CA', eur: 'fr-FR', usd: 'en-US', gbp: 'en-GB' }
@@ -12,12 +18,25 @@ export function currencyForRegion(region) {
   return REGION_CURRENCY[region] || 'cad'
 }
 
-export function formatPlanPrice(plan, region) {
-  const currency = currencyForRegion(region)
-  const amount = (PLAN_AMOUNTS[plan]?.[currency] ?? PLAN_AMOUNTS[plan]?.cad ?? 0) / 100
+function formatAmount(cents, currency) {
   return new Intl.NumberFormat(CURRENCY_LOCALE[currency] || 'fr-CA', {
     style: 'currency',
     currency: currency.toUpperCase(),
     minimumFractionDigits: 2,
-  }).format(amount)
+  }).format(cents / 100)
+}
+
+export function formatPlanPrice(plan, region) {
+  const currency = currencyForRegion(region)
+  const amount = PLAN_AMOUNTS[plan]?.[currency] ?? PLAN_AMOUNTS[plan]?.cad ?? 0
+  return formatAmount(amount, currency)
+}
+
+// Différence de prix Base → Premium (contrat pricing v2) : ce qu'il reste à payer pour la
+// mise à niveau, pas le plein tarif Premium.
+export function formatUpgradePrice(basePlan, region) {
+  const currency = currencyForRegion(region)
+  const base = PLAN_AMOUNTS[basePlan]?.[currency] ?? PLAN_AMOUNTS[basePlan]?.cad ?? 0
+  const target = PLAN_AMOUNTS[UPGRADE_TARGET[basePlan]]?.[currency] ?? 0
+  return formatAmount(Math.max(target - base, MIN_UPGRADE_AMOUNT), currency)
 }
