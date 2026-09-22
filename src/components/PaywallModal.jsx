@@ -8,7 +8,7 @@ import Modal from './ui/Modal'
 import Button from './ui/Button'
 import { useCopy } from '../context/RegionContext'
 import { ApiError, createCheckout, createUpgradeCheckout } from '../lib/api'
-import { formatPlanPrice, formatUpgradePrice, UPGRADE_TARGET } from '../lib/pricing'
+import { formatPlanPriceBreakdown, formatUpgradePrice, UPGRADE_TARGET } from '../lib/pricing'
 
 // Forfaits du contrat §0 — un seul plan tarifaire, converti par devise (voir lib/pricing.js).
 const PLANS = [
@@ -102,10 +102,15 @@ export default function PaywallModal({ open, credits, plan, onClose, onHaveCode 
             >
               <span className="flex w-full items-baseline justify-between gap-3">
                 <span className="font-display text-2xl font-bold text-slate-50">{t.paywall[plan.id]}</span>
-                <span className="font-mono text-xl font-bold tabular-nums text-emerald-400">
-                  {formatPlanPrice(plan.id, region)}
-                </span>
               </span>
+              {(() => {
+                const { total, monthly } = formatPlanPriceBreakdown(plan.id, region)
+                return (
+                  <span className="font-mono text-lg font-bold tabular-nums text-emerald-400">
+                    {t.paywall.priceLine(total, monthly)}
+                  </span>
+                )
+              })()}
               <span className="text-sm leading-relaxed text-slate-300">{t.paywall[`${plan.id}Desc`]}</span>
               {isBusy && (
                 <span className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-700/60" aria-hidden="true">

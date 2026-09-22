@@ -32,6 +32,20 @@ export function formatPlanPrice(plan, region) {
   return formatAmount(amount, currency)
 }
 
+// Tous les forfaits (Solo/Trio/Premium) durent 3 mois (contrat) — le prix affiché seul masque
+// le vrai coût mensuel et, pire, un prix codé en dur dans un texte (ex: "12,99$") ne s'applique
+// qu'à UNE devise alors que le contrat est quadri-devise. On calcule donc les DEUX montants
+// (total réel + équivalent mensuel) dans la devise de la région active, jamais un texte fixe.
+const PLAN_DURATION_MONTHS = 3
+export function formatPlanPriceBreakdown(plan, region) {
+  const currency = currencyForRegion(region)
+  const totalCents = PLAN_AMOUNTS[plan]?.[currency] ?? PLAN_AMOUNTS[plan]?.cad ?? 0
+  return {
+    total: formatAmount(totalCents, currency),
+    monthly: formatAmount(totalCents / PLAN_DURATION_MONTHS, currency),
+  }
+}
+
 // Différence de prix Base → Premium (contrat pricing v2) : ce qu'il reste à payer pour la
 // mise à niveau, pas le plein tarif Premium.
 export function formatUpgradePrice(basePlan, region) {
