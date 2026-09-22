@@ -106,7 +106,7 @@ export default function PaywallModal({ open, credits, plan, onClose, onHaveCode 
                   <span className="flex w-full items-start justify-between gap-3">
                     <span className="flex flex-col">
                       <span className="font-display text-2xl font-bold text-slate-50">{t.paywall[plan.id]}</span>
-                      <span className="font-mono text-xs font-semibold tabular-nums text-slate-400">
+                      <span className="font-mono text-xs font-semibold tabular-nums text-emerald-400">
                         {t.paywall.monthlyPrice(monthly)}
                       </span>
                     </span>
