@@ -15,3 +15,10 @@ port = 5173
 from = "/*"
 to = "/index.html"
 status = 200
+
+# Netlify sert .webmanifest en application/octet-stream par défaut (extension inconnue) — Chrome
+# exige un type JSON pour considérer le manifeste valide et proposer l'installation (PWA §critère).
+[[headers]]
+for = "/manifest.webmanifest"
+[headers.values]
+Content-Type = "application/manifest+json"

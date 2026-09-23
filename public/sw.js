@@ -4,7 +4,7 @@
    - Autres GET same-origin (/assets/*, icônes) : stale-while-revalidate.
    - Jamais d'interception des API : /.netlify/functions/*, Supabase, Stripe, Google. */
 
-const CACHE_VERSION = 'v1'
+const CACHE_VERSION = 'v2'
 const CACHE_NAME = `rpvd-${CACHE_VERSION}`
 
 const SHELL_URLS = [
@@ -14,6 +14,8 @@ const SHELL_URLS = [
   '/icons/icon.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
+  '/icons/icon-maskable-192.png',
+  '/icons/icon-maskable-512.png',
 ]
 
 // Hôtes et chemins qu'on laisse toujours passer au réseau sans y toucher.
