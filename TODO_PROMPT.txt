@@ -1,44 +1,27 @@
 CONTEXTE
 RPVD Success — PWA React/Vite/Tailwind + Netlify Functions + Supabase + Gemini + Stripe.
-Site actuellement en ligne : https://rpvd-success-v2.netlify.app (compte Netlify rpvdsuccess@gmail.com).
-L'ancien site incandescent-hamster-05d62b.netlify.app est bloqué (crédits Netlify épuisés, renouvellement le 17 octobre) — ne pas y toucher pour l'instant.
+Site actuellement en ligne : https://rpvdsuccess.netlify.app (compte Netlify badamhton@gmail.com, déploiement auto sur push GitHub).
+Deux anciens sites sont bloqués par manque de crédits Netlify : incandescent-hamster-05d62b.netlify.app et rpvd-success-v2.netlify.app — ne pas y toucher, ne rien y déployer.
 Lis PROJECT_HANDOFF.md à la racine du repo pour le contexte complet avant de commencer.
 
 TÂCHES À FAIRE, DANS CET ORDRE
 
-1. SÉCURITÉ — priorité absolue
-   Des clés ont été accidentellement exposées dans une conversation précédente. Régénère-les toutes et remets-les à jour sur Netlify (site rpvd-success-v2) avec `netlify env:set` :
-   - Clé service Supabase (SUPABASE_SERVICE_KEY) — Supabase dashboard > Project Settings > API > Reset service_role key
-   - Clé Gemini (GOOGLE_AI_STUDIO_API_KEY) — Google AI Studio > régénérer
-   - Clé secrète Stripe (STRIPE_SECRET_KEY) — c'est une clé test (sk_test_...), risque faible mais régénère-la quand même par bonne pratique
-   - Secret webhook Stripe (STRIPE_WEBHOOK_SECRET) — recrée l'endpoint webhook dans Stripe pour obtenir un nouveau secret
-   Après rotation, redéploie (npm run build && npx netlify deploy --prod --dir=dist --functions=netlify/functions) et vérifie que le site fonctionne toujours (login, upload, paiement).
+1. COURRIEL — priorité absolue, bloque une vraie fonctionnalité business
+   RESEND_API_KEY et EMAIL_FROM n'ont jamais été configurés sur aucun des 3 sites successifs. Sans ça, aucun courriel ne part (codes d'essai, codes premium après achat, confirmation d'upgrade). Demande les valeurs à l'utilisateur (ne jamais inventer une clé), configure-les avec `netlify env:set` sur le site rpvdsuccess.netlify.app, force un rebuild, puis teste un vrai envoi (demande d'essai gratuit ou achat test) et confirme la réception.
 
-2. MIGRER LES VARIABLES D'ENVIRONNEMENT MANQUANTES vers le site rpvd-success-v2
-   Ces variables existaient sur l'ancien compte bloqué mais n'ont jamais été copiées sur le nouveau :
-   - META_PIXEL_ID
-   - META_CAPI_ACCESS_TOKEN
-   - RESEND_API_KEY (sans ça, aucun courriel — codes d'essai/premium — ne part en prod)
-   - EMAIL_FROM
-   - VITE_SUPABASE_URL
-   - VITE_SUPABASE_ANON_KEY
-   Vérifie d'abord avec `netlify env:list` lesquelles manquent réellement, puis demande les valeurs à l'utilisateur si tu ne les as pas (ne jamais inventer une clé).
+2. META ADS — variables manquantes + campagne manuelle
+   META_PIXEL_ID et META_CAPI_ACCESS_TOKEN n'ont jamais été configurés. Demande les valeurs à l'utilisateur, configure-les, force un rebuild. Une fois en place, fais un achat Stripe test et vérifie dans Meta Events Manager > Test Events que l'événement Purchase remonte bien (valeur/devise réelles). La campagne elle-même ("RPVD-Success-Acquisition-V1" ou équivalent) doit être créée manuellement par l'utilisateur dans Meta Ads Manager — jamais depuis Claude Code, par design (aucun token d'accès API ne doit être collé dans le chat).
 
-3. DÉCISION HÉBERGEMENT LONG TERME
-   Deux options à trancher avec l'utilisateur :
-   a) Rester sur rpvd-success-v2.netlify.app définitivement, et éventuellement brancher un vrai nom de domaine personnalisé.
-   b) Attendre le 17 octobre (renouvellement des crédits) et retourner sur l'ancien compte/site.
-   Dans tous les cas, mettre à jour toute URL codée en dur (ex. Supabase Auth > URL Configuration, liens de pub, documentation) pour pointer vers l'URL finale choisie.
+3. SURVEILLER LE COMPTE NETLIFY
+   Ce compte (badamhton@gmail.com) est un compte Free comme les deux précédents qui se sont bloqués ("Account credit usage exceeded"). Si un déploiement échoue avec une erreur Forbidden/403, vérifie d'abord ce message précis avant de chercher ailleurs. Si ça arrive : ne PAS migrer une 4e fois par réflexe — propose d'abord à l'utilisateur d'ajouter un moyen de paiement sur le compte existant (plus simple, ne casse aucune URL/webhook).
 
-4. CAMPAGNE META ADS
-   Jamais configurée depuis Claude Code par design (aucun token d'accès API ne doit être collé dans le chat). L'utilisateur doit :
-   - Créer la campagne "RPVD-Success-Acquisition-V1" directement dans Meta Ads Manager
-   - Configurer les deux ad sets (parents QC, élèves SN4) manuellement
-   - Une fois METAPIXEL_ID/META_CAPI_ACCESS_TOKEN en place (tâche 2), le tracking serveur (Purchase event sur le webhook Stripe) est déjà fonctionnel — vérifier dans Meta Events Manager > Test Events qu'un vrai achat de test remonte bien.
+4. DOMAINE PERSONNALISÉ (optionnel, à proposer)
+   Le site a changé d'URL 3 fois à cause des migrations Netlify. Un domaine personnalisé achetable réglerait ça définitivement — poser la question à l'utilisateur s'il veut en acheter un, plutôt que de décider seul (dépense).
 
-5. VÉRIFICATIONS FINALES AVANT LANCEMENT PUBLIC
-   - Tester un vrai paiement de bout en bout (Stripe test mode, carte 4242 4242 4242 4242) dans au moins 2 des 4 devises, confirmer que le code d'activation arrive par courriel (dépend de la tâche 2 — RESEND_API_KEY).
+5. VÉRIFICATIONS AVANT TOUTE ANNONCE PUBLIQUE / CAMPAGNE
+   - Tester un achat réel de chaque forfait (Solo, Trio, Premium Solo, Premium Trio, upgrade Base→Premium) en mode test Stripe, confirmer la réception du courriel (dépend de la tâche 1).
    - Tester le flux complet upload → analyse → Arbre de Cheminement → sauvegarde bibliothèque avec une vraie photo d'exercice.
-   - Vérifier que le lien magique de connexion fonctionne avec une vraie adresse courriel (pas juste le test synthétique déjà fait).
+   - Vérifier que le lien magique de connexion fonctionne avec une vraie adresse courriel.
+   - Nettoyer toute donnée de test créée dans Supabase (activation_codes, users) après vérification.
 
-Ne pose pas de questions inutiles sur des choix déjà tranchés dans PROJECT_HANDOFF.md — exécute directement. Si une valeur réelle (clé, montant, texte) manque et ne peut pas être devinée, demande-la explicitement plutôt que d'inventer.
+Ne pose pas de questions inutiles sur des choix déjà tranchés dans PROJECT_HANDOFF.md — exécute directement. Si une valeur réelle (clé, montant, texte) manque et ne peut pas être devinée, demande-la explicitement plutôt que d'inventer. Si une action touche de l'argent réel ou la création d'un nouveau compte/service tiers, confirme avec l'utilisateur avant d'agir.

@@ -1,6 +1,6 @@
 # RPVD Success — État du projet (résumé de transfert)
 
-Dernière mise à jour : 2026-09-21
+Dernière mise à jour : 2026-09-23
 
 ## 1. C'est quoi
 
@@ -11,83 +11,72 @@ PWA éducative : l'élève prend une photo de son exercice, l'app (React + Gemin
 - **Frontend** : React 19 + Vite + Tailwind CSS v4
 - **Backend** : Netlify Functions (Node, CommonJS)
 - **Base de données / Auth** : Supabase (Postgres + RLS + Auth par lien magique)
-- **IA** : Google Gemini (`gemini-3.1-flash-lite`, voir §5)
+- **IA** : Google Gemini (`gemini-3.1-flash-lite`, thinkingBudget 4096)
 - **Paiement** : Stripe Checkout (paiement unique, pas d'abonnement récurrent)
-- **Repo** : github.com/amharokad-code/rpvd-success (branche `main`, déploiement auto)
+- **Repo** : github.com/amharokad-code/rpvd-success (branche `main`, déploiement auto sur push)
 
-## 3. Hébergement — ⚠️ point le plus important
+## 3. Hébergement — ⚠️ à lire avant de déployer quoi que ce soit
 
-**Deux comptes Netlify existent** :
+**Le site a été migré deux fois** à cause de blocages de facturation Netlify (comptes "Free" sans carte, crédits épuisés) :
 
 | Compte | Site | Statut |
 |---|---|---|
-| `amharokad@gmail.com` | `incandescent-hamster-05d62b.netlify.app` | **Bloqué** — crédits gratuits du compte épuisés, déploiements refusés |
-| `rpvdsuccess@gmail.com` | **`rpvd-success-v2.netlify.app`** | ✅ **Site actuellement en ligne, à utiliser** |
+| `amharokad@gmail.com` | `incandescent-hamster-05d62b.netlify.app` | ❌ Bloqué (ancien) |
+| `rpvdsuccess@gmail.com` | `rpvd-success-v2.netlify.app` | ❌ Bloqué (« Account credit usage exceeded ») |
+| `badamhton@gmail.com` | **`rpvdsuccess.netlify.app`** | ✅ **Site actuellement en ligne, à utiliser** |
 
-Toutes les pubs / liens partagés doivent pointer vers **`rpvd-success-v2.netlify.app`**. Le CLI local est actuellement connecté au compte `rpvdsuccess@gmail.com`.
+Toutes les pubs / liens partagés doivent pointer vers **`rpvdsuccess.netlify.app`**. Ce site est connecté au dépôt GitHub (déploiement automatique à chaque push sur `main`) — pas besoin de `netlify deploy` manuel sauf pour forcer un rebuild après un changement d'env var.
 
-Pour redéployer après un changement de code :
+Si ce 3e compte se bloque à son tour (comportement observé : ça arrive après un usage soutenu sur un compte Free), la vraie solution long terme est d'ajouter un moyen de paiement sur UN des comptes plutôt que de re-migrer indéfiniment — recréer un site prend ~15 min mais chaque migration retouche le webhook Stripe et les redirect URLs Supabase.
+
+Pour forcer un rebuild manuel si besoin :
 ```bash
 npm run build
-npx netlify deploy --prod --dir=dist --functions=netlify/functions
+npx netlify deploy --prod --dir=dist --site <SITE_ID>
 ```
-(Le déploiement Git-auto existe aussi mais dépend des crédits du compte lié au repo — vérifier lequel est actif avant de compter dessus.)
 
 ## 4. Fonctionnalités livrées
 
-- **Auth** : connexion par lien magique (courriel), pas de mot de passe, pas de Google OAuth. Session persistée (`localStorage`), testée en conditions réelles.
-- **Empreinte d'appareil** : bloque le partage de compte (canvas + WebGL + UA + résolution).
-- **Moteur D** : analyse 3 niveaux + **Arbre de Cheminement** (séquence de bulles concept/action à droite du texte).
-- **Notation personnalisée** : juste au-dessus de la zone d'upload, toggle "Y'a-t-il une notation en particulier ?" → texte + photo d'exemple optionnelle (envoyée à Gemini pour cette analyse seulement, jamais stockée).
-- **Quadri-langue** : QC / FR / US / UK, ton et ordre de matière propre à chacun.
-- **Drapeaux** : SVG maison (Canada+Québec, France, US, UK) — les emojis Unicode ne s'affichent pas fiablement sous Windows/Chrome.
-- **Prix multi-devises** : CAD 17,54$/33,74$, USD 12,99$/24,99$, EUR 11,82€/22,74€, GBP 10,13£/19,49£ (Solo/Trio), testé avec de vraies sessions Stripe dans les 4 devises.
-- **Paywall honnête** : prix réels uniquement, **aucune fausse urgence** (retiré : prix barré, compte à rebours, badges "offre limitée" — risque légal LPC identifié et corrigé).
-- **Gamification** : streak (flamme), crédits, bibliothèque de RPVD sauvegardés.
-- **Rebrand "Pyramid Ascension"** : fond noir pur, orange `#f2994a`/`#e07b2e` (remplace l'ambre Tailwind), Space Grotesk pour les titres, logo pleine largeur en bannière, favicons régénérés à partir du vrai pictogramme fourni.
-- **Tracking** : Meta Conversions API sur le webhook Stripe (événement `Purchase`, valeur/devise réelles, email haché SHA-256).
+- **Auth** : connexion par lien magique (courriel), pas de mot de passe, pas de Google OAuth. Session persistée (`localStorage`).
+- **Empreinte d'appareil** : bloque le partage de compte (canvas + WebGL + UA + résolution) — un compte = un appareil, pour toujours.
+- **Analyse 3 niveaux + Arbre de Cheminement**, longueur adaptée à la complexité réelle du numéro (pas de taille fixe).
+- **Notation personnalisée** : au-dessus de la zone d'upload, texte + photo d'exemple optionnelle envoyée à Gemini.
+- **Quadri-langue** : QC / FR / US / UK. Sélecteur complet dans Réglages (grille 2x2), sélecteur compact (drapeau actif + chevron qui déroule les 3 autres) directement sur le dashboard.
+- **Bibliothèque** : sauvegarde de RPVD passés, table Supabase `submissions` (`is_saved`), pas de localStorage.
+- **Réseaux sociaux** : bandeau non-bloquant `SocialFollowPrompt` avec les vrais liens (Facebook/Instagram/TikTok), fermeture discrète (× transparent, sans cercle).
+- **Plans et paiement** (tous testés en réel avec Stripe test mode, carte 4242) :
+  - **Solo** : 50 crédits, 1 code, 1 appareil.
+  - **Trio** : **3 codes séparés** de 50 crédits chacun (un par personne/appareil) — PAS un compte à 150 crédits partagés.
+  - **Premium Solo** : 120 crédits, 1 code, 34,99$ CAD.
+  - **Premium Trio** : 3 codes de 120 crédits (360 total), 59,99$ CAD.
+  - **Upgrade Base → Premium** : une fois les crédits à 0, offre au paywall qui ne facture que la DIFFÉRENCE de prix (pas le plein tarif Premium). Éligibilité revérifiée côté serveur (compte connecté + forfait de base réel + crédits à 0), jamais sur la foi du client. S'applique directement au compte/appareil existant (pas de nouveau code à activer).
+  - Prix affichés : vrai prix total à droite, équivalent mensuel (vert) sous le nom du forfait, dans la devise réelle de la région — plus aucun montant hardcodé en une seule devise.
+- **Paywall honnête** : prix réels uniquement, aucune fausse urgence (pas de prix barré, pas de compte à rebours, pas de badge "offre limitée" — retiré pour raisons éthiques/légales).
+- **Design "v2"** : fond noir avec grille technique qui dérive lentement + noise, accent orange rendu terne/discret (l'orange vif du logo reste réservé au logo), micro-animations (logo qui flotte), navigation en rail à gauche sur desktop/tablette (icône seule) + barre du bas sur mobile.
+- **PWA** : manifest servi avec le bon type MIME (`application/manifest+json`, corrigé via `netlify.toml`), icônes maskable dédiées (safe zone 65%) séparées des icônes normales, service worker avec cache versionné.
+- **Tracking** : Meta Conversions API sur le webhook Stripe (événement `Purchase`).
 
-## 5. Le gros incident du jour — chaîne de modèles Gemini
+## 5. Base de données (Supabase)
 
-Trois causes de pannes en prod, trouvées et corrigées **dans cet ordre**, chacune confirmée dans les vrais logs Netlify (pas des suppositions) :
+Schéma dans `supabase_schema.sql` à la racine du repo — **idempotent**, peut être rejoué sans danger dans l'éditeur SQL Supabase. Tables : `users` (`plan` inclut maintenant `premium_solo`/`premium_trio`), `submissions`, `activation_codes` (idem), `rate_limits`, `trial_requests`, `security_events`.
 
-1. **`maxOutputTokens` trop bas** (2048) après l'ajout du champ `cheminement` au schéma JSON → réponse tronquée → 502 systématique. Monté à 8192.
-2. **Pas de vrai filet de sécurité** : la chaîne de repli listait `gemini-2.5-flash`/`1.5-flash`/`2.0-flash`, tous en réalité **404 "no longer available to new users"** pour cette clé. Un seul modèle marchait vraiment.
-3. **Cause racine finale** : `gemini-3.6/3.7/3.5-flash` (et `flash-latest`) sont des modèles trop récents/preview, en surcharge quasi permanente chez Google (503 "high demand", 7-30s de latence même quand ils répondent).
+RPCs clés : `activate_code`, `consume_credit`, `refund_credit`, `bump_streak`, `create_activation_codes` (verrouillage `pg_advisory_xact_lock` par `stripe_session_id`, génère N codes d'un coup pour Trio), `apply_premium_upgrade` (nouveau — applique l'upgrade Base→Premium directement au compte, idempotent par session Stripe, laisse une trace d'audit dans `activation_codes`), `get_my_profile`, `save_submission`/`unsave_submission`, `set_preferences`.
 
-**Solution retenue** : chaîne 100% `flash-lite` (modèle établi, faible demande) :
-```
-gemini-3.1-flash-lite → gemini-flash-lite-latest → gemini-3.1-flash-lite-preview
-```
-Testé 6/6 succès sur deux séries indépendantes avec le vrai payload (vision + schéma JSON complet), 1-3.5s à chaque fois. Le fallback bascule aussi maintenant sur 503/429/timeout (pas juste 404 comme avant), et le timeout par modèle est réduit à 12s (deux essais tiennent sous la limite d'exécution Netlify).
+**Supabase Auth → URL Configuration** doit inclure `https://rpvdsuccess.netlify.app` (Site URL + Redirect URLs) — à vérifier après toute migration Netlify.
 
-`thinkingConfig.thinkingBudget: 4096` ajouté en plus — même modèle, juste plus de temps de réflexion interne avant de répondre (demandé explicitement).
+## 6. Variables d'environnement (noms, pas les valeurs)
 
-## 6. ⚠️ Sécurité — à faire dès que possible
+Configurées sur `rpvdsuccess.netlify.app` : `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `GOOGLE_AI_STUDIO_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
 
-Des clés ont été **accidentellement affichées en clair** dans le chat pendant la session (erreur de ma part — tentative de masquage ratée sur une commande) :
-- Clé service Supabase (`SUPABASE_SERVICE_KEY`)
-- Clé Gemini (`GOOGLE_AI_STUDIO_API_KEY`)
-- Clé secrète Stripe **test** (`sk_test_...` — risque limité, pas de vrai argent)
-- Secret webhook Stripe
+**Toujours manquantes** (jamais configurées, sur aucun des 3 sites successifs) : `RESEND_API_KEY`, `EMAIL_FROM`, `META_PIXEL_ID`, `META_CAPI_ACCESS_TOKEN`. Sans `RESEND_API_KEY`, **aucun courriel ne part** (codes d'essai, codes premium, confirmation d'upgrade) — c'est le trou le plus important restant.
 
-**Recommandé** : régénérer ces 3-4 clés (Supabase → Project Settings → API ; Google AI Studio ; Stripe → API keys) et les remettre à jour sur Netlify (`npx netlify env:set CLE "nouvelle_valeur"`), sur le site `rpvd-success-v2`.
+## 7. Secrets exposés en clair dans l'historique de conversation
 
-## 7. Variables d'environnement (noms, pas les valeurs)
+Chaque fois qu'un secret est apparu dans une sortie d'outil (obligatoire pour le configurer), l'utilisateur en a été informé sur le coup. Liste cumulative à régénérer par prudence si une revue de sécurité est faite un jour : clé service Supabase, clé Gemini, clé secrète Stripe (test), plusieurs secrets de webhook Stripe successifs (un par migration de site), le personal access token Netlify du compte `badamhton@gmail.com`.
 
-Configurées sur `rpvd-success-v2` : `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`, `GOOGLE_AI_STUDIO_API_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
+## 8. Ce qui reste en suspens
 
-**Encore à configurer sur ce site** (existaient sur l'ancien compte, pas migrées) : `META_PIXEL_ID`, `META_CAPI_ACCESS_TOKEN`, `RESEND_API_KEY`, `EMAIL_FROM`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`. Sans `RESEND_API_KEY`, les courriels (codes d'essai/premium) ne partent pas en prod.
-
-## 8. Base de données (Supabase)
-
-Schéma dans `supabase_schema.sql` à la racine du repo — idempotent, peut être rejoué sans danger. Table `users`, `submissions`, `activation_codes`, RPCs `consume_credit`/`refund_credit`/`bump_streak`/`get_my_profile`/`set_preferences`/etc.
-
-**Supabase Auth → URL Configuration** : Site URL et Redirect URLs doivent inclure `https://rpvd-success-v2.netlify.app` (déjà fait).
-
-## 9. Ce qui reste en suspens
-
-- Migrer les variables d'environnement manquantes (§7) vers `rpvd-success-v2`.
-- Rotation des clés exposées (§6).
-- Décider si on retourne un jour sur l'ancien compte Netlify (crédits se renouvellent le 17 octobre) ou si `rpvd-success-v2` devient définitif — envisager un domaine personnalisé pour ne plus dépendre du sous-domaine `.netlify.app`.
-- Campagne Meta Ads (ciblage QC parents/élèves) : jamais configurée depuis Claude Code (accès API refusé par design — jamais de token collé dans le chat), à faire manuellement dans Meta Ads Manager.
+- **`RESEND_API_KEY` / `EMAIL_FROM`** : à configurer en priorité, sinon aucun courriel ne part (blocage business réel, pas juste cosmétique).
+- **Meta Ads** : `META_PIXEL_ID`/`META_CAPI_ACCESS_TOKEN` à configurer, puis vérifier dans Meta Events Manager qu'un achat test remonte. La campagne elle-même doit être créée manuellement dans Meta Ads Manager (jamais fait depuis Claude Code, par design — aucun token d'accès API collé dans le chat).
+- **Domaine personnalisé** : envisager pour ne plus dépendre d'un sous-domaine `.netlify.app` qui change à chaque migration de compte.
+- **Robustesse du compte Netlify** : si `rpvdsuccess.netlify.app` (compte `badamhton@gmail.com`) se bloque aussi, la vraie solution est d'ajouter un moyen de paiement plutôt que de migrer une 4e fois.
