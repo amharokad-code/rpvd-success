@@ -121,8 +121,11 @@ exports.handler = async (event) => {
 
     // 6. Analyse Gemini ; remboursement du crédit en cas d'échec.
     let analysis;
+    let geminiMetrics = null;
     try {
-      analysis = await analyzeImage({ base64, mimeType, region, preferredNotation, notationImage });
+      const result = await analyzeImage({ base64, mimeType, region, preferredNotation, notationImage, taskType: 'full_analysis' });
+      analysis = result.analysis;
+      geminiMetrics = result.metrics;
     } catch (err) {
       try {
         await rpc('refund_credit', { p_user_id: user.id });
@@ -143,6 +146,7 @@ exports.handler = async (event) => {
         level_3_response: analysis.level_3_steps,
         analysis,
         region,
+        gemini_metrics: geminiMetrics,
       })
       .select('id')
       .single();

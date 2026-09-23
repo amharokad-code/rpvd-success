@@ -336,9 +336,12 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
           <AnalysisEngine
             key={result.submission_id}
             analysis={result.analysis}
+            submissionId={result.submission_id}
+            region={region}
             onDone={noop}
             onSave={handleSaveRequest}
             onNew={resetToUpload}
+            onCreditsChange={(next) => onProfileChange?.((p) => ({ ...(p ?? {}), credits: next }))}
           />
           {savedInfo && (
             <p

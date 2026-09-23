@@ -20,6 +20,7 @@ import LibraryPage from './pages/LibraryPage'
 import SettingsPage from './pages/SettingsPage'
 import ActivatePage from './pages/ActivatePage'
 import LoginPage from './pages/LoginPage'
+import ExamPrep from './components/ExamPrep'
 
 function getSearch() {
   if (typeof window === 'undefined') return ''
@@ -42,7 +43,7 @@ const DEMO_PROFILE = {
 const REGIONS = ['qc', 'fr', 'us', 'uk']
 // Onglets de la barre. `activate` n'y figure pas : on y arrive par le flux
 // (premier lancement sans crédit, mur de paiement « J'ai déjà un code », retour de Stripe).
-const NAV_TABS = ['analyze', 'library', 'settings']
+const NAV_TABS = ['analyze', 'examprep', 'library', 'settings']
 
 // Lit puis retire `?checkout=…` de l'URL une seule fois au chargement du module
 // (les autres paramètres, dont `demo`, sont conservés ; un rechargement ne réaffiche pas la bannière).
@@ -84,6 +85,14 @@ function TabIcon({ name }) {
       <svg {...common}>
         <path d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2" />
         <path d="M7 12h10" />
+      </svg>
+    )
+  }
+  if (name === 'examprep') {
+    return (
+      <svg {...common}>
+        <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" />
+        <path d="M12 8v5M12 16h.01" />
       </svg>
     )
   }
@@ -131,7 +140,7 @@ function BootScreen({ t }) {
 }
 
 function AppShell() {
-  const { t, setRegion } = useCopy()
+  const { t, region: activeRegion, setRegion } = useCopy()
   const [profile, setProfile] = useState(null)
   const [bootState, setBootState] = useState('loading') // 'loading' | 'auth' | 'ready' | 'error'
   const [bootError, setBootError] = useState(null) // code d'erreur du contrat
@@ -276,6 +285,10 @@ function AppShell() {
             onOpenActivate={() => selectTab('activate')}
           />
         </div>
+
+        {tab === 'examprep' && (
+          <ExamPrep region={activeRegion} onCreditsChange={(next) => handleProfileChange({ ...(profile ?? {}), credits: next })} />
+        )}
 
         {tab === 'library' && <LibraryPage />}
 

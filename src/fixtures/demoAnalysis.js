@@ -37,4 +37,13 @@ export const DEMO_ANALYSIS = {
     },
   ],
   final_answer: 'x = 5',
+  hint: 'Regarde le 7 qui traîne à côté du 3x — faut le faire disparaître en premier.',
+  pitfall: "Le piège classique : oublier de faire la même opération des deux côtés du signe égal.",
+  consigne_translation: 'On te demande de trouver la valeur cachée derrière le x pour que l’équation soit vraie.',
+  cheminement: [
+    { type: 'concept', text: "l'inconnue", isFormula: false },
+    { type: 'action', text: 'on enlève 7', isFormula: false },
+    { type: 'action', text: '3x = 15', isFormula: true },
+    { type: 'action', text: 'x = 5', isFormula: true },
+  ],
 }

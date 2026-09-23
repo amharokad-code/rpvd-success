@@ -74,6 +74,21 @@ Configurées sur `rpvdsuccess.netlify.app` : `SUPABASE_URL`, `SUPABASE_SERVICE_K
 
 Chaque fois qu'un secret est apparu dans une sortie d'outil (obligatoire pour le configurer), l'utilisateur en a été informé sur le coup. Liste cumulative à régénérer par prudence si une revue de sécurité est faite un jour : clé service Supabase, clé Gemini, clé secrète Stripe (test), plusieurs secrets de webhook Stripe successifs (un par migration de site), le personal access token Netlify du compte `badamhton@gmail.com`.
 
+## 7bis. Phase 1 — fonctionnalités d'entraînement (RPVD_FEATURES_PROMPT.md)
+
+Implémentées et testées en direct contre l'API Gemini réelle (schémas validés, réponses cohérentes) :
+
+- **Indice / piège / traduction de consigne** : ajoutés au même appel Gemini que l'analyse principale (`hint`, `pitfall`, `consigne_translation` dans `analysis`), affichés en repli (`<details>`) dans `AnalysisEngine.jsx`.
+- **Générateur de clones** (`generate-clone.js`, `ClonePractice.jsx`) : génère un exercice au même pattern, texte seul (pas de photo), consomme 1 crédit, stocké dans `submissions.clones`.
+- **Mode vocal** (`TextToSpeech.jsx`) : Web Speech API, aucun appel serveur, langue pilotée par la région.
+- **Simulation chronométrée** (`start-simulation.js`, `finish-simulation.js`, `SimulationMode.jsx`) : pratique gratuite sur les clones déjà générés, RPC `start_simulation`/`finish_simulation`.
+- **Veille d'exam** (`exam-preparation.js`, `ExamPrep.jsx`, nouvel onglet nav) : liste les 5 patterns les plus probables d'un examen, consomme 1 crédit.
+- **Métriques Gemini** (`ANALYSIS_METRIC` dans les logs Netlify + colonne `submissions.gemini_metrics`) : modèle, latence, tokens, coût estimé par appel — chercher `ANALYSIS_METRIC` dans les logs pour affiner le budget de réflexion par tâche.
+
+**⚠️ Photo de tentative** (`analyze-tentative.js`) : câblée et fonctionnelle techniquement, mais **jamais validée** — le contrat exige de vérifier le diagnostic sur 20 vraies copies d'élèves (E.M.A. ou autre) avant d'exposer un bouton public. Ne pas lancer cette feature publiquement sans cette validation manuelle, qu'un agent ne peut pas fabriquer lui-même.
+
+**Migration SQL requise** : `supabase_schema.sql` a grandi (colonnes `clones`/`gemini_metrics` sur `submissions`, tables `clone_attempts`/`simulations`, RPCs `start_simulation`/`finish_simulation`) — rejouer le fichier complet dans l'éditeur SQL Supabase avant que ces routes fonctionnent en prod (idempotent, sans risque).
+
 ## 8. Ce qui reste en suspens
 
 - **`RESEND_API_KEY` / `EMAIL_FROM`** : à configurer en priorité, sinon aucun courriel ne part (blocage business réel, pas juste cosmétique).

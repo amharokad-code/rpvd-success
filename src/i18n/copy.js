@@ -32,6 +32,7 @@ const qc = {
 
   nav: {
     analyze: 'Analyser',
+    examprep: 'Veille d’exam',
     library: 'Bibliothèque',
     settings: 'Réglages',
   },
@@ -63,6 +64,26 @@ const qc = {
     save: 'Sauvegarder dans ma bibliothèque',
     newProblem: 'Nouvel exercice',
     patternLabel: 'Pattern',
+    hintCta: "💡 Besoin d'un indice ?",
+    pitfallLabel: '⚠️ Piège à éviter',
+    consigneLabel: '🗣️ Traduction simple',
+    ttsPlay: '🔈 Lire à voix haute',
+    ttsStop: '🔊 Arrête',
+    cloneCta: 'Fais-en un pareil 🔄',
+    cloneLoading: 'Génération...',
+    cloneTitle: (n) => `Exercice similaire #${n}`,
+    cloneShowSolution: 'Afficher la solution',
+    cloneSteps: 'Étapes :',
+    cloneAnswerLabel: 'Réponse :',
+    cloneError: 'Oups, ça a bogué. Réessaie.',
+    cloneMax: "T'as atteint le max de clones pour cet exercice.",
+    simulationCta: (n) => `⏱️ Teste-toi sur ${n} clones`,
+    simulationNeedClones: "Fais-toi un clone avant de te tester (bouton « Fais-en un pareil » plus haut).",
+    simulationAnswerPlaceholder: 'Ta réponse',
+    simulationNext: 'Suivant →',
+    simulationFinish: 'Terminer',
+    simulationResultsTitle: 'Résultats',
+    simulationScore: (correct, total) => `${correct} / ${total} bonnes réponses`,
   },
 
   credits: {
@@ -92,6 +113,16 @@ const qc = {
     urgencyLabel: "🔥 L'offre expire dans :",
     expired: "⏳ L'offre a expiré — reviens plus tard pour un nouveau prix.",
     pressureText: "Moins cher qu'une seule heure de tuteur. Bloque ce prix avant la fin du chrono pour garantir ton accès.",
+  },
+
+  examPrep: {
+    title: 'Prépare-moi pour cet exam 🎯',
+    placeholder: 'Ex : Examen Chapitre 4 — Fonctions linéaires',
+    cta: 'Analyse mon exam',
+    loading: 'Analyse en cours...',
+    frequency: { rarely: 'Rarement', sometimes: 'Parfois', often: 'Souvent', always: 'Presque toujours' },
+    exampleLabel: 'Ex :',
+    error: "Oups, impossible d'analyser cet exam. Réessaie.",
   },
 
   library: {
@@ -190,6 +221,7 @@ const fr = {
 
   nav: {
     analyze: 'Analyser',
+    examprep: 'Veille d’exam',
     library: 'Bibliothèque',
     settings: 'Réglages',
   },
@@ -221,6 +253,26 @@ const fr = {
     save: 'Sauvegarder dans ma bibliothèque',
     newProblem: 'Nouvel exercice',
     patternLabel: 'Pattern',
+    hintCta: "💡 Besoin d'un indice ?",
+    pitfallLabel: '⚠️ Piège à éviter',
+    consigneLabel: '🗣️ Traduction simple',
+    ttsPlay: '🔈 Lire à voix haute',
+    ttsStop: '🔊 Arrête',
+    cloneCta: 'Fais-en un pareil 🔄',
+    cloneLoading: 'Génération...',
+    cloneTitle: (n) => `Exercice similaire #${n}`,
+    cloneShowSolution: 'Afficher la solution',
+    cloneSteps: 'Étapes :',
+    cloneAnswerLabel: 'Réponse :',
+    cloneError: 'Oups, ça a planté. Réessaie.',
+    cloneMax: 'Tu as atteint le maximum de clones pour cet exercice.',
+    simulationCta: (n) => `⏱️ Teste-toi sur ${n} clones`,
+    simulationNeedClones: "Génère un clone avant de te tester (bouton « Fais-en un pareil » plus haut).",
+    simulationAnswerPlaceholder: 'Ta réponse',
+    simulationNext: 'Suivant →',
+    simulationFinish: 'Terminer',
+    simulationResultsTitle: 'Résultats',
+    simulationScore: (correct, total) => `${correct} / ${total} bonnes réponses`,
   },
 
   credits: {
@@ -250,6 +302,16 @@ const fr = {
     urgencyLabel: "🔥 L'offre expire dans :",
     expired: "⏳ L'offre a expiré — reviens plus tard pour un nouveau prix.",
     pressureText: "Moins cher qu'une seule heure de tuteur. Bloque ce prix avant la fin du chrono pour garantir ton accès.",
+  },
+
+  examPrep: {
+    title: 'Prépare-moi pour cet exam 🎯',
+    placeholder: 'Ex : Examen Chapitre 4 — Fonctions linéaires',
+    cta: 'Analyse mon exam',
+    loading: 'Analyse en cours...',
+    frequency: { rarely: 'Rarement', sometimes: 'Parfois', often: 'Souvent', always: 'Presque toujours' },
+    exampleLabel: 'Ex :',
+    error: "Oups, impossible d'analyser cet exam. Réessaie.",
   },
 
   library: {
@@ -348,6 +410,7 @@ const us = {
 
   nav: {
     analyze: 'Analyze',
+    examprep: 'Exam prep',
     library: 'Library',
     settings: 'Settings',
   },
@@ -379,6 +442,26 @@ const us = {
     save: 'Save to my library',
     newProblem: 'New problem',
     patternLabel: 'Pattern',
+    hintCta: '💡 Need a hint?',
+    pitfallLabel: '⚠️ Watch out for',
+    consigneLabel: '🗣️ Simple translation',
+    ttsPlay: '🔈 Read out loud',
+    ttsStop: '🔊 Stop',
+    cloneCta: 'Give me one like this 🔄',
+    cloneLoading: 'Generating...',
+    cloneTitle: (n) => `Similar problem #${n}`,
+    cloneShowSolution: 'Show solution',
+    cloneSteps: 'Steps:',
+    cloneAnswerLabel: 'Answer:',
+    cloneError: 'Oops, something broke. Try again.',
+    cloneMax: "You've hit the max number of clones for this exercise.",
+    simulationCta: (n) => `⏱️ Test yourself on ${n} clones`,
+    simulationNeedClones: 'Generate a clone first (the "Give me one like this" button above).',
+    simulationAnswerPlaceholder: 'Your answer',
+    simulationNext: 'Next →',
+    simulationFinish: 'Finish',
+    simulationResultsTitle: 'Results',
+    simulationScore: (correct, total) => `${correct} / ${total} correct`,
   },
 
   credits: {
@@ -408,6 +491,16 @@ const us = {
     urgencyLabel: '🔥 Offer expires in:',
     expired: '⏳ Offer expired — come back later for a new price.',
     pressureText: 'Cheaper than one hour with a tutor. Lock in this price before the timer runs out.',
+  },
+
+  examPrep: {
+    title: 'Get me ready for this exam 🎯',
+    placeholder: 'Ex: Exam Chapter 4 — Linear Functions',
+    cta: 'Analyze my exam',
+    loading: 'Analyzing...',
+    frequency: { rarely: 'Rarely', sometimes: 'Sometimes', often: 'Often', always: 'Almost always' },
+    exampleLabel: 'Ex:',
+    error: 'Oops, could not analyze this exam. Try again.',
   },
 
   library: {
@@ -506,6 +599,7 @@ const uk = {
 
   nav: {
     analyze: 'Analyse',
+    examprep: 'Exam prep',
     library: 'Library',
     settings: 'Settings',
   },
@@ -537,6 +631,26 @@ const uk = {
     save: 'Save to my library',
     newProblem: 'New problem',
     patternLabel: 'Pattern',
+    hintCta: '💡 Fancy a hint?',
+    pitfallLabel: '⚠️ Watch out for',
+    consigneLabel: '🗣️ Simple translation',
+    ttsPlay: '🔈 Read it out loud',
+    ttsStop: '🔊 Stop',
+    cloneCta: 'Give me a similar one 🔄',
+    cloneLoading: 'Generating...',
+    cloneTitle: (n) => `Similar problem #${n}`,
+    cloneShowSolution: 'Show solution',
+    cloneSteps: 'Steps:',
+    cloneAnswerLabel: 'Answer:',
+    cloneError: 'Oops, something went wrong. Try again.',
+    cloneMax: "You've hit the max number of clones for this exercise.",
+    simulationCta: (n) => `⏱️ Test yourself on ${n} clones`,
+    simulationNeedClones: 'Generate a clone first (the "Give me a similar one" button above).',
+    simulationAnswerPlaceholder: 'Your answer',
+    simulationNext: 'Next →',
+    simulationFinish: 'Finish',
+    simulationResultsTitle: 'Results',
+    simulationScore: (correct, total) => `${correct} / ${total} correct`,
   },
 
   credits: {
@@ -566,6 +680,16 @@ const uk = {
     urgencyLabel: '🔥 Offer expires in:',
     expired: '⏳ Offer expired — come back later for a new price.',
     pressureText: 'Cheaper than one hour with a tutor. Lock in this price before the timer runs out.',
+  },
+
+  examPrep: {
+    title: 'Get me ready for this exam 🎯',
+    placeholder: 'Ex: Exam Chapter 4 — Linear Functions',
+    cta: 'Analyze my exam',
+    loading: 'Analyzing...',
+    frequency: { rarely: 'Rarely', sometimes: 'Sometimes', often: 'Often', always: 'Almost always' },
+    exampleLabel: 'Ex:',
+    error: 'Oops, could not analyze this exam. Try again.',
   },
 
   library: {

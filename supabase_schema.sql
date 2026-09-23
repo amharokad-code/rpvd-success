@@ -917,3 +917,154 @@ notify pgrst, 'reload schema';
 -- select public.create_activation_codes(
 --   'premium', 'solo', 50, 1, 'parent@example.com', null, 'cs_test_123', now() + interval '365 days'
 -- );
+
+
+-- =============================================================================
+-- 9. FONCTIONNALITÉS PHASE 1 (RPVD_FEATURES_PROMPT.md) — clones, indice, piège,
+--    traduction de consigne, simulation chronométrée, veille d'exam, tentative.
+-- =============================================================================
+
+-- Clones générés pour une soumission (contexte de pratique, jamais la photo originale) et
+-- métriques Gemini de l'analyse elle-même (coût/latence, contrat "logue chaque appel").
+alter table public.submissions
+  add column if not exists clones         jsonb,
+  add column if not exists gemini_metrics jsonb;
+
+-- Historique des tentatives de l'élève sur un clone (texte/photo, correct ou non) — sert de
+-- base à la simulation chronométrée et au suivi de progression.
+create table if not exists public.clone_attempts (
+  id             uuid primary key default gen_random_uuid(),
+  submission_id  uuid not null references public.submissions (id) on delete cascade,
+  clone_number   int not null,
+  user_answer    text,
+  is_correct     boolean,
+  created_at     timestamptz default now()
+);
+create index if not exists clone_attempts_submission_idx on public.clone_attempts (submission_id);
+
+alter table public.clone_attempts enable row level security;
+-- Pas de policy select/insert directe pour authenticated : tout passe par les Netlify
+-- Functions (service_role), comme submissions/activation_codes — cohérent avec le reste du schéma.
+revoke all on table public.clone_attempts from anon, authenticated;
+
+-- Une session de simulation chronométrée : N clones tirés d'une soumission, score final.
+create table if not exists public.simulations (
+  id                 uuid primary key default gen_random_uuid(),
+  user_id            uuid not null references public.users (id) on delete cascade,
+  submission_id      uuid not null references public.submissions (id) on delete cascade,
+  clone_numbers      int[] not null,
+  time_limit_seconds int not null check (time_limit_seconds > 0),
+  time_spent_seconds int,
+  correct_count      int not null default 0,
+  total_count        int not null check (total_count > 0),
+  score_percent      int,
+  finished_at        timestamptz,
+  created_at         timestamptz default now()
+);
+create index if not exists simulations_user_idx on public.simulations (user_id);
+
+alter table public.simulations enable row level security;
+-- Lecture directe autorisée (historique de simulations dans un futur écran de progression) ;
+-- écriture réservée au service_role (Netlify Functions), comme le reste du schéma.
+drop policy if exists simulations_select_own on public.simulations;
+create policy simulations_select_own on public.simulations
+  for select to authenticated
+  using (auth.uid() = user_id);
+revoke all on table public.simulations from anon, authenticated;
+grant select on table public.simulations to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- start_simulation : crée une session de simulation à partir des clones déjà
+-- générés pour une soumission (ne génère rien elle-même — generate-clone le fait).
+-- -----------------------------------------------------------------------------
+create or replace function public.start_simulation(
+  p_user_id       uuid,
+  p_submission_id uuid,
+  p_clone_numbers int[],
+  p_seconds_per_clone int default 120
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_simulation public.simulations%rowtype;
+begin
+  if p_clone_numbers is null or array_length(p_clone_numbers, 1) is null or array_length(p_clone_numbers, 1) < 1 then
+    raise exception 'BAD_REQUEST';
+  end if;
+
+  if not exists (
+    select 1 from public.submissions where id = p_submission_id and user_id = p_user_id
+  ) then
+    raise exception 'NOT_FOUND';
+  end if;
+
+  insert into public.simulations
+    (user_id, submission_id, clone_numbers, time_limit_seconds, total_count)
+  values
+    (p_user_id, p_submission_id, p_clone_numbers,
+     array_length(p_clone_numbers, 1) * p_seconds_per_clone, array_length(p_clone_numbers, 1))
+  returning * into v_simulation;
+
+  return jsonb_build_object(
+    'id', v_simulation.id,
+    'time_limit_seconds', v_simulation.time_limit_seconds,
+    'total_count', v_simulation.total_count
+  );
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
+-- finish_simulation : enregistre le résultat final (garde propriétaire via p_user_id,
+-- une simulation déjà terminée ne peut pas être réécrite).
+-- -----------------------------------------------------------------------------
+create or replace function public.finish_simulation(
+  p_user_id            uuid,
+  p_simulation_id      uuid,
+  p_correct_count      int,
+  p_time_spent_seconds int
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_row public.simulations%rowtype;
+begin
+  select * into v_row
+    from public.simulations
+   where id = p_simulation_id and user_id = p_user_id
+     for update;
+
+  if not found then
+    raise exception 'NOT_FOUND';
+  end if;
+
+  if v_row.finished_at is not null then
+    raise exception 'BAD_REQUEST';
+  end if;
+
+  update public.simulations
+     set correct_count      = greatest(least(p_correct_count, v_row.total_count), 0),
+         time_spent_seconds = greatest(p_time_spent_seconds, 0),
+         score_percent      = round(greatest(least(p_correct_count, v_row.total_count), 0) * 100.0 / v_row.total_count),
+         finished_at        = now()
+   where id = p_simulation_id
+   returning * into v_row;
+
+  return jsonb_build_object(
+    'correct_count', v_row.correct_count,
+    'total_count', v_row.total_count,
+    'score_percent', v_row.score_percent,
+    'time_spent_seconds', v_row.time_spent_seconds
+  );
+end;
+$$;
+
+revoke execute on function public.start_simulation(uuid, uuid, int[], int) from public, anon, authenticated;
+grant  execute on function public.start_simulation(uuid, uuid, int[], int) to service_role;
+revoke execute on function public.finish_simulation(uuid, uuid, int, int) from public, anon, authenticated;
+grant  execute on function public.finish_simulation(uuid, uuid, int, int) to service_role;

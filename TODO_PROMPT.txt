@@ -15,6 +15,20 @@ TÂCHES À FAIRE, DANS CET ORDRE
 3. SURVEILLER LE COMPTE NETLIFY
    Ce compte (badamhton@gmail.com) est un compte Free comme les deux précédents qui se sont bloqués ("Account credit usage exceeded"). Si un déploiement échoue avec une erreur Forbidden/403, vérifie d'abord ce message précis avant de chercher ailleurs. Si ça arrive : ne PAS migrer une 4e fois par réflexe — propose d'abord à l'utilisateur d'ajouter un moyen de paiement sur le compte existant (plus simple, ne casse aucune URL/webhook).
 
+3bis. MIGRATION SQL PHASE 1 (RPVD_FEATURES_PROMPT.md) — si pas encore fait
+   Rejoue tout supabase_schema.sql dans l'éditeur SQL Supabase (idempotent) : ajoute les colonnes
+   clones/gemini_metrics sur submissions, les tables clone_attempts/simulations, et les RPCs
+   start_simulation/finish_simulation. Sans ça, generate-clone/start-simulation/finish-simulation
+   échoueront en prod (colonnes/fonctions inexistantes).
+
+3ter. VALIDATION MANUELLE — photo de tentative (analyze-tentative.js)
+   Cette route est câblée et fonctionne techniquement, mais N'A JAMAIS été validée sur de vraies
+   copies d'élèves. Avant d'exposer un bouton public vers cette feature : réunis 20 vraies copies
+   d'élèves (avec erreurs réelles), fais-les passer par cette route, vérifie MANUELLEMENT que le
+   diagnostic (hasError/errorLocation/errorExplanation) est correct. Seuil : 80% (16/20). Si en
+   dessous, ne lance pas la feature publiquement — remonte le problème à l'utilisateur plutôt que
+   de l'exposer prématurément. Ce test nécessite de vraies copies que tu ne peux pas fabriquer toi-même.
+
 4. DOMAINE PERSONNALISÉ (optionnel, à proposer)
    Le site a changé d'URL 3 fois à cause des migrations Netlify. Un domaine personnalisé achetable réglerait ça définitivement — poser la question à l'utilisateur s'il veut en acheter un, plutôt que de décider seul (dépense).
 

@@ -96,6 +96,26 @@ export async function createUpgradeCheckout(region) {
   return callFunction('create-checkout', { upgrade: true, region })
 }
 
+// Phase 1 (RPVD_FEATURES_PROMPT.md) : génère un exercice clone du pattern d'une analyse déjà
+// stockée. Consomme 1 crédit côté serveur.
+export async function generateClone(submissionId, region) {
+  return callFunction('generate-clone', { submissionId, region })
+}
+
+// Phase 5 : simulation chronométrée sur les clones déjà générés d'une soumission (gratuit).
+export async function startSimulation(submissionId, exerciseCount) {
+  return callFunction('start-simulation', { submissionId, exerciseCount })
+}
+
+export async function finishSimulation(simulationId, correctCount, timeSpentSeconds) {
+  return callFunction('finish-simulation', { simulationId, correctCount, timeSpentSeconds })
+}
+
+// Phase 6 : patterns critiques d'un examen à venir. Consomme 1 crédit côté serveur.
+export async function generateExamPrep(examTitle, region) {
+  return callFunction('exam-preparation', { examTitle, region })
+}
+
 // --- RPC Supabase (SECURITY INVOKER / garde auth.uid()) ---------------------
 
 export async function fetchProfile() {

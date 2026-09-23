@@ -73,6 +73,18 @@ const RESPONSE_SCHEMA = {
       },
     },
     final_answer: { type: 'STRING' },
+    hint: {
+      type: 'STRING',
+      description: "Une SEULE phrase qui débloque la première étape sans jamais donner la réponse ni la démarche complète.",
+    },
+    pitfall: {
+      type: 'STRING',
+      description: "L'erreur la plus commune sur ce type d'exercice, en 1-2 phrases concrètes.",
+    },
+    consigne_translation: {
+      type: 'STRING',
+      description: "L'énoncé réécrit en mots très simples pour un élève qui a du mal à comprendre ce qu'on lui demande — pas la solution, juste la consigne clarifiée.",
+    },
     cheminement: {
       type: 'ARRAY',
       description:
@@ -98,6 +110,9 @@ const RESPONSE_SCHEMA = {
     'level_3_steps',
     'final_answer',
     'ocr_fail',
+    'hint',
+    'pitfall',
+    'consigne_translation',
     'cheminement',
   ],
 };
@@ -159,8 +174,11 @@ function buildSystemInstruction({ region, preferredNotation }) {
     '7. « final_answer » : la réponse finale, courte (ex. « x = 5 »).',
     '8. « problem_type » : nom court et clair du type de problème, dans la langue de réponse.',
     `9. « subject_guess » : une valeur parmi ${SUBJECTS.join(', ')} (toujours en anglais, c\'est une clé technique, pas du texte affiché).`,
-    "10. « ocr_fail » = true si la photo est floue, vide, mal cadrée, ou ne montre clairement pas un exercice — indépendamment de la langue. Dans ce cas : problem_type = un nom court signalant le souci (dans la langue de réponse), subject_guess = « autre », template = \"\", slots = [], final_answer = \"\", et level_1_fallback/level_2_fallback expliquent gentiment (dans la langue de réponse) qu'il faut reprendre la photo avec plus de lumière/de netteté, avec level_3_steps donnant 2 conseils photo concrets. S'il y a plusieurs exercices lisibles, prends le premier et mets ocr_fail = false.",
-    "11. « cheminement » : PAS une nouvelle explication — découpe le « template » (niveau 1) en étapes séquentielles courtes, dans l'ordre où elles apparaissent dans la phrase. MÊME PRINCIPE que la règle 6 : la longueur suit la complexité réelle, pas un nombre fixe — un exercice simple donne 3-5 étapes, un exercice qui enchaîne plusieurs règles/sous-parties peut aller jusqu'à 16 étapes si c'est justifié par le contenu du template. Chaque étape a un « type » : « concept » (mot-clé théorique, ex. « l'inconnue » / « the unknown ») ou « action » (geste concret ou formule isolée, ex. « x = -b/2a »). « isFormula » = true seulement si « text » est une expression mathématique isolée (pas une phrase). Si ocr_fail est true, cheminement = [].",
+    "10. « ocr_fail » = true si la photo est floue, vide, mal cadrée, ou ne montre clairement pas un exercice — indépendamment de la langue. Dans ce cas : problem_type = un nom court signalant le souci (dans la langue de réponse), subject_guess = « autre », template = \"\", slots = [], final_answer = \"\", hint = \"\", pitfall = \"\", consigne_translation = \"\", et level_1_fallback/level_2_fallback expliquent gentiment (dans la langue de réponse) qu'il faut reprendre la photo avec plus de lumière/de netteté, avec level_3_steps donnant 2 conseils photo concrets. S'il y a plusieurs exercices lisibles, prends le premier et mets ocr_fail = false.",
+    '11. « hint » : UNE SEULE phrase (dans la langue de réponse) qui débloque la toute première étape sans jamais révéler la démarche complète ni la réponse. Ex. : « Regarde ce qui est déjà tout seul d\'un côté du = . » / "Look at what\'s already alone on one side of the =."',
+    "12. « pitfall » : l'erreur la plus commune que font les élèves sur CE type d'exercice précis, en 1-2 phrases concrètes (dans la langue de réponse). Pas une généralité vague — un piège réel et spécifique à l'exercice.",
+    '13. « consigne_translation » : réécris l\'énoncé de l\'exercice en mots très simples (dans la langue de réponse), pour un élève qui ne comprend pas ce qu\'on lui demande. Explique juste CE QU\'ON DEMANDE, jamais la méthode ni la réponse.',
+    "14. « cheminement » : PAS une nouvelle explication — découpe le « template » (niveau 1) en étapes séquentielles courtes, dans l'ordre où elles apparaissent dans la phrase. MÊME PRINCIPE que la règle 6 : la longueur suit la complexité réelle, pas un nombre fixe — un exercice simple donne 3-5 étapes, un exercice qui enchaîne plusieurs règles/sous-parties peut aller jusqu'à 16 étapes si c'est justifié par le contenu du template. Chaque étape a un « type » : « concept » (mot-clé théorique, ex. « l'inconnue » / « the unknown ») ou « action » (geste concret ou formule isolée, ex. « x = -b/2a »). « isFormula » = true seulement si « text » est une expression mathématique isolée (pas une phrase). Si ocr_fail est true, cheminement = [].",
   ];
   if (notation) {
     lines.push('', `Formule l'explication en respectant strictement cette convention : ${notation}.`);
@@ -263,6 +281,12 @@ function buildAnalysis(raw) {
   const level1 = slots ? renderTemplate(template, slots, 'generic') : null;
   const level2 = slots ? renderTemplate(template, slots, 'value') : null;
   const cheminement = normalizeCheminement(raw.cheminement);
+  // Phase 2/3 (RPVD_FEATURES_PROMPT.md) : indice gradué, piège classique, traduction de
+  // consigne — mêmes règles de nettoyage que les autres champs texte, jamais bloquants
+  // (absents/vides → simplement pas affichés côté UI, pas d'erreur).
+  const hint = cleanString(raw.hint);
+  const pitfall = cleanString(raw.pitfall);
+  const consigneTranslation = cleanString(raw.consigne_translation);
 
   if (level1 && level2) {
     return {
@@ -274,6 +298,9 @@ function buildAnalysis(raw) {
       level_2: level2,
       level_3_steps: steps,
       final_answer: finalAnswer,
+      hint,
+      pitfall,
+      consigne_translation: consigneTranslation,
       cheminement,
     };
   }
@@ -291,6 +318,9 @@ function buildAnalysis(raw) {
     level_2: fallback2,
     level_3_steps: steps,
     final_answer: finalAnswer,
+    hint,
+    pitfall,
+    consigne_translation: consigneTranslation,
     cheminement,
   };
 }
@@ -358,19 +388,93 @@ async function callModel(model, body, key) {
 // `notationImage` (optionnel) : photo d'exemple de la notation demandée par l'élève — jamais
 // stockée (contrat vie privée), envoyée telle quelle en pièce jointe supplémentaire à Gemini,
 // juste pour cette analyse.
-async function analyzeImage({
-  base64,
-  mimeType,
-  region = DEFAULT_REGION,
-  preferredNotation = '',
-  notationImage = null,
-}) {
+// Estimation de coût (contrat "logue chaque appel, connais le coût réel") — tarif par million
+// de tokens input/output. À corriger si la tarification réelle de gemini-3.1-flash-lite diffère ;
+// gardé en une seule constante pour être facile à ajuster sans chercher dans tout le fichier.
+const COST_PER_MILLION_INPUT_TOKENS = 0.25;
+const COST_PER_MILLION_OUTPUT_TOKENS = 1.5;
+
+function estimateCost(inputTokens, outputTokens) {
+  return (inputTokens * COST_PER_MILLION_INPUT_TOKENS + outputTokens * COST_PER_MILLION_OUTPUT_TOKENS) / 1_000_000;
+}
+
+// Chaîne de repli + métriques, factorisée pour tout appel Gemini JSON (image ou texte seul) —
+// utilisée par analyzeImage, generateClone, generateExamPrep, analyzeTentative (Phase 1/6/7,
+// RPVD_FEATURES_PROMPT.md). Lance HttpError(502, 'AI_ERROR') si aucun modèle ne répond.
+async function runGeminiJson(body, taskType) {
+  const startTime = Date.now();
   const key = getApiKey();
   if (!key) {
     console.error('[gemini] GEMINI_API_KEY manquante.');
     throw new HttpError(502, 'AI_ERROR');
   }
 
+  let payload = null;
+  let modelUsed = null;
+  for (let i = activeModelIndex; i < MODEL_CHAIN.length; i += 1) {
+    const model = MODEL_CHAIN[i];
+    try {
+      payload = await callModel(model, body, key);
+      activeModelIndex = i;
+      modelUsed = model;
+      break;
+    } catch (err) {
+      // Repliable : modèle retiré (404), surcharge transitoire (503/429, voir callModel) OU
+      // délai dépassé (souvent le même symptôme qu'un 503 — le modèle rame sous forte charge).
+      const isTimeout = err && err.name === 'AbortError';
+      const retryable = Boolean(err && err.modelNotFound) || isTimeout;
+      const reason = isTimeout ? `délai dépassé (${TIMEOUT_MS} ms)` : scrub(err && err.message, key);
+      if (retryable && i + 1 < MODEL_CHAIN.length) {
+        console.warn(`[gemini] ${model} indisponible (${reason}), repli sur ${MODEL_CHAIN[i + 1]}.`);
+        continue;
+      }
+      console.error(`[gemini] Échec ${model} : ${reason}`);
+      throw new HttpError(502, 'AI_ERROR');
+    }
+  }
+
+  if (!payload) throw new HttpError(502, 'AI_ERROR');
+
+  if (payload.promptFeedback && payload.promptFeedback.blockReason) {
+    console.error(`[gemini] Contenu bloqué : ${payload.promptFeedback.blockReason}`);
+    throw new HttpError(502, 'AI_ERROR', "L'analyse a été bloquée. Essaie avec une autre photo, ton crédit est remboursé.");
+  }
+
+  const raw = extractJson(payload);
+  if (!raw) {
+    const finish = payload.candidates && payload.candidates[0] ? payload.candidates[0].finishReason : 'inconnu';
+    console.error(`[gemini] Réponse sans JSON exploitable (finishReason: ${finish}).`);
+    throw new HttpError(502, 'AI_ERROR');
+  }
+
+  // Phase 0.2 (RPVD_FEATURES_PROMPT.md) : "logue chaque appel Gemini, connais le coût réel".
+  // Le nom des champs suit la casse de l'API Gemini (usageMetadata.*TokenCount).
+  const usage = payload.usageMetadata || {};
+  const inputTokens = Number(usage.promptTokenCount) || 0;
+  const outputTokens = Number(usage.candidatesTokenCount) || 0;
+  const metrics = {
+    taskType,
+    thinkingBudgetUsed: body.generationConfig.thinkingConfig.thinkingBudget,
+    latencyMs: Date.now() - startTime,
+    inputTokens,
+    outputTokens,
+    totalTokens: Number(usage.totalTokenCount) || inputTokens + outputTokens,
+    estimatedCostUsd: estimateCost(inputTokens, outputTokens),
+    modelUsed,
+  };
+  console.log('ANALYSIS_METRIC', JSON.stringify(metrics));
+
+  return { raw, metrics };
+}
+
+async function analyzeImage({
+  base64,
+  mimeType,
+  region = DEFAULT_REGION,
+  preferredNotation = '',
+  notationImage = null,
+  taskType = 'full_analysis',
+}) {
   const userParts = [
     { inlineData: { mimeType, data: base64 } },
     { text: "Voici le devoir. Analyse-le et renvoie uniquement le JSON demandé." },
@@ -405,43 +509,202 @@ async function analyzeImage({
     },
   };
 
-  let payload = null;
-  for (let i = activeModelIndex; i < MODEL_CHAIN.length; i += 1) {
-    const model = MODEL_CHAIN[i];
-    try {
-      payload = await callModel(model, body, key);
-      activeModelIndex = i;
-      break;
-    } catch (err) {
-      // Repliable : modèle retiré (404), surcharge transitoire (503/429, voir callModel) OU
-      // délai dépassé (souvent le même symptôme qu'un 503 — le modèle rame sous forte charge).
-      const isTimeout = err && err.name === 'AbortError';
-      const retryable = Boolean(err && err.modelNotFound) || isTimeout;
-      const reason = isTimeout ? `délai dépassé (${TIMEOUT_MS} ms)` : scrub(err && err.message, key);
-      if (retryable && i + 1 < MODEL_CHAIN.length) {
-        console.warn(`[gemini] ${model} indisponible (${reason}), repli sur ${MODEL_CHAIN[i + 1]}.`);
-        continue;
-      }
-      console.error(`[gemini] Échec ${model} : ${reason}`);
-      throw new HttpError(502, 'AI_ERROR');
-    }
-  }
+  const { raw, metrics } = await runGeminiJson(body, taskType);
+  const analysis = buildAnalysis(raw);
+  return { analysis, metrics };
+}
 
-  if (!payload) throw new HttpError(502, 'AI_ERROR');
+// -----------------------------------------------------------------------------
+// Phase 1 (RPVD_FEATURES_PROMPT.md) — Générateur de clones. Texte seul (pas de photo) :
+// Gemini reçoit l'énoncé niveau 1 déjà généré et produit un exercice au même pattern.
+// -----------------------------------------------------------------------------
+const CLONE_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    cloneExercise: { type: 'STRING', description: "L'énoncé complet du clone, dans la langue de réponse." },
+    correctAnswer: { type: 'STRING', description: 'La réponse exacte, courte (ex. « x = 5 »).' },
+    steps: { type: 'ARRAY', items: { type: 'STRING' }, description: '2 à 6 étapes courtes de résolution.' },
+  },
+  required: ['cloneExercise', 'correctAnswer', 'steps'],
+};
 
-  if (payload.promptFeedback && payload.promptFeedback.blockReason) {
-    console.error(`[gemini] Contenu bloqué : ${payload.promptFeedback.blockReason}`);
-    throw new HttpError(502, 'AI_ERROR', "L'analyse a été bloquée. Essaie avec une autre photo, ton crédit est remboursé.");
-  }
+function buildClonePrompt({ problemType, level1, lang }) {
+  return [
+    `Tu es un tuteur qui aide un ado du secondaire. L'exercice original était de type « ${problemType} », dont voici la méthode générale : ${level1}`,
+    '',
+    'Génère UN clone de cet exercice :',
+    '- Mêmes pattern et structure mathématique que l\'original.',
+    '- Nombres différents, qui donnent une réponse propre (pas de décimales infinies).',
+    '- Contexte du monde réel différent si l\'original en avait un.',
+    '',
+    `Réponds UNIQUEMENT avec le JSON demandé, en ${lang}. N'ajoute AUCUNE explication en dehors du JSON, ne donne pas la démarche complète dans "cloneExercise" (juste l'énoncé).`,
+  ].join('\n');
+}
 
-  const raw = extractJson(payload);
-  if (!raw) {
-    const finish = payload.candidates && payload.candidates[0] ? payload.candidates[0].finishReason : 'inconnu';
-    console.error(`[gemini] Réponse sans JSON exploitable (finishReason: ${finish}).`);
+async function generateClone({ problemType, level1, region = DEFAULT_REGION }) {
+  const { lang } = REGION_STYLE[region] || REGION_STYLE[DEFAULT_REGION];
+  const body = {
+    contents: [{ role: 'user', parts: [{ text: buildClonePrompt({ problemType, level1, lang }) }] }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: CLONE_SCHEMA,
+      // Variation maximale voulue (contrat) : on ne veut pas un clone quasi-identique à chaque fois.
+      temperature: 1.0,
+      maxOutputTokens: 2048,
+      // Sortie courte et peu ambiguë (juste un énoncé + réponse) : pas besoin du budget de
+      // réflexion complet de l'analyse principale.
+      thinkingConfig: { thinkingBudget: 1024 },
+    },
+  };
+
+  const { raw, metrics } = await runGeminiJson(body, 'generate_clone');
+
+  const exercise = cleanString(raw.cloneExercise);
+  const correctAnswer = cleanString(raw.correctAnswer);
+  const steps = Array.isArray(raw.steps) ? raw.steps.map(cleanString).filter(Boolean) : [];
+
+  // Validation minimale (contrat) : un clone sans énoncé ou sans réponse ne sert à rien et ne
+  // doit jamais être stocké ni facturé au crédit de l'élève.
+  if (!exercise || !correctAnswer || steps.length === 0) {
+    console.error('[gemini] Clone invalide (champ manquant).');
     throw new HttpError(502, 'AI_ERROR');
   }
 
-  return buildAnalysis(raw);
+  return { clone: { exercise, correctAnswer, steps }, metrics };
+}
+
+// -----------------------------------------------------------------------------
+// Phase 6 (RPVD_FEATURES_PROMPT.md) — Mode Veille d'Exam : les patterns critiques d'un examen.
+// -----------------------------------------------------------------------------
+const EXAM_PREP_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    patterns: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          name: { type: 'STRING' },
+          importance: { type: 'STRING' },
+          exampleQuestion: { type: 'STRING' },
+          frequency: { type: 'STRING', format: 'enum', enum: ['rarely', 'sometimes', 'often', 'always'] },
+        },
+        required: ['name', 'importance', 'exampleQuestion', 'frequency'],
+      },
+    },
+  },
+  required: ['patterns'],
+};
+
+function buildExamPrepPrompt({ examTitle, lang }) {
+  return [
+    `L'élève a un examen : "${examTitle}"`,
+    '',
+    'Liste les 5 PATTERNS les plus importants qui représentent 80% des questions probables.',
+    'Pour chaque pattern : le nom, pourquoi c\'est crucial (1 phrase), un exemple rapide de question, et la fréquence probable (rarely/sometimes/often/always — toujours en anglais, c\'est une clé technique).',
+    '',
+    `Réponds UNIQUEMENT avec le JSON demandé. Le texte (name, importance, exampleQuestion) est en ${lang}, ton casual, zéro jargon scolaire formel.`,
+  ].join('\n');
+}
+
+async function generateExamPrep({ examTitle, region = DEFAULT_REGION }) {
+  const { lang } = REGION_STYLE[region] || REGION_STYLE[DEFAULT_REGION];
+  const body = {
+    contents: [{ role: 'user', parts: [{ text: buildExamPrepPrompt({ examTitle, lang }) }] }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: EXAM_PREP_SCHEMA,
+      temperature: 0.8,
+      maxOutputTokens: 2048,
+      thinkingConfig: { thinkingBudget: 1024 },
+    },
+  };
+
+  const { raw, metrics } = await runGeminiJson(body, 'exam_preparation');
+  const FREQUENCIES = ['rarely', 'sometimes', 'often', 'always'];
+  const patterns = (Array.isArray(raw.patterns) ? raw.patterns : [])
+    .map((item) => ({
+      name: cleanString(item && item.name),
+      importance: cleanString(item && item.importance),
+      exampleQuestion: cleanString(item && item.exampleQuestion),
+      frequency: FREQUENCIES.includes(item && item.frequency) ? item.frequency : 'sometimes',
+    }))
+    .filter((item) => item.name && item.importance);
+
+  if (patterns.length === 0) throw new HttpError(502, 'AI_ERROR');
+
+  return { patterns, metrics };
+}
+
+// -----------------------------------------------------------------------------
+// Phase 7 (RPVD_FEATURES_PROMPT.md) — Photo de tentative : localise l'erreur dans la copie de
+// l'élève. Le prompt d'origine suggérait une chaîne de modèles plus « forts » (3.5/3.6-flash)
+// pour cette tâche — DÉLIBÉRÉMENT PAS FAIT ICI : cette famille de modèles est celle qui causait
+// des pannes en prod (503 « high demand » quasi systématiques, voir commentaire en tête de
+// fichier) et le projet vient justement de converger sur flash-lite pour la stabilité. Réutilise
+// la même chaîne stable que le reste — un modèle plus adapté sera reconsidéré seulement si la
+// validation manuelle ci-dessous montre que flash-lite ne suffit pas.
+// ⚠️ Pas encore validée sur de vraies copies d'élèves (voir PROJECT_HANDOFF.md) : la précision
+// réelle du diagnostic n'a jamais été mesurée manuellement sur un échantillon, contrairement à
+// ce que le contrat exige avant un lancement public de cette feature précise.
+// -----------------------------------------------------------------------------
+const TENTATIVE_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    hasError: { type: 'BOOLEAN', description: "true si la tentative de l'élève contient une erreur." },
+    errorLocation: { type: 'STRING', description: "Où se trouve l'erreur (ex. « étape 2 », description courte)." },
+    errorExplanation: { type: 'STRING', description: "Explique gentiment ce qui cloche, sans donner directement la suite." },
+    encouragement: { type: 'STRING', description: 'Une phrase positive, peu importe le résultat.' },
+  },
+  required: ['hasError', 'errorLocation', 'errorExplanation', 'encouragement'],
+};
+
+function buildTentativePrompt({ lang, style }) {
+  return [
+    "Tu es RPVD, un ami qui aide un ado du secondaire à comprendre ses devoirs.",
+    style,
+    "La PREMIÈRE image est l'exercice original. La DEUXIÈME image est la tentative de résolution de l'élève.",
+    "Compare les deux : est-ce que la tentative contient une erreur ? Si oui, localise-la précisément et explique gentiment ce qui cloche, SANS donner directement la suite de la solution.",
+    '',
+    `Réponds UNIQUEMENT avec le JSON demandé, en ${lang}, ton casual, zéro jargon scolaire formel.`,
+  ].join('\n');
+}
+
+async function analyzeTentative({ exerciseImage, attemptImage, region = DEFAULT_REGION }) {
+  const { lang, style } = REGION_STYLE[region] || REGION_STYLE[DEFAULT_REGION];
+  const body = {
+    systemInstruction: { parts: [{ text: buildTentativePrompt({ lang, style }) }] },
+    contents: [
+      {
+        role: 'user',
+        parts: [
+          { inlineData: { mimeType: exerciseImage.mimeType, data: exerciseImage.base64 } },
+          { inlineData: { mimeType: attemptImage.mimeType, data: attemptImage.base64 } },
+          { text: 'Compare ces deux images et renvoie uniquement le JSON demandé.' },
+        ],
+      },
+    ],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      responseSchema: TENTATIVE_SCHEMA,
+      temperature: 0.3,
+      maxOutputTokens: 2048,
+      // Reste fort (contrat §7.1) : localiser une erreur dans une copie manuscrite est plus
+      // exigeant qu'une analyse initiale, on ne réduit pas le budget de réflexion ici.
+      thinkingConfig: { thinkingBudget: 4096 },
+    },
+  };
+
+  const { raw, metrics } = await runGeminiJson(body, 'analyze_tentative');
+  return {
+    result: {
+      hasError: Boolean(raw.hasError),
+      errorLocation: cleanString(raw.errorLocation),
+      errorExplanation: cleanString(raw.errorExplanation),
+      encouragement: cleanString(raw.encouragement),
+    },
+    metrics,
+  };
 }
 
 module.exports = {
@@ -451,6 +714,9 @@ module.exports = {
   RESPONSE_SCHEMA,
   SUBJECTS,
   analyzeImage,
+  generateClone,
+  generateExamPrep,
+  analyzeTentative,
   renderTemplate,
   buildAnalysis,
   buildSystemInstruction,

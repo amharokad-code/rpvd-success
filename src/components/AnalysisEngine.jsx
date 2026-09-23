@@ -7,6 +7,8 @@ import { useCopy } from '../context/RegionContext'
 import Button from './ui/Button'
 import GlassCard from './ui/GlassCard'
 import ArbreCheminement from './ArbreCheminement'
+import TextToSpeech from './TextToSpeech'
+import ClonePractice from './ClonePractice'
 
 const SLOT_PATTERN = /\{\{(\d+)\}\}/g
 const VALUE_STAGGER_MS = 60
@@ -82,12 +84,14 @@ function PlainText({ text, mode }) {
   )
 }
 
-export default function AnalysisEngine({ analysis, onDone, onSave, onNew }) {
+export default function AnalysisEngine({ analysis, submissionId, region, onDone, onSave, onNew, onCreditsChange }) {
   const { t } = useCopy()
   const [level, setLevel] = useState(1)
   const [done, setDone] = useState(false)
   const [firstTry, setFirstTry] = useState(false)
   const [animateValues, setAnimateValues] = useState(false)
+  // Phase 2 (RPVD_FEATURES_PROMPT.md) : l'indice reste caché tant que l'élève ne le demande pas.
+  const [showHint, setShowHint] = useState(false)
   // État partagé texte ↔ Arbre de Cheminement : une seule source de vérité, pilotée ici,
   // jamais par un IntersectionObserver interne à ArbreCheminement (désync scroll/mobile).
   const [activeStepIndex, setActiveStepIndex] = useState(-1)
@@ -99,6 +103,7 @@ export default function AnalysisEngine({ analysis, onDone, onSave, onNew }) {
     setFirstTry(false)
     setAnimateValues(false)
     setActiveStepIndex(-1)
+    setShowHint(false)
   }, [analysis])
 
   const template = analysis?.template
@@ -156,6 +161,24 @@ export default function AnalysisEngine({ analysis, onDone, onSave, onNew }) {
             )}
           </div>
 
+          {analysis?.hint && (
+            <div className="mt-4">
+              <button
+                type="button"
+                onClick={() => setShowHint((v) => !v)}
+                className="squishy focus-ring inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20"
+                aria-expanded={showHint}
+              >
+                {t.analysis.hintCta}
+              </button>
+              {showHint && (
+                <p className="mt-2 rounded-2xl bg-slate-900/60 px-4 py-3 text-sm leading-relaxed text-slate-200 motion-safe:animate-rise">
+                  {analysis.hint}
+                </p>
+              )}
+            </div>
+          )}
+
           {firstTry && (
             <p className="mt-5">
               <span className="inline-flex items-center gap-2 rounded-full bg-coral px-5 py-2 text-base font-semibold text-slate-900 shadow-glow-coral motion-safe:animate-spring-in">
@@ -172,7 +195,13 @@ export default function AnalysisEngine({ analysis, onDone, onSave, onNew }) {
         {/* Niveau 3 : étapes en cascade + réponse finale. */}
         {level >= 3 && (
           <GlassCard as="article" className="motion-safe:animate-rise lg:col-span-2">
-            <h2 className="font-display text-xl font-bold leading-snug text-slate-50 sm:text-2xl">{t.analysis.level3Title}</h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="font-display text-xl font-bold leading-snug text-slate-50 sm:text-2xl">{t.analysis.level3Title}</h2>
+              {/* Phase 4 : mode vocal, lit les étapes du niveau 3 — pas d'appel Gemini, navigateur seul. */}
+              {steps.length > 0 && (
+                <TextToSpeech text={steps.map((step) => `${step.title}. ${step.text || ''}`).join(' ')} region={region} />
+              )}
+            </div>
 
             {/* Exercices complexes = plus d'étapes (contrat) : scroll interne au-delà d'une
                 certaine hauteur plutôt que de laisser la carte s'étirer indéfiniment. */}
@@ -207,7 +236,32 @@ export default function AnalysisEngine({ analysis, onDone, onSave, onNew }) {
                 </p>
               </div>
             )}
+
+            {/* Phase 3 : piège classique + traduction de consigne — repliés, jamais imposés. */}
+            {(analysis?.pitfall || analysis?.consigne_translation) && (
+              <div className="mt-6 space-y-2">
+                {analysis?.pitfall && (
+                  <details className="rounded-2xl bg-slate-900/60 px-4 py-3">
+                    <summary className="cursor-pointer text-sm font-semibold text-slate-200">{t.analysis.pitfallLabel}</summary>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-300">{analysis.pitfall}</p>
+                  </details>
+                )}
+                {analysis?.consigne_translation && (
+                  <details className="rounded-2xl bg-slate-900/60 px-4 py-3">
+                    <summary className="cursor-pointer text-sm font-semibold text-slate-200">{t.analysis.consigneLabel}</summary>
+                    <p className="mt-2 text-sm leading-relaxed text-slate-300">{analysis.consigne_translation}</p>
+                  </details>
+                )}
+              </div>
+            )}
           </GlassCard>
+        )}
+
+        {/* Phase 1/5 : clones d'entraînement + simulation chronométrée, une fois le niveau 3 vu. */}
+        {level >= 3 && submissionId && (
+          <div className="lg:col-span-2">
+            <ClonePractice submissionId={submissionId} region={region} onCreditsChange={onCreditsChange} />
+          </div>
         )}
       </div>
 
