@@ -3,6 +3,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import LegalPage from './pages/LegalPage'
+import LegalContactPage from './pages/LegalContactPage'
 import './index.css'
 
 // Routage minimal : /legal/<doc> est une page statique indépendante (pas d'auth, pas d'appel
@@ -13,12 +14,18 @@ function legalDocFromPath() {
   const match = window.location.pathname.match(/^\/legal\/([a-z]+)/)
   return match && LEGAL_DOCS.includes(match[1]) ? match[1] : null
 }
+function isLegalContactPath() {
+  return typeof window !== 'undefined' && window.location.pathname === '/legal/contact'
+}
 
 const rootElement = typeof document !== 'undefined' ? document.getElementById('root') : null
 if (rootElement) {
   const legalDoc = legalDocFromPath()
+  const isContact = isLegalContactPath()
   createRoot(rootElement).render(
-    <StrictMode>{legalDoc ? <LegalPage doc={legalDoc} /> : <App />}</StrictMode>,
+    <StrictMode>
+      {isContact ? <LegalContactPage /> : legalDoc ? <LegalPage doc={legalDoc} /> : <App />}
+    </StrictMode>,
   )
 }
 

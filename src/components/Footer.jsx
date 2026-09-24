@@ -6,6 +6,7 @@ const LINKS_FR = [
   { href: '/legal/terms', label: "Conditions d'utilisation" },
   { href: '/legal/cookies', label: 'Cookies' },
   { href: '/legal/refunds', label: 'Remboursement' },
+  { href: '/legal/contact', label: 'Contact légal' },
 ]
 
 const LINKS_EN = [
@@ -13,6 +14,7 @@ const LINKS_EN = [
   { href: '/legal/terms', label: 'Terms of Service' },
   { href: '/legal/cookies', label: 'Cookies' },
   { href: '/legal/refunds', label: 'Refunds' },
+  { href: '/legal/contact', label: 'Legal Contact' },
 ]
 
 export default function Footer({ className = '' }) {

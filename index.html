@@ -32,5 +32,21 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Formulaire statique caché : Netlify scanne le HTML au build, pas le DOM rendu par React,
+         donc ce doublon (mêmes name/champs que src/pages/LegalContactPage.jsx) est nécessaire
+         pour que Netlify Forms détecte "legal-contact" et capte les soumissions AJAX réelles. -->
+    <form name="legal-contact" data-netlify="true" hidden>
+      <input type="email" name="email" />
+      <select name="type">
+        <option value="access" />
+        <option value="delete" />
+        <option value="rectify" />
+        <option value="parental" />
+        <option value="breach" />
+        <option value="other" />
+      </select>
+      <textarea name="message"></textarea>
+    </form>
   </body>
 </html>
