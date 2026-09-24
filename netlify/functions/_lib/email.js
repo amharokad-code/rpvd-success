@@ -146,6 +146,38 @@ function premiumUpgradeEmail({ plan, credits }) {
   return { subject: `Mise à niveau ${label} confirmée ⚡`, html: layout(content), text: plainText(content) };
 }
 
+// Courriel de première activation d'un abonnement Basic/Pro (contrat pricing v3) — pas de code,
+// mentionne explicitement le renouvellement automatique (honnêteté commerciale, contrat) et
+// comment l'annuler.
+function subscriptionActivatedEmail({ plan, credits }) {
+  const label = plan === 'pro' ? 'Pro' : 'Basic';
+  const content = {
+    title: `Bienvenue dans le forfait ${label} ⚡`,
+    paragraphs: [
+      `Ton paiement est passé. Ton compte a maintenant ${credits} crédits sur cet appareil — rien à activer, c'est déjà fait.`,
+      `C'est un abonnement : ${credits} crédits reviendront automatiquement tous les 3 mois, et ta carte sera débitée à chaque renouvellement. Tu peux annuler à tout moment depuis les Réglages de l'app.`,
+    ],
+    codes: [],
+    outro: ['Prends ton prochain devoir en photo, et on décortique ça ensemble.'],
+  };
+  return { subject: `Abonnement ${label} confirmé ⚡`, html: layout(content), text: plainText(content) };
+}
+
+// Courriel de renouvellement automatique (invoice.paid, cycle suivant) — juste une confirmation,
+// pas d'action requise.
+function subscriptionRenewedEmail({ plan, credits }) {
+  const label = plan === 'pro' ? 'Pro' : 'Basic';
+  const content = {
+    title: `Ton forfait ${label} vient d'être renouvelé 🔄`,
+    paragraphs: [
+      `Tes ${credits} crédits sont de retour pour 3 mois de plus. Ta carte a été débitée automatiquement, comme prévu à l'abonnement.`,
+    ],
+    codes: [],
+    outro: ["Envie d'arrêter ? Tu peux annuler à tout moment depuis les Réglages de l'app."],
+  };
+  return { subject: `Forfait ${label} renouvelé 🔄`, html: layout(content), text: plainText(content) };
+}
+
 // Courriel de confirmation après activation d'un code.
 function activationConfirmedEmail({ plan, credits }) {
   const labels = { trial: 'Essai gratuit', solo: 'Solo', trio: 'Trio' };
@@ -197,6 +229,8 @@ module.exports = {
   trialCodesEmail,
   premiumCodeEmail,
   premiumUpgradeEmail,
+  subscriptionActivatedEmail,
+  subscriptionRenewedEmail,
   activationConfirmedEmail,
   escapeHtml,
 };

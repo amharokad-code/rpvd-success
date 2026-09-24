@@ -1,13 +1,19 @@
 'use strict';
 // POST /.netlify/functions/stripe-webhook
-// Reçoit `checkout.session.completed`, génère 1 code premium (idempotent par session.id)
-// et l'envoie par courriel. Toute erreur inattendue → 500 pour que Stripe réessaie.
+// Contrat pricing v3 (abonnement récurrent Basic/Pro) — 3 événements gérés :
+//   - checkout.session.completed (mode subscription) : première activation, applique le plan
+//     et les crédits directement au compte connecté (client_reference_id).
+//   - invoice.paid (billing_reason = subscription_cycle) : renouvellement automatique tous les
+//     3 mois, remet les crédits au plein montant du plan.
+//   - customer.subscription.deleted : l'abonnement est résilié, on détache juste l'ID côté compte.
+// Chaque handler est idempotent par stripeEvent.id (processed_stripe_events, contrat) — Stripe
+// réessaie parfois le même événement. Toute erreur inattendue → 500 pour que Stripe réessaie.
 
 const Stripe = require('stripe');
 const { HttpError, preflight, json, header, handleError } = require('./_lib/http');
 const { rpc } = require('./_lib/supabase');
-const { sendEmail, premiumCodeEmail, premiumUpgradeEmail } = require('./_lib/email');
-const { PLANS, PREMIUM_CODE_REDEMPTION_WINDOW_DAYS } = require('./_lib/codes');
+const { sendEmail, subscriptionActivatedEmail, subscriptionRenewedEmail } = require('./_lib/email');
+const { SUBSCRIPTION_PLANS, SUBSCRIPTION_DURATION_DAYS } = require('./_lib/codes');
 const { sendPurchaseEvent } = require('./_lib/meta-capi');
 
 let stripeClient = null;
@@ -32,6 +38,107 @@ function verifyEvent(event) {
   }
 }
 
+function planExpiryIso() {
+  return new Date(Date.now() + SUBSCRIPTION_DURATION_DAYS * 24 * 3600 * 1000).toISOString();
+}
+
+// Best-effort : ne doit jamais faire échouer la réponse au webhook.
+async function reportPurchase({ email, amountCents, currency, eventId }) {
+  try {
+    await sendPurchaseEvent({
+      email,
+      value: (amountCents ?? 0) / 100,
+      currency: (currency || 'usd').toUpperCase(),
+      eventId,
+    });
+  } catch (err) {
+    console.error('[stripe-webhook] sendPurchaseEvent a levé :', err && err.message);
+  }
+}
+
+async function handleCheckoutCompleted(stripeEvent) {
+  const session = stripeEvent.data.object;
+  if (session.mode !== 'subscription' || session.payment_status !== 'paid') return;
+
+  const plan = session.metadata && session.metadata.plan;
+  if (!SUBSCRIPTION_PLANS[plan]) {
+    console.error(`[stripe-webhook] Plan inconnu pour la session ${session.id}.`);
+    return;
+  }
+
+  const userId = session.client_reference_id;
+  if (!userId) {
+    console.error(`[stripe-webhook] Session ${session.id} sans client_reference_id.`);
+    return;
+  }
+
+  const applied = await rpc('activate_subscription', {
+    p_stripe_event_id: stripeEvent.id,
+    p_user_id: userId,
+    p_plan: plan,
+    p_credits: SUBSCRIPTION_PLANS[plan].credits,
+    p_stripe_customer_id: session.customer,
+    p_stripe_subscription_id: session.subscription,
+    p_plan_expires_at: planExpiryIso(),
+  });
+  if (!applied) return; // déjà traité (idempotence)
+
+  const email = (session.customer_details && session.customer_details.email) || session.customer_email || null;
+  await reportPurchase({ email, amountCents: session.amount_total, currency: session.currency, eventId: stripeEvent.id });
+
+  if (email) {
+    const { sent } = await sendEmail({
+      to: email,
+      ...subscriptionActivatedEmail({ plan, credits: SUBSCRIPTION_PLANS[plan].credits }),
+    });
+    if (!sent) console.error(`[stripe-webhook] Courriel d'activation non envoyé pour ${session.id}.`);
+  }
+}
+
+async function handleInvoicePaid(stripeEvent) {
+  const invoice = stripeEvent.data.object;
+  // Le premier paiement (subscription_create) est déjà traité par checkout.session.completed —
+  // ne traiter ici QUE les renouvellements pour ne pas doubler les crédits à l'activation.
+  if (invoice.billing_reason !== 'subscription_cycle') return;
+
+  const subscriptionId = invoice.subscription;
+  if (!subscriptionId) return;
+
+  const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
+  const plan = subscription.metadata && subscription.metadata.plan;
+  if (!SUBSCRIPTION_PLANS[plan]) {
+    console.error(`[stripe-webhook] Renouvellement : plan inconnu pour l'abonnement ${subscriptionId}.`);
+    return;
+  }
+
+  const renewed = await rpc('renew_subscription_credits', {
+    p_stripe_event_id: stripeEvent.id,
+    p_stripe_subscription_id: subscriptionId,
+    p_credits: SUBSCRIPTION_PLANS[plan].credits,
+    p_plan_expires_at: planExpiryIso(),
+  });
+  if (!renewed) return; // déjà traité, ou abonnement inconnu côté RPVD
+
+  const email = invoice.customer_email || null;
+  await reportPurchase({ email, amountCents: invoice.amount_paid, currency: invoice.currency, eventId: stripeEvent.id });
+
+  if (email) {
+    const { sent } = await sendEmail({
+      to: email,
+      ...subscriptionRenewedEmail({ plan, credits: SUBSCRIPTION_PLANS[plan].credits }),
+    });
+    if (!sent) console.error(`[stripe-webhook] Courriel de renouvellement non envoyé pour ${subscriptionId}.`);
+  }
+}
+
+async function handleSubscriptionDeleted(stripeEvent) {
+  const subscription = stripeEvent.data.object;
+  await rpc('cancel_subscription', {
+    p_stripe_event_id: stripeEvent.id,
+    p_stripe_subscription_id: subscription.id,
+  });
+}
+
 exports.handler = async (event) => {
   const early = preflight(event);
   if (early) return early;
@@ -39,107 +146,13 @@ exports.handler = async (event) => {
   try {
     const stripeEvent = verifyEvent(event);
 
-    if (stripeEvent.type !== 'checkout.session.completed') {
-      return json(200, { received: true });
+    if (stripeEvent.type === 'checkout.session.completed') {
+      await handleCheckoutCompleted(stripeEvent);
+    } else if (stripeEvent.type === 'invoice.paid') {
+      await handleInvoicePaid(stripeEvent);
+    } else if (stripeEvent.type === 'customer.subscription.deleted') {
+      await handleSubscriptionDeleted(stripeEvent);
     }
-
-    const session = stripeEvent.data.object;
-    if (session.payment_status !== 'paid') {
-      return json(200, { received: true });
-    }
-
-    const plan = session.metadata && session.metadata.plan;
-    if (!PLANS[plan]) {
-      // Plan inconnu : on ne peut rien générer, et un retry Stripe n'y changerait rien.
-      console.error(`[stripe-webhook] Plan inconnu pour la session ${session.id}.`);
-      return json(200, { received: true });
-    }
-
-    const email = (session.customer_details && session.customer_details.email) || session.customer_email || null;
-
-    // Mise à niveau Base → Premium (contrat pricing v2) : même compte/appareil, on augmente
-    // juste ses crédits et son plan — pas de nouveau code à générer/activer.
-    if (session.metadata && session.metadata.upgrade === 'true') {
-      const userId = session.client_reference_id;
-      if (!userId) {
-        console.error(`[stripe-webhook] Upgrade sans client_reference_id pour la session ${session.id}.`);
-        return json(200, { received: true });
-      }
-
-      const applied = await rpc('apply_premium_upgrade', {
-        p_user_id: userId,
-        p_plan: plan,
-        p_credits: PLANS[plan].credits,
-        p_stripe_session_id: session.id,
-      });
-
-      if (!applied) return json(200, { received: true }); // déjà traité (idempotence)
-
-      try {
-        await sendPurchaseEvent({
-          email,
-          value: (session.amount_total ?? 0) / 100,
-          currency: (session.currency || 'cad').toUpperCase(),
-          eventId: session.id,
-        });
-      } catch (err) {
-        console.error('[stripe-webhook] sendPurchaseEvent (upgrade) a levé :', err && err.message);
-      }
-
-      if (email) {
-        const { sent } = await sendEmail({ to: email, ...premiumUpgradeEmail({ plan, credits: PLANS[plan].credits }) });
-        if (!sent) console.error(`[stripe-webhook] Courriel upgrade non envoyé pour la session ${session.id}.`);
-      }
-
-      return json(200, { received: true });
-    }
-
-    const expiresAt = new Date(Date.now() + PREMIUM_CODE_REDEMPTION_WINDOW_DAYS * 24 * 3600 * 1000).toISOString();
-
-    // Trio = 3 codes séparés (un par personne/appareil, contrat), pas 1 compte partagé :
-    // chaque code garde le même stripe_session_id pour l'idempotence webhook (voir la RPC).
-    const codes = await rpc('create_activation_codes', {
-      p_type: 'premium',
-      p_plan: plan,
-      p_credits: PLANS[plan].credits,
-      p_count: PLANS[plan].codesPerPurchase,
-      p_email: email,
-      p_batch_id: null,
-      p_stripe_session_id: session.id,
-      p_expires_at: expiresAt,
-    });
-
-    // Tableau vide = session déjà traitée (idempotence).
-    if (!Array.isArray(codes) || codes.length === 0) {
-      return json(200, { received: true });
-    }
-
-    // CAPI 'Purchase' : best-effort, ne doit jamais faire échouer la réponse au webhook.
-    // On l'attend (le runtime Netlify peut geler le process dès le `return`) mais on avale
-    // toute erreur : `eventId` = session.id pour dédupliquer côté Meta si le pixel front l'envoie aussi.
-    // Valeur/devise RÉELLES de la session (contrat multi-devises) — jamais PLANS[plan] figé en
-    // CAD, sinon un achat en USD/EUR/GBP serait mal rapporté à Meta.
-    try {
-      await sendPurchaseEvent({
-        email,
-        value: (session.amount_total ?? 0) / 100,
-        currency: (session.currency || 'cad').toUpperCase(),
-        eventId: session.id,
-      });
-    } catch (err) {
-      console.error('[stripe-webhook] sendPurchaseEvent a levé :', err && err.message);
-    }
-
-    if (!email) {
-      console.error(`[stripe-webhook] Session ${session.id} sans courriel : code créé en base, non envoyé.`);
-      return json(200, { received: true });
-    }
-
-    const { sent } = await sendEmail({
-      to: email,
-      ...premiumCodeEmail({ codes, plan, credits: PLANS[plan].credits }),
-    });
-    if (!sent) console.error(`[stripe-webhook] Courriel non envoyé pour la session ${session.id} (code en base).`);
 
     return json(200, { received: true });
   } catch (err) {

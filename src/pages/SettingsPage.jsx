@@ -5,7 +5,7 @@ import Button from '../components/ui/Button'
 import Flag from '../components/Flag'
 import foundersPhoto from '../assets/founders.jpg'
 import { useCopy } from '../context/RegionContext'
-import { ApiError, savePreferences } from '../lib/api'
+import { ApiError, savePreferences, createBillingPortalSession } from '../lib/api'
 import { supabase } from '../lib/supabase'
 
 function getSearch() {
@@ -26,6 +26,8 @@ export default function SettingsPage({ profile, onProfileChange }) {
   const [status, setStatus] = useState('idle') // 'idle' | 'saving' | 'saved' | 'error'
   const [error, setError] = useState(null)
   const [loggingOut, setLoggingOut] = useState(false)
+  const [openingPortal, setOpeningPortal] = useState(false)
+  const [portalError, setPortalError] = useState(null)
   const timerRef = useRef(null)
   // SettingsPage est démonté (pas caché) par App.jsx au changement d'onglet.
   const mountedRef = useRef(true)
@@ -67,6 +69,21 @@ export default function SettingsPage({ profile, onProfileChange }) {
       const code = err instanceof ApiError ? err.code : 'SERVER_ERROR'
       setError(t.errors[code] ?? t.errors.SERVER_ERROR)
       setStatus('error')
+    }
+  }
+
+  async function handleManageSubscription() {
+    if (openingPortal) return
+    setOpeningPortal(true)
+    setPortalError(null)
+    try {
+      const { url } = await createBillingPortalSession()
+      if (!url) throw new ApiError('SERVER_ERROR')
+      window.location.assign(url)
+    } catch (err) {
+      const code = err instanceof ApiError ? err.code : 'SERVER_ERROR'
+      setPortalError(t.errors[code] ?? t.errors.SERVER_ERROR)
+      setOpeningPortal(false)
     }
   }
 
@@ -131,7 +148,21 @@ export default function SettingsPage({ profile, onProfileChange }) {
         <GlassCard as="section" className="motion-safe:animate-rise" style={{ animationDelay: '120ms' }}>
           <h2 className="font-display text-xl font-bold text-slate-50">{t.settings.account}</h2>
           {profile?.email && <p className="mt-2 leading-relaxed text-slate-300">{t.settings.loggedInAs(profile.email)}</p>}
-          <Button variant="secondary" onClick={handleLogout} loading={loggingOut} className="mt-5 w-full">
+
+          {(profile?.plan === 'basic' || profile?.plan === 'pro') && (
+            <>
+              <Button variant="secondary" onClick={handleManageSubscription} loading={openingPortal} className="mt-5 w-full">
+                {t.settings.manageSubscription}
+              </Button>
+              {portalError && (
+                <p role="alert" className="mt-2 rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+                  {portalError}
+                </p>
+              )}
+            </>
+          )}
+
+          <Button variant="ghost" onClick={handleLogout} loading={loggingOut} className="mt-3 w-full">
             {t.settings.logout}
           </Button>
         </GlassCard>

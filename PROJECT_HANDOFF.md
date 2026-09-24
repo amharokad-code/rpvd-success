@@ -1,6 +1,17 @@
 # RPVD Success — État du projet (résumé de transfert)
 
-Dernière mise à jour : 2026-09-23
+Dernière mise à jour : 2026-09-24
+
+## 0. ⚠️ CONTRAT PRICING v3 (dernier changement, prioritaire sur tout ce qui suit)
+
+Solo/Trio/Premium (paiement unique) sont **retirés de la vente**. Seuls **Basic** (12$ USD, 50 crédits) et **Pro** (20$ USD, 120 crédits) existent maintenant, en **vrai abonnement Stripe récurrent facturé automatiquement tous les 3 mois** — pas un paiement unique comme avant.
+
+- Price ID Stripe réels (mode `subscription`, plus de `price_data` ad-hoc) : Basic = `price_1UFYW1AJoPaz3Yer47V9GO6K`, Pro = `price_1UGfk9AJoPaz3Yerzr29Wzh4`. Seul USD existe ; CAD/EUR/GBP retombent sur USD tant que l'utilisateur n'a pas créé les Price correspondants dans Stripe (à faire : `_lib/codes.js` → `SUBSCRIPTION_PLANS[plan].priceIds`, et `src/lib/pricing.js` → `PLAN_AMOUNTS` en miroir).
+- L'abonnement s'attache directement au compte connecté (`client_reference_id`) — plus de code d'activation par courriel pour Basic/Pro. Renouvellement automatique via webhook `invoice.paid` (billing_reason=subscription_cycle), résiliation via `customer.subscription.deleted`.
+- Le webhook Stripe (`we_1UIqcdAJoPaz3Yeru0DDct3Z`, pointé sur `rpvdsuccess.netlify.app`) écoute maintenant `checkout.session.completed` + `invoice.paid` + `customer.subscription.deleted`.
+- Nouveau : `netlify/functions/create-portal-session.js` + bouton "Gérer mon abonnement" dans Réglages — Stripe Customer Portal pour annuler/gérer la carte (contrat honnêteté commerciale : un abonnement doit se résilier aussi facilement qu'il se souscrit).
+- Schéma : `users.stripe_customer_id`/`stripe_subscription_id`, table `processed_stripe_events` (dédoublonnage webhook), RPCs `activate_subscription`/`renew_subscription_credits`/`cancel_subscription`.
+- L'ancien système à codes (Solo/Trio/Premium, `activate-code.js`, `PLANS` dans `_lib/codes.js`) est **laissé intact** pour ne pas casser les codes déjà émis avant ce changement — juste plus vendu.
 
 ## 1. C'est quoi
 

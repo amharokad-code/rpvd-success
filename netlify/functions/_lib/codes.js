@@ -46,20 +46,34 @@ const PLANS = {
   },
 };
 
-// Mise à niveau : un compte Solo/Trio épuisé (0 crédit) peut passer au Premium correspondant en
-// ne payant que la différence de prix plutôt que le plein tarif Premium (contrat pricing v2).
-const UPGRADE_TARGET = { solo: 'premium_solo', trio: 'premium_trio' };
+// Contrat pricing v3 : Solo/Trio/Premium (paiement unique, ci-dessus) ne sont plus vendus —
+// PLANS reste pour les codes déjà émis (activate-code.js) et l'historique. Les nouveaux achats
+// passent par un vrai abonnement Stripe récurrent (Basic/Pro), facturé automatiquement tous les
+// 3 mois (mode: 'subscription', Price ID Stripe réels — pas de price_data ad-hoc comme avant).
+//
+// « priceIds » : un vrai Price Stripe par devise. Seul `usd` existe pour l'instant (créés
+// manuellement dans le dashboard Stripe) — les 3 autres devises sont à ajouter au fur et à
+// mesure (currencyForRegion retombe sur `usd` tant qu'elles manquent, jamais une erreur).
+const SUBSCRIPTION_DURATION_DAYS = 90;
+const SUBSCRIPTION_PLANS = {
+  basic: {
+    credits: 50,
+    label: 'Basic',
+    priceIds: { usd: 'price_1UFYW1AJoPaz3Yer47V9GO6K', cad: null, eur: null, gbp: null },
+  },
+  pro: {
+    credits: 120,
+    label: 'Pro',
+    priceIds: { usd: 'price_1UGfk9AJoPaz3Yerzr29Wzh4', cad: null, eur: null, gbp: null },
+  },
+};
 
-// Différence de prix (en plus petite unité) entre le forfait de base déjà payé et son Premium,
-// dans une devise donnée — jamais négative (un plancher évite un montant Stripe à 0/rejeté si
-// les tarifs venaient à changer et rendaient le Premium moins cher que le combo déjà payé).
-const MIN_UPGRADE_AMOUNT = 100; // 1,00 dans la devise (cents/pence)
-function upgradeAmount(basePlan, currency) {
-  const targetPlan = UPGRADE_TARGET[basePlan];
-  if (!targetPlan) return null;
-  const base = PLANS[basePlan].amounts[currency] ?? PLANS[basePlan].amounts.cad;
-  const target = PLANS[targetPlan].amounts[currency] ?? PLANS[targetPlan].amounts.cad;
-  return Math.max(target - base, MIN_UPGRADE_AMOUNT);
+// Price ID réel pour (plan, devise) — retombe sur USD si cette devise n'a pas encore de Price
+// Stripe dédié (jamais null, jamais une devise inventée).
+function priceIdFor(plan, currency) {
+  const plans = SUBSCRIPTION_PLANS[plan];
+  if (!plans) return null;
+  return plans.priceIds[currency] || plans.priceIds.usd;
 }
 
 function currencyForRegion(region) {
@@ -90,8 +104,9 @@ module.exports = {
   TRIAL_VALIDITY_DAYS,
   PREMIUM_CODE_REDEMPTION_WINDOW_DAYS,
   PLANS,
-  UPGRADE_TARGET,
-  upgradeAmount,
+  SUBSCRIPTION_PLANS,
+  SUBSCRIPTION_DURATION_DAYS,
+  priceIdFor,
   REGION_CURRENCY,
   DEFAULT_CURRENCY,
   currencyForRegion,

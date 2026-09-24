@@ -163,7 +163,15 @@ alter table public.users
   add column if not exists streak_days             int not null default 0,
   add column if not exists last_analysis_date      date,
   add column if not exists created_at             timestamptz default now(),
-  add column if not exists updated_at             timestamptz default now();
+  add column if not exists updated_at             timestamptz default now(),
+  -- Abonnement Stripe récurrent (contrat pricing v3, Basic/Pro) : identifie le client/l'abonnement
+  -- pour router les webhooks de renouvellement (invoice.paid) vers le bon compte, et permettre au
+  -- Customer Portal Stripe de gérer/annuler l'abonnement depuis l'app.
+  add column if not exists stripe_customer_id     text,
+  add column if not exists stripe_subscription_id text;
+
+alter table public.users drop constraint if exists users_stripe_subscription_id_key;
+alter table public.users add constraint users_stripe_subscription_id_key unique (stripe_subscription_id);
 
 -- Contraintes check ajoutées séparément (« add column ... check » ne supporte
 -- pas IF NOT EXISTS) : on les recrée à chaque exécution.
@@ -171,7 +179,7 @@ alter table public.users drop constraint if exists users_credits_check;
 alter table public.users add constraint users_credits_check check (credits >= 0);
 alter table public.users drop constraint if exists users_plan_check;
 alter table public.users add constraint users_plan_check
-  check (plan in ('free', 'trial', 'solo', 'trio', 'premium_solo', 'premium_trio'));
+  check (plan in ('free', 'trial', 'solo', 'trio', 'premium_solo', 'premium_trio', 'basic', 'pro'));
 -- Élargi à us/uk (quadri-langue) : remplace l'ancienne contrainte qc/fr uniquement,
 -- y compris sur une base qui avait déjà ce schéma avant l'ajout des 2 locales anglaises.
 alter table public.users drop constraint if exists users_region_check;
@@ -1068,3 +1076,151 @@ revoke execute on function public.start_simulation(uuid, uuid, int[], int) from 
 grant  execute on function public.start_simulation(uuid, uuid, int[], int) to service_role;
 revoke execute on function public.finish_simulation(uuid, uuid, int, int) from public, anon, authenticated;
 grant  execute on function public.finish_simulation(uuid, uuid, int, int) to service_role;
+
+
+-- =============================================================================
+-- 10. ABONNEMENTS RÉCURRENTS STRIPE (contrat pricing v3 — Basic/Pro, remplace les forfaits
+--     à paiement unique Solo/Trio/Premium ; ces derniers restent lisibles pour l'historique et
+--     les codes déjà émis, mais ne sont plus vendus).
+-- =============================================================================
+
+-- Déduplication générique des événements Stripe (checkout.session.completed en mode
+-- subscription, invoice.paid, customer.subscription.deleted) : Stripe peut renvoyer le même
+-- événement plusieurs fois (retry réseau) — un seul traitement par stripe_event_id.
+create table if not exists public.processed_stripe_events (
+  stripe_event_id text primary key,
+  kind            text not null,
+  created_at      timestamptz default now()
+);
+alter table public.processed_stripe_events enable row level security;
+revoke all on table public.processed_stripe_events from anon, authenticated;
+
+-- -----------------------------------------------------------------------------
+-- activate_subscription : première activation d'un abonnement Basic/Pro (checkout.session.
+-- completed, mode=subscription). Idempotente par stripe_event_id (webhook Stripe peut réessayer).
+-- -----------------------------------------------------------------------------
+create or replace function public.activate_subscription(
+  p_stripe_event_id      text,
+  p_user_id              uuid,
+  p_plan                 text,
+  p_credits              int,
+  p_stripe_customer_id   text,
+  p_stripe_subscription_id text,
+  p_plan_expires_at      timestamptz
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_plan is null or p_plan not in ('basic', 'pro') then
+    raise exception 'BAD_REQUEST';
+  end if;
+  if p_credits is null or p_credits <= 0 or p_user_id is null then
+    raise exception 'BAD_REQUEST';
+  end if;
+
+  insert into public.processed_stripe_events (stripe_event_id, kind)
+  values (p_stripe_event_id, 'activate_subscription')
+  on conflict (stripe_event_id) do nothing;
+  if not found then
+    return false; -- déjà traité
+  end if;
+
+  update public.users
+     set credits                = p_credits,
+         plan                   = p_plan,
+         plan_expires_at        = p_plan_expires_at,
+         stripe_customer_id     = p_stripe_customer_id,
+         stripe_subscription_id = p_stripe_subscription_id
+   where id = p_user_id;
+
+  if not found then
+    raise exception 'NOT_FOUND';
+  end if;
+
+  return true;
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
+-- renew_subscription_credits : renouvellement automatique (invoice.paid, billing_reason =
+-- subscription_cycle) — retrouve le compte par stripe_subscription_id (pas par user_id, le
+-- webhook ne connaît que l'abonnement Stripe à ce stade), remet les crédits au plein montant du
+-- plan et prolonge la validité de 3 mois. Idempotente par stripe_event_id.
+-- -----------------------------------------------------------------------------
+create or replace function public.renew_subscription_credits(
+  p_stripe_event_id        text,
+  p_stripe_subscription_id text,
+  p_credits                int,
+  p_plan_expires_at        timestamptz
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_stripe_subscription_id is null or p_credits is null or p_credits <= 0 then
+    raise exception 'BAD_REQUEST';
+  end if;
+
+  insert into public.processed_stripe_events (stripe_event_id, kind)
+  values (p_stripe_event_id, 'renew_subscription_credits')
+  on conflict (stripe_event_id) do nothing;
+  if not found then
+    return false;
+  end if;
+
+  update public.users
+     set credits         = p_credits,
+         plan_expires_at = p_plan_expires_at
+   where stripe_subscription_id = p_stripe_subscription_id;
+
+  if not found then
+    -- Abonnement inconnu (ex: créé hors app) : rien à renouveler côté RPVD, pas une erreur bloquante.
+    return false;
+  end if;
+
+  return true;
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
+-- cancel_subscription : l'abonnement Stripe est résilié (customer.subscription.deleted) — on
+-- détache juste l'ID d'abonnement pour qu'un futur événement Stripe égaré ne touche plus ce
+-- compte ; les crédits déjà crédités restent utilisables jusqu'à leur épuisement naturel (pas de
+-- reprise rétroactive, contrat honnêteté commerciale).
+-- -----------------------------------------------------------------------------
+create or replace function public.cancel_subscription(
+  p_stripe_event_id        text,
+  p_stripe_subscription_id text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.processed_stripe_events (stripe_event_id, kind)
+  values (p_stripe_event_id, 'cancel_subscription')
+  on conflict (stripe_event_id) do nothing;
+  if not found then
+    return false;
+  end if;
+
+  update public.users
+     set stripe_subscription_id = null
+   where stripe_subscription_id = p_stripe_subscription_id;
+
+  return true;
+end;
+$$;
+
+revoke execute on function public.activate_subscription(text, uuid, text, int, text, text, timestamptz) from public, anon, authenticated;
+grant  execute on function public.activate_subscription(text, uuid, text, int, text, text, timestamptz) to service_role;
+revoke execute on function public.renew_subscription_credits(text, text, int, timestamptz) from public, anon, authenticated;
+grant  execute on function public.renew_subscription_credits(text, text, int, timestamptz) to service_role;
+revoke execute on function public.cancel_subscription(text, text) from public, anon, authenticated;
+grant  execute on function public.cancel_subscription(text, text) to service_role;

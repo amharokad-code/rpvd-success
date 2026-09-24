@@ -86,14 +86,15 @@ export async function requestTrial(email) {
   return callFunction('request-trial', { email })
 }
 
+// Contrat pricing v3 : abonnement Stripe récurrent (Basic/Pro) — l'utilisateur doit être connecté,
+// le serveur attache l'abonnement à son compte via client_reference_id.
 export async function createCheckout(plan, region) {
   return callFunction('create-checkout', { plan, region })
 }
 
-// Mise à niveau Base → Premium (contrat pricing v2) : le serveur revérifie l'éligibilité
-// (forfait de base + crédits épuisés) à partir du compte authentifié, jamais sur la foi de `plan`.
-export async function createUpgradeCheckout(region) {
-  return callFunction('create-checkout', { upgrade: true, region })
+// Portail client Stripe : gérer le moyen de paiement ou annuler l'abonnement en 1 clic.
+export async function createBillingPortalSession() {
+  return callFunction('create-portal-session', {})
 }
 
 // Phase 1 (RPVD_FEATURES_PROMPT.md) : génère un exercice clone du pattern d'une analyse déjà
