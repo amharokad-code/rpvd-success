@@ -21,6 +21,8 @@ import SettingsPage from './pages/SettingsPage'
 import ActivatePage from './pages/ActivatePage'
 import LoginPage from './pages/LoginPage'
 import ExamPrep from './components/ExamPrep'
+import Footer from './components/Footer'
+import CookieConsentBanner from './components/CookieConsentBanner'
 
 function getSearch() {
   if (typeof window === 'undefined') return ''
@@ -311,7 +313,10 @@ function AppShell() {
             </Button>
           </div>
         )}
+
+        <Footer className="mt-10 pb-24 sm:pb-4" />
       </main>
+      <CookieConsentBanner />
     </div>
   )
 }

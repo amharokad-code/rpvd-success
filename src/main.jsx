@@ -2,14 +2,23 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import LegalPage from './pages/LegalPage'
 import './index.css'
+
+// Routage minimal : /legal/<doc> est une page statique indépendante (pas d'auth, pas d'appel
+// réseau), le reste (pas de react-router dans ce projet) reste géré par l'état d'onglet d'App.
+const LEGAL_DOCS = ['privacy', 'terms', 'cookies', 'refunds']
+function legalDocFromPath() {
+  if (typeof window === 'undefined') return null
+  const match = window.location.pathname.match(/^\/legal\/([a-z]+)/)
+  return match && LEGAL_DOCS.includes(match[1]) ? match[1] : null
+}
 
 const rootElement = typeof document !== 'undefined' ? document.getElementById('root') : null
 if (rootElement) {
+  const legalDoc = legalDocFromPath()
   createRoot(rootElement).render(
-    <StrictMode>
-      <App />
-    </StrictMode>,
+    <StrictMode>{legalDoc ? <LegalPage doc={legalDoc} /> : <App />}</StrictMode>,
   )
 }
 

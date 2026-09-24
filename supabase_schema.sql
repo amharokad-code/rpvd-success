@@ -1224,3 +1224,22 @@ revoke execute on function public.renew_subscription_credits(text, text, int, ti
 grant  execute on function public.renew_subscription_credits(text, text, int, timestamptz) to service_role;
 revoke execute on function public.cancel_subscription(text, text) from public, anon, authenticated;
 grant  execute on function public.cancel_subscription(text, text) to service_role;
+
+
+-- =============================================================================
+-- CONFORMITÉ v1 — AgeGate (contrat conformité §1) : preuve d'audit COPPA/Loi 25/
+-- RGPD/UK GDPR, une ligne par empreinte d'appareil, écrite en best-effort par
+-- age-gate-confirm.js (service_role uniquement, aucun accès client direct).
+-- =============================================================================
+create table if not exists public.age_gate_confirmations (
+  device_fingerprint    text primary key,
+  market                text not null check (market in ('qc', 'fr', 'us', 'uk')),
+  age_confirmed         boolean not null default false,
+  parent_auth_declared  boolean not null default false,
+  blocked_coppa         boolean not null default false,
+  confirmed_at          timestamptz not null default now()
+);
+
+alter table public.age_gate_confirmations enable row level security;
+-- Aucune policy pour anon/authenticated : lecture/écriture réservées au service_role
+-- (Netlify Function avec la clé service), exactement comme les autres tables sensibles.

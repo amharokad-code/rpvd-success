@@ -5,6 +5,9 @@
 import { useEffect, useRef, useState } from 'react'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
+import Footer from '../components/Footer'
+import AgeGate from '../components/AgeGate'
+import CookieConsentBanner from '../components/CookieConsentBanner'
 import { useCopy } from '../context/RegionContext'
 import { supabase } from '../lib/supabase'
 
@@ -14,12 +17,14 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 const REQUEST_TIMEOUT_MS = 15000
 
 export default function LoginPage() {
-  const { t } = useCopy()
+  const { t, region } = useCopy()
   const [email, setEmail] = useState('')
   const [busy, setBusy] = useState(false)
   const [sentTo, setSentTo] = useState(null)
   const [error, setError] = useState(null)
+  const [ageConfirmed, setAgeConfirmed] = useState(false)
   const mountedRef = useRef(true)
+  const lang = region === 'us' || region === 'uk' ? 'en' : 'fr'
 
   useEffect(() => {
     // Réarme le drapeau à chaque (re)montage : en dev, StrictMode monte/nettoie/remonte
@@ -65,8 +70,12 @@ export default function LoginPage() {
     sendLink(value)
   }
 
+  if (!ageConfirmed) {
+    return <AgeGate market={region} lang={lang} onConfirm={() => setAgeConfirmed(true)} />
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-10">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 py-10">
       <GlassCard className="w-full max-w-sm motion-safe:animate-bop">
         <div className="mb-6 text-center">
           <span className="font-display text-3xl font-extrabold text-amber-400">{t.auth.brand}</span>
@@ -136,6 +145,8 @@ export default function LoginPage() {
           </>
         )}
       </GlassCard>
+      <Footer />
+      <CookieConsentBanner />
     </div>
   )
 }

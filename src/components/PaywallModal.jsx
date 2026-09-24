@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react'
 import Modal from './ui/Modal'
 import Button from './ui/Button'
+import Footer from './Footer'
 import { useCopy } from '../context/RegionContext'
 import { ApiError, createCheckout } from '../lib/api'
 import { formatPlanPriceBreakdown } from '../lib/pricing'
@@ -104,6 +105,8 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
           {t.paywall.haveCode}
         </Button>
       </div>
+
+      <Footer className="mt-6" />
     </Modal>
   )
 }
