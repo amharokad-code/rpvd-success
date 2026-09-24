@@ -51,29 +51,30 @@ const PLANS = {
 // passent par un vrai abonnement Stripe récurrent (Basic/Pro), facturé automatiquement tous les
 // 3 mois (mode: 'subscription', Price ID Stripe réels — pas de price_data ad-hoc comme avant).
 //
-// « priceIds » : un vrai Price Stripe par devise. Seul `usd` existe pour l'instant (créés
-// manuellement dans le dashboard Stripe) — les 3 autres devises sont à ajouter au fur et à
-// mesure (currencyForRegion retombe sur `usd` tant qu'elles manquent, jamais une erreur).
+// « priceId » : UN SEUL Price Stripe par plan (pas un par devise) — chaque Price a ses propres
+// « currency_options » (CAD/EUR/GBP en plus de la devise de base USD), configurées directement
+// dans le dashboard Stripe. Checkout choisit automatiquement la devise de présentation selon la
+// localisation du client ; `amounts` ci-dessous n'est qu'un miroir pour l'affichage (contrat
+// honnêteté commerciale : les montants affichés doivent correspondre exactement aux
+// currency_options réels, jamais une conversion approximative).
 const SUBSCRIPTION_DURATION_DAYS = 90;
 const SUBSCRIPTION_PLANS = {
   basic: {
     credits: 50,
     label: 'Basic',
-    priceIds: { usd: 'price_1UFYW1AJoPaz3Yer47V9GO6K', cad: null, eur: null, gbp: null },
+    priceId: 'price_1UFYW1AJoPaz3Yer47V9GO6K',
+    amounts: { usd: 1200, cad: 1700, eur: 1000, gbp: 900 },
   },
   pro: {
     credits: 120,
     label: 'Pro',
-    priceIds: { usd: 'price_1UGfk9AJoPaz3Yerzr29Wzh4', cad: null, eur: null, gbp: null },
+    priceId: 'price_1UGfk9AJoPaz3Yerzr29Wzh4',
+    amounts: { usd: 2000, cad: 2800, eur: 1800, gbp: 1500 },
   },
 };
 
-// Price ID réel pour (plan, devise) — retombe sur USD si cette devise n'a pas encore de Price
-// Stripe dédié (jamais null, jamais une devise inventée).
-function priceIdFor(plan, currency) {
-  const plans = SUBSCRIPTION_PLANS[plan];
-  if (!plans) return null;
-  return plans.priceIds[currency] || plans.priceIds.usd;
+function priceIdFor(plan) {
+  return SUBSCRIPTION_PLANS[plan] ? SUBSCRIPTION_PLANS[plan].priceId : null;
 }
 
 function currencyForRegion(region) {

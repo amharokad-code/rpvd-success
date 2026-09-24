@@ -7,10 +7,8 @@
 
 const Stripe = require('stripe');
 const { HttpError, preflight, parseBody, json, handleError } = require('./_lib/http');
-const { SUBSCRIPTION_PLANS, priceIdFor, currencyForRegion } = require('./_lib/codes');
+const { SUBSCRIPTION_PLANS, priceIdFor } = require('./_lib/codes');
 const { getUserFromRequest } = require('./_lib/supabase');
-
-const REGIONS = ['qc', 'fr', 'us', 'uk'];
 
 let stripeClient = null;
 function getStripe() {
@@ -41,9 +39,9 @@ exports.handler = async (event) => {
     const plan = typeof body.plan === 'string' ? body.plan.trim().toLowerCase() : '';
     if (!SUBSCRIPTION_PLANS[plan]) throw new HttpError(400, 'BAD_REQUEST', 'Plan inconnu.');
 
-    const region = REGIONS.includes(body.region) ? body.region : null;
-    const currency = currencyForRegion(region);
-    const priceId = priceIdFor(plan, currency);
+    // Un seul Price Stripe par plan (currency_options CAD/EUR/GBP/USD dessus) : Checkout choisit
+    // lui-même la devise de présentation selon la localisation du client, pas la région de l'app.
+    const priceId = priceIdFor(plan);
     if (!priceId) throw new HttpError(400, 'BAD_REQUEST', 'Aucun tarif configuré pour ce forfait.');
 
     const base = siteUrl();
