@@ -1,8 +1,22 @@
 # RPVD Success — État du projet (résumé de transfert)
 
-Dernière mise à jour : 2026-09-24
+Dernière mise à jour : 2026-09-25
 
-## 0. ⚠️ CONTRAT PRICING v3 (dernier changement, prioritaire sur tout ce qui suit)
+## -1. ⚠️ SESSION 2026-09-25 (dernier changement, prioritaire sur tout ce qui suit)
+
+- **Nettoyage Stripe** : 2 destinations de webhook obsolètes supprimées en mode test (`incandescent-hamster-05d62b.netlify.app` et `rpvd-success-v2.netlify.app`, tous deux des comptes Netlify bloqués). Il ne reste qu'une seule destination active : `rpvdsuccess.netlify.app`. Vérifier aussi le mode **live** si jamais des doublons y traînent (pas vérifié cette session).
+- **7 features livrées** (commits `e8e2332` puis `83b659d`, poussés sur `main`, déployés) :
+  1. `src/components/StreakHeader.jsx` (nouveau) — bandeau streak "actif aujourd'hui" vs "à risque", distinct de `StreakFlame.jsx` (pastille compacte, conservée). **Pas encore intégré dans `DashboardPage.jsx`** — le composant existe et fonctionne mais personne ne l'affiche encore ; `StreakFlame` reste utilisé dans le header du dashboard.
+  2. Arbre de Cheminement (`ArbreCheminement.jsx`) — vérifié, déjà cohérent, aucun changement fait.
+  3. Pré-warming upload — déjà implémenté avant cette session (`UploadVortex.jsx` + `ping.js`), rien à faire.
+  4. **Cache de pattern** : nouvelle table `analysis_cache` (hash SHA-256 de l'image+mimeType+région, jamais l'image elle-même), TTL 30 jours, câblé dans `analyze-homework.js` juste avant l'appel Gemini. Skip du cache si la notation personnalisée diffère. Le crédit reste consommé même en cache hit (économise la latence/coût Gemini, pas le modèle d'affaires).
+  5. **PaywallModal** : ancrage tuteur réel ajouté (`~40$/h` vs prix RPVD réel). **Nettoyage important** : suppression de clés i18n mortes de fausse urgence (`badge`, `urgencyLabel`, `expired`, `pressureText`...) qui traînaient dans `copy.js` sans être utilisées par le composant — contraires à la politique "prix réels uniquement" déjà en place.
+  6. **Fingerprinting — friction progressive** : remplace l'ancien blocage 403 dur et définitif de `consume_credit`. Nouvelle politique en base (fenêtre glissante 24h) : 1er/2e écart d'appareil → la requête passe quand même (crédit consommé normalement), notice journalisée ; 3e écart+ → `FINGERPRINT_REVERIFY_REQUIRED` (récupérable, 409) au lieu d'un blocage mort. Nouvelle route `netlify/functions/reverify-device.js` + RPC `reverify_device_fingerprint` réattachent l'appareil courant — la preuve d'identité est la session Supabase active (auth par lien magique uniquement, pas de 2e facteur à construire). **UI câblée** dans `DashboardPage.jsx` : bannière douce dismissible pour la notice, écran de blocage dédié avec bouton "Confirmer cet appareil" pour le cas récupérable.
+  7. `src/components/LegalFooter.jsx` (nouveau) — vérifié dans le code avant d'écrire le texte : **aucune photo n'est jamais stockée** (ni temporairement), donc pas de purge à promettre — le texte reflète cette réalité exacte plutôt qu'une intention. Remboursement basé sur `REFUND_POLICY` déjà existant dans `src/legal/content.js`. **Pas encore intégré nulle part dans l'app** — `Footer.jsx` (barre de liens minimaliste) reste celui affiché partout.
+- **Migration SQL requise et déjà appliquée par l'utilisateur** (confirmé fonctionnel) : nouvelle section ajoutée à `supabase_schema.sql` (table `analysis_cache`, colonnes `users.fingerprint_mismatch_count`/`fingerprint_mismatch_window_at`, fonctions `consume_credit` réécrite + `reverify_device_fingerprint` + `get_my_profile` mis à jour avec `last_analysis_date`). Le fichier reste idempotent, rejouable sans danger.
+- **DeerFlow** : cloné et installé en local via WSL Ubuntu (`~/deer-flow` dans WSL, PAS dans le repo RPVD Success — projet séparé, agent de recherche IA de ByteDance). Configuré avec Claude Sonnet 4.5, DuckDuckGo (recherche), Jina AI Reader (fetch web), sandbox local. Fonctionnel, lancé via `make dev` (`http://localhost:2026`). Sans rapport direct avec RPVD Success, mentionné ici seulement parce que la session a commencé par ça.
+
+## 0. ⚠️ CONTRAT PRICING v3 (prioritaire sur tout ce qui suit, sauf la section -1 ci-dessus)
 
 Solo/Trio/Premium (paiement unique) sont **retirés de la vente**. Seuls **Basic** (12$ USD, 50 crédits) et **Pro** (20$ USD, 120 crédits) existent maintenant, en **vrai abonnement Stripe récurrent facturé automatiquement tous les 3 mois** — pas un paiement unique comme avant.
 
@@ -101,6 +115,9 @@ Implémentées et testées en direct contre l'API Gemini réelle (schémas valid
 **Migration SQL requise** : `supabase_schema.sql` a grandi (colonnes `clones`/`gemini_metrics` sur `submissions`, tables `clone_attempts`/`simulations`, RPCs `start_simulation`/`finish_simulation`) — rejouer le fichier complet dans l'éditeur SQL Supabase avant que ces routes fonctionnent en prod (idempotent, sans risque).
 
 ## 8. Ce qui reste en suspens
+
+- **`StreakHeader.jsx` et `LegalFooter.jsx` non intégrés** (voir §-1) : les composants existent et compilent mais ne sont affichés nulle part encore. Décider où les placer dans `DashboardPage.jsx`/l'app avant de les considérer "livrés" côté utilisateur final.
+- **Webhook Stripe mode live** : le nettoyage des doublons obsolètes n'a été fait qu'en mode test (§-1) — vérifier le mode live pour les mêmes doublons potentiels.
 
 - **`RESEND_API_KEY` / `EMAIL_FROM`** : à configurer en priorité, sinon aucun courriel ne part (blocage business réel, pas juste cosmétique).
 - **Meta Ads** : `META_PIXEL_ID`/`META_CAPI_ACCESS_TOKEN` à configurer, puis vérifier dans Meta Events Manager qu'un achat test remonte. La campagne elle-même doit être créée manuellement dans Meta Ads Manager (jamais fait depuis Claude Code, par design — aucun token d'accès API collé dans le chat).
