@@ -52,6 +52,9 @@ const RPC_CODE_STATUS = {
   NOT_FOUND: 404,
   CODE_USED: 409,
   CODE_EXPIRED: 410,
+  // Récupérable (contrairement à FINGERPRINT_MISMATCH, retiré du chemin d'erreur dur) :
+  // le frontend doit proposer une re-vérification par lien magique, pas un blocage définitif.
+  FINGERPRINT_REVERIFY_REQUIRED: 409,
 };
 
 // Convertit une erreur PostgREST dont le message contient un code du contrat en HttpError.

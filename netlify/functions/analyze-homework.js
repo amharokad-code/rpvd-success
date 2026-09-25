@@ -15,6 +15,9 @@ const REGIONS = ['qc', 'fr', 'us', 'uk'];
 const MAX_DECODED_BYTES = 8 * 1024 * 1024;
 const GEMINI_RATE_LIMIT = 5;
 const GEMINI_RATE_WINDOW_SECONDS = 3600;
+// Cache de pattern (voir supabase_schema.sql, table analysis_cache) : TTL par défaut,
+// hypothèse posée sans validation — à ajuster si le programme scolaire change plus vite.
+const ANALYSIS_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 // Taille décodée d'une chaîne base64 sans la décoder.
 function decodedSize(base64) {
@@ -105,12 +108,16 @@ exports.handler = async (event) => {
     try {
       consumed = await rpc('consume_credit', { p_user_id: user.id, p_fingerprint: fingerprint });
     } catch (err) {
-      if (err instanceof HttpError && err.code === 'FINGERPRINT_MISMATCH') {
+      // FINGERPRINT_REVERIFY_REQUIRED (friction progressive, remplace l'ancien 403 dur
+      // FINGERPRINT_MISMATCH inconditionnel) : au 3e écart sur 24h, on journalise et on
+      // renvoie un code récupérable — le frontend doit proposer /reverify-device, pas
+      // afficher un blocage définitif.
+      if (err instanceof HttpError && err.code === 'FINGERPRINT_REVERIFY_REQUIRED') {
         await getServiceClient()
           .from('security_events')
           .insert({
             user_id: user.id,
-            kind: 'fingerprint_mismatch',
+            kind: 'fingerprint_reverify_required',
             details: { ip_hash: sha256(getIp(event)), fingerprint: fingerprint.slice(0, 12), fn: 'analyze-homework' },
           })
           .then(() => {}, (e) => console.error('[security_events]', e.message));
@@ -118,21 +125,71 @@ exports.handler = async (event) => {
       throw err;
     }
     const creditsRemaining = Number(consumed && consumed.credits_remaining) || 0;
+    const fingerprintNotice = Boolean(consumed && consumed.fingerprint_notice);
+    if (fingerprintNotice) {
+      // 1er/2e écart : requête acceptée quand même (voir consume_credit), mais journalisé
+      // pour suivi — pas un blocage, juste une trace pour ajuster le seuil plus tard.
+      await getServiceClient()
+        .from('security_events')
+        .insert({
+          user_id: user.id,
+          kind: 'fingerprint_mismatch_soft',
+          details: { ip_hash: sha256(getIp(event)), fingerprint: fingerprint.slice(0, 12), fn: 'analyze-homework' },
+        })
+        .then(() => {}, (e) => console.error('[security_events]', e.message));
+    }
 
-    // 6. Analyse Gemini ; remboursement du crédit en cas d'échec.
+    // 5bis. Cache de pattern : même image + même notation déjà analysées récemment →
+    // on sert l'analyse en cache et on saute l'appel Gemini (contrat cache, voir
+    // supabase_schema.sql/analysis_cache). Le crédit reste consommé normalement
+    // (étape 5, déjà faite) : le cache économise la latence/le coût Gemini, pas le crédit.
+    const contentHash = sha256(`${base64}:${mimeType}:${region}`);
+    const notationKey = preferredNotation || '';
     let analysis;
     let geminiMetrics = null;
+    let servedFromCache = false;
+
     try {
-      const result = await analyzeImage({ base64, mimeType, region, preferredNotation, notationImage, taskType: 'full_analysis' });
-      analysis = result.analysis;
-      geminiMetrics = result.metrics;
-    } catch (err) {
-      try {
-        await rpc('refund_credit', { p_user_id: user.id });
-      } catch (refundError) {
-        console.error('[analyze-homework] Remboursement impossible :', refundError && refundError.message);
+      const { data: cached } = await getServiceClient()
+        .from('analysis_cache')
+        .select('analysis, gemini_metrics, notation_key, expires_at')
+        .eq('content_hash', contentHash)
+        .maybeSingle();
+      if (cached && cached.notation_key === notationKey && new Date(cached.expires_at).getTime() > Date.now()) {
+        analysis = cached.analysis;
+        geminiMetrics = { ...(cached.gemini_metrics || {}), cached: true };
+        servedFromCache = true;
       }
-      throw err instanceof HttpError ? err : new HttpError(502, 'AI_ERROR');
+    } catch (cacheReadError) {
+      console.error('[analyze-homework] Lecture cache échouée (non bloquant) :', cacheReadError && cacheReadError.message);
+    }
+
+    // 6. Analyse Gemini (sauté si servi depuis le cache) ; remboursement du crédit en cas d'échec.
+    if (!servedFromCache) {
+      try {
+        const result = await analyzeImage({ base64, mimeType, region, preferredNotation, notationImage, taskType: 'full_analysis' });
+        analysis = result.analysis;
+        geminiMetrics = result.metrics;
+      } catch (err) {
+        try {
+          await rpc('refund_credit', { p_user_id: user.id });
+        } catch (refundError) {
+          console.error('[analyze-homework] Remboursement impossible :', refundError && refundError.message);
+        }
+        throw err instanceof HttpError ? err : new HttpError(502, 'AI_ERROR');
+      }
+
+      // Écriture best-effort du cache (jamais l'image, seulement son hash + l'analyse texte).
+      getServiceClient()
+        .from('analysis_cache')
+        .upsert({
+          content_hash: contentHash,
+          notation_key: notationKey,
+          analysis,
+          gemini_metrics: geminiMetrics,
+          expires_at: new Date(Date.now() + ANALYSIS_CACHE_TTL_MS).toISOString(),
+        })
+        .then(() => {}, (e) => console.error('[analysis_cache] écriture échouée (non bloquant) :', e.message));
     }
 
     // 7. Enregistrement de la soumission (sans l'image).
@@ -170,7 +227,13 @@ exports.handler = async (event) => {
     }
 
     // 8. Succès.
-    return json(200, { submission_id: submissionId, credits_remaining: creditsRemaining, streak_days: streakDays, analysis });
+    return json(200, {
+      submission_id: submissionId,
+      credits_remaining: creditsRemaining,
+      streak_days: streakDays,
+      analysis,
+      fingerprint_notice: fingerprintNotice || undefined,
+    });
   } catch (err) {
     return handleError(err, 'analyze-homework');
   }

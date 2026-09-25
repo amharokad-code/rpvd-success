@@ -105,12 +105,9 @@ const qc = {
     lastFree: 'Continuer avec mon dernier essai gratuit',
     later: 'Plus tard',
     haveCode: "J'ai déjà un code",
-    badge: "Offre Flash d'Examen",
-    badgeAlt: 'Accès limité',
-    discountBadge: (pct) => `-${pct}%`,
-    urgencyLabel: "🔥 L'offre expire dans :",
-    expired: "⏳ L'offre a expiré — reviens plus tard pour un nouveau prix.",
-    pressureText: "Moins cher qu'une seule heure de tuteur. Bloque ce prix avant la fin du chrono pour garantir ton accès.",
+    // Ancrage honnête (contrat §4 : prix réels uniquement, aucune fausse urgence) —
+    // comparaison vérifiable, pas de compteur ni de chrono simulés.
+    tutorAnchor: (monthly) => `Tuteur privé : ~40$/h. RPVD Success : ${monthly}/mois.`,
   },
 
   examPrep: {
@@ -159,6 +156,7 @@ const qc = {
     UNAUTHORIZED: 'Session expirée. Recharge la page.',
     NO_CREDITS: "Plus de crédits. Active un code ou débloque l'accès.",
     FINGERPRINT_MISMATCH: "Ce compte est lié à un autre appareil. Utilise l'appareil d'origine ou écris-nous.",
+    FINGERPRINT_REVERIFY_REQUIRED: 'Reclique le lien magique reçu par courriel pour confirmer que ce nouvel appareil est bien le tien.',
     INVALID_CODE: 'Ce code existe pas. Vérifie les lettres pis réessaie.',
     CODE_USED: 'Ce code a déjà été utilisé.',
     CODE_EXPIRED: 'Ce code est expiré.',
@@ -293,12 +291,9 @@ const fr = {
     lastFree: 'Continuer avec mon dernier essai gratuit',
     later: 'Plus tard',
     haveCode: "J'ai déjà un code",
-    badge: "Offre Flash d'Examen",
-    badgeAlt: 'Accès limité',
-    discountBadge: (pct) => `-${pct}%`,
-    urgencyLabel: "🔥 L'offre expire dans :",
-    expired: "⏳ L'offre a expiré — reviens plus tard pour un nouveau prix.",
-    pressureText: "Moins cher qu'une seule heure de tuteur. Bloque ce prix avant la fin du chrono pour garantir ton accès.",
+    // Ancrage honnête (contrat §4 : prix réels uniquement, aucune fausse urgence) —
+    // comparaison vérifiable, pas de compteur ni de chrono simulés.
+    tutorAnchor: (monthly) => `Tuteur privé : ~40$/h. RPVD Success : ${monthly}/mois.`,
   },
 
   examPrep: {
@@ -347,6 +342,7 @@ const fr = {
     UNAUTHORIZED: 'Session expirée. Recharge la page.',
     NO_CREDITS: "Plus de crédits. Active un code ou débloque l'accès.",
     FINGERPRINT_MISMATCH: "Ce compte est lié à un autre appareil. Utilise l'appareil d'origine ou écris-nous.",
+    FINGERPRINT_REVERIFY_REQUIRED: 'Reclique le lien magique reçu par courriel pour confirmer que ce nouvel appareil est bien le tien.',
     INVALID_CODE: "Ce code n'existe pas. Vérifie les lettres et réessaie.",
     CODE_USED: 'Ce code a déjà été utilisé.',
     CODE_EXPIRED: 'Ce code est expiré.',
@@ -481,12 +477,9 @@ const us = {
     lastFree: 'Keep going with my last free try',
     later: 'Maybe later',
     haveCode: 'I already have a code',
-    badge: 'Exam-Week Flash Deal',
-    badgeAlt: 'Limited access',
-    discountBadge: (pct) => `-${pct}%`,
-    urgencyLabel: '🔥 Offer expires in:',
-    expired: '⏳ Offer expired — come back later for a new price.',
-    pressureText: 'Cheaper than one hour with a tutor. Lock in this price before the timer runs out.',
+    // Honest anchor (contract §4: real prices only, no fake urgency) — a verifiable
+    // comparison, no simulated counter or countdown.
+    tutorAnchor: (monthly) => `Private tutor: ~$40/hr. RPVD Success: ${monthly}/month.`,
   },
 
   examPrep: {
@@ -535,6 +528,7 @@ const us = {
     UNAUTHORIZED: 'Session expired. Reload the page.',
     NO_CREDITS: 'Out of credits. Activate a code or unlock access.',
     FINGERPRINT_MISMATCH: 'This account is linked to another device. Use the original device or reach out to us.',
+    FINGERPRINT_REVERIFY_REQUIRED: 'Click your magic link email again to confirm this new device is really yours.',
     INVALID_CODE: "That code doesn't exist. Double-check the letters and try again.",
     CODE_USED: 'This code has already been used.',
     CODE_EXPIRED: 'This code has expired.',
@@ -669,12 +663,9 @@ const uk = {
     lastFree: 'Carry on with my last free try',
     later: 'Maybe later',
     haveCode: 'I already have a code',
-    badge: 'Exam-Week Flash Deal',
-    badgeAlt: 'Limited access',
-    discountBadge: (pct) => `-${pct}%`,
-    urgencyLabel: '🔥 Offer expires in:',
-    expired: '⏳ Offer expired — come back later for a new price.',
-    pressureText: 'Cheaper than one hour with a tutor. Lock in this price before the timer runs out.',
+    // Honest anchor (contract §4: real prices only, no fake urgency) — a verifiable
+    // comparison, no simulated counter or countdown.
+    tutorAnchor: (monthly) => `Private tutor: ~$40/hr. RPVD Success: ${monthly}/month.`,
   },
 
   examPrep: {
@@ -723,6 +714,7 @@ const uk = {
     UNAUTHORIZED: 'Session expired. Reload the page.',
     NO_CREDITS: 'Out of credits. Activate a code or unlock access.',
     FINGERPRINT_MISMATCH: 'This account is linked to another device. Use the original device or get in touch.',
+    FINGERPRINT_REVERIFY_REQUIRED: 'Tap your magic link email again to confirm this new device is really yours.',
     INVALID_CODE: "That code doesn't exist. Double-check the letters and try again.",
     CODE_USED: 'This code has already been used.',
     CODE_EXPIRED: 'This code has expired.',

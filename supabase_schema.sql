@@ -1243,3 +1243,199 @@ create table if not exists public.age_gate_confirmations (
 alter table public.age_gate_confirmations enable row level security;
 -- Aucune policy pour anon/authenticated : lecture/écriture réservées au service_role
 -- (Netlify Function avec la clé service), exactement comme les autres tables sensibles.
+
+
+-- =============================================================================
+-- CACHE DE PATTERN — analyze-homework.js : si la même image (+ même notation
+-- personnalisée) a déjà été analysée, on sert l'analyse en cache au lieu de
+-- rappeler Gemini. Jamais l'image elle-même : seul le hash (SHA-256, one-way)
+-- est stocké, donc impossible de reconstituer ou de référencer la photo ou
+-- l'identité d'un autre élève à partir de cette table. TTL 30 jours (choix par
+-- défaut, à ajuster si le programme scolaire change plus/moins vite) : une ligne
+-- expirée est simplement ignorée à la lecture (pas de cron de purge physique —
+-- aucune infra de tâche planifiée n'existe encore dans ce projet, cf. handoff).
+-- =============================================================================
+create table if not exists public.analysis_cache (
+  content_hash   text primary key,
+  -- Notation personnalisée EXACTE utilisée pour produire cette analyse ('' si aucune) :
+  -- la sortie dépend du format demandé, donc un hash identique avec une notation
+  -- différente ne doit jamais servir ce cache (comparaison stricte, pas de hash ici,
+  -- la valeur est déjà bornée à 300 caractères côté validation).
+  notation_key   text not null default '',
+  analysis       jsonb not null,
+  gemini_metrics jsonb,
+  created_at     timestamptz not null default now(),
+  expires_at     timestamptz not null
+);
+
+create index if not exists analysis_cache_expires_idx on public.analysis_cache (expires_at);
+
+alter table public.analysis_cache enable row level security;
+-- Aucune policy anon/authenticated : lecture/écriture réservées au service_role.
+revoke all on table public.analysis_cache from anon, authenticated;
+
+
+-- =============================================================================
+-- FRICTION PROGRESSIVE — empreinte d'appareil (remplace le blocage 403 dur
+-- inconditionnel de consume_credit). Un changement d'appareil légitime (nouveau
+-- téléphone, réinstallation du navigateur) ne doit pas verrouiller un payeur
+-- réel sans recours. Nouvelle politique :
+--   1er et 2e écart sur une fenêtre glissante de 24h : la requête PASSE quand
+--     même (le crédit est consommé normalement), mais l'écart est journalisé
+--     et le RPC retourne `fingerprint_notice: true` pour que le frontend
+--     propose une re-vérification (lien magique) sans bloquer l'usage.
+--   3e écart et plus dans la même fenêtre : la requête est refusée avec un
+--     code RÉCUPÉRABLE (FINGERPRINT_REVERIFY_REQUIRED, 409 — pas 403 "mort")
+--     tant que le compte n'a pas été re-vérifié via reverify_device_fingerprint.
+-- Seuil de 2 choisi arbitrairement (assez de marge pour un vrai changement
+-- d'appareil, assez bas pour rester dissuasif sur un partage actif) — à ajuster
+-- avec de la donnée réelle si besoin.
+-- =============================================================================
+alter table public.users
+  add column if not exists fingerprint_mismatch_count    int not null default 0,
+  add column if not exists fingerprint_mismatch_window_at timestamptz;
+
+alter table public.users drop constraint if exists users_fingerprint_mismatch_count_check;
+alter table public.users add constraint users_fingerprint_mismatch_count_check
+  check (fingerprint_mismatch_count >= 0);
+
+create or replace function public.consume_credit(p_user_id uuid, p_fingerprint text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user       public.users%rowtype;
+  v_remaining  int;
+  v_mismatch   boolean;
+  v_count      int;
+  v_notice     boolean := false;
+begin
+  select * into v_user
+    from public.users
+   where id = p_user_id
+     for update;
+
+  if not found then
+    raise exception 'UNAUTHORIZED';
+  end if;
+
+  if v_user.credits <= 0 then
+    raise exception 'NO_CREDITS';
+  end if;
+
+  v_mismatch := v_user.device_fingerprint is not null
+    and (p_fingerprint is null or v_user.device_fingerprint <> p_fingerprint);
+
+  if v_mismatch then
+    -- Fenêtre glissante de 24h : un écart isolé ancien ne doit pas s'additionner
+    -- indéfiniment avec un nouvel écart.
+    if v_user.fingerprint_mismatch_window_at is null
+       or v_user.fingerprint_mismatch_window_at < now() - interval '24 hours' then
+      v_count := 1;
+    else
+      v_count := v_user.fingerprint_mismatch_count + 1;
+    end if;
+
+    update public.users
+       set fingerprint_mismatch_count     = v_count,
+           fingerprint_mismatch_window_at = now()
+     where id = p_user_id;
+
+    if v_count > 2 then
+      raise exception 'FINGERPRINT_REVERIFY_REQUIRED';
+    end if;
+
+    -- 1er/2e écart : friction douce seulement, on continue.
+    v_notice := true;
+  end if;
+
+  update public.users
+     set credits = credits - 1
+   where id = p_user_id
+   returning credits into v_remaining;
+
+  return jsonb_build_object('credits_remaining', v_remaining, 'fingerprint_notice', v_notice);
+end;
+$$;
+
+-- reverify_device_fingerprint : appelée par une Netlify Function dédiée APRÈS
+-- confirmation d'identité (lien magique renvoyé), jamais directement sur un simple
+-- écart. Réattache l'appareil courant comme appareil légitime et réinitialise le
+-- compteur de friction.
+create or replace function public.reverify_device_fingerprint(p_user_id uuid, p_fingerprint text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if p_fingerprint is null or length(p_fingerprint) <> 64 then
+    raise exception 'BAD_REQUEST';
+  end if;
+
+  update public.users
+     set device_fingerprint              = p_fingerprint,
+         fingerprint_mismatch_count      = 0,
+         fingerprint_mismatch_window_at  = null
+   where id = p_user_id;
+
+  if not found then
+    raise exception 'NOT_FOUND';
+  end if;
+end;
+$$;
+
+revoke execute on function public.consume_credit(uuid, text) from public, anon, authenticated;
+grant  execute on function public.consume_credit(uuid, text) to service_role;
+revoke execute on function public.reverify_device_fingerprint(uuid, text) from public, anon, authenticated;
+grant  execute on function public.reverify_device_fingerprint(uuid, text) to service_role;
+
+
+-- =============================================================================
+-- get_my_profile — expose last_analysis_date (nécessaire à StreakHeader.jsx pour
+-- distinguer "actif aujourd'hui" de "à risque, pas encore scanné").
+-- =============================================================================
+create or replace function public.get_my_profile()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_uid     uuid := auth.uid();
+  v_profile jsonb;
+begin
+  if v_uid is null then
+    raise exception 'UNAUTHORIZED';
+  end if;
+
+  insert into public.users (id)
+  values (v_uid)
+  on conflict (id) do nothing;
+
+  select jsonb_build_object(
+           'id',                 u.id,
+           'email',              u.email,
+           'credits',            u.credits,
+           'plan',               u.plan,
+           'plan_expires_at',    u.plan_expires_at,
+           'has_fingerprint',    (u.device_fingerprint is not null),
+           'preferred_notation', u.preferred_notation,
+           'region',             u.region,
+           'streak_days',        u.streak_days,
+           'last_analysis_date', u.last_analysis_date,
+           'created_at',         u.created_at
+         )
+    into v_profile
+    from public.users u
+   where u.id = v_uid;
+
+  if v_profile is null then
+    raise exception 'NOT_FOUND';
+  end if;
+
+  return v_profile;
+end;
+$$;

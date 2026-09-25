@@ -78,6 +78,9 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
                 )
               })()}
               <span className="text-sm leading-relaxed text-slate-300">{t.paywall[`${plan.id}Desc`]}</span>
+              <span className="text-xs leading-relaxed text-emerald-300/80">
+                {t.paywall.tutorAnchor(formatPlanPriceBreakdown(plan.id, region).monthly)}
+              </span>
               {isBusy && (
                 <span className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-700/60" aria-hidden="true">
                   <span
