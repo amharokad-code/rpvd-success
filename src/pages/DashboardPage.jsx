@@ -15,7 +15,7 @@ import NotationBlock from '../components/NotationBlock'
 import SocialFollowPrompt from '../components/SocialFollowPrompt'
 import Flag from '../components/Flag'
 import { useCopy } from '../context/RegionContext'
-import { ApiError, analyzeHomework } from '../lib/api'
+import { ApiError, analyzeHomework, reverifyDevice } from '../lib/api'
 import { DEMO_ANALYSIS } from '../fixtures/demoAnalysis'
 
 function getSearch() {
@@ -126,6 +126,10 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
   const [libraryOpen, setLibraryOpen] = useState(false)
   const [savedInfo, setSavedInfo] = useState(null) // { subject, topicName }
   const [notationImage, setNotationImage] = useState(null) // { base64, mimeType, previewUrl }
+  // Friction progressive fingerprint (contrat sécurité §6) : notice douce (1er/2e écart,
+  // requête déjà passée) — distincte de `error` qui, elle, bloque le flux.
+  const [fingerprintNotice, setFingerprintNotice] = useState(false)
+  const [reverifyState, setReverifyState] = useState('idle') // 'idle' | 'busy' | 'done' | 'error'
   const timerRef = useRef(null)
   const fileRef = useRef(null)
 
@@ -176,11 +180,32 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
     setResult(null)
     setError(null)
     setSavedInfo(null)
+    setFingerprintNotice(false)
     setPhase('upload')
   }
 
   function openPaywall() {
     setPaywallOpen(true)
+  }
+
+  // Recours friction progressive (contrat sécurité §6) : réattache CET appareil comme légitime.
+  // La preuve d'identité est la session Supabase active elle-même (auth par lien magique
+  // uniquement) — voir netlify/functions/reverify-device.js.
+  async function handleReverify() {
+    setReverifyState('busy')
+    try {
+      await reverifyDevice()
+      setReverifyState('done')
+      setFingerprintNotice(false)
+      // Le blocage récupérable (phase 'error', FINGERPRINT_REVERIFY_REQUIRED) se résout tout
+      // seul une fois l'appareil confirmé : l'élève peut retenter son analyse.
+      if (error?.code === 'FINGERPRINT_REVERIFY_REQUIRED') {
+        setError(null)
+        setPhase(file ? 'ready' : 'upload')
+      }
+    } catch {
+      setReverifyState('error')
+    }
   }
 
   async function runAnalysis(source) {
@@ -215,6 +240,10 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
       if (typeof data.credits_remaining === 'number') {
         const extra = typeof data.streak_days === 'number' ? { streak_days: data.streak_days } : undefined
         updateCredits(data.credits_remaining, extra)
+      }
+      if (data.fingerprint_notice) {
+        setReverifyState('idle')
+        setFingerprintNotice(true)
       }
       setPhase('result')
     } catch (err) {
@@ -333,6 +362,41 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
 
       {phase === 'result' && result && (
         <div className="flex flex-col gap-4">
+          {fingerprintNotice && (
+            <div
+              role="status"
+              className="glass flex flex-col gap-3 rounded-2xl border-amber-500/30 p-4 motion-safe:animate-spring-in sm:flex-row sm:items-center sm:justify-between"
+            >
+              <p className="text-sm leading-relaxed text-slate-300">{t.security.noticeText}</p>
+              <div className="flex shrink-0 items-center gap-2">
+                {reverifyState === 'done' ? (
+                  <span className="text-sm font-semibold text-emerald-400">{t.security.reverifyDone}</span>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    onClick={handleReverify}
+                    loading={reverifyState === 'busy'}
+                    className="whitespace-nowrap"
+                  >
+                    {reverifyState === 'busy' ? t.security.reverifyBusy : t.security.reverifyCta}
+                  </Button>
+                )}
+                <button
+                  type="button"
+                  aria-label={t.common.close}
+                  onClick={() => setFingerprintNotice(false)}
+                  className="focus-ring squishy flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-500 hover:text-slate-300"
+                >
+                  ×
+                </button>
+              </div>
+              {reverifyState === 'error' && (
+                <p role="alert" className="w-full text-xs text-rose-300 sm:basis-full">
+                  {t.security.reverifyError}
+                </p>
+              )}
+            </div>
+          )}
           <AnalysisEngine
             key={result.submission_id}
             analysis={result.analysis}
@@ -360,7 +424,24 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
         <GlassCard role="alert" className="flex flex-col gap-5 border-rose-500/40 motion-safe:animate-bop">
           <p className="text-lg leading-relaxed text-slate-100">{error.message}</p>
           <div className="flex flex-col gap-3 sm:flex-row">
-            {error.code === 'FINGERPRINT_MISMATCH' ? (
+            {error.code === 'FINGERPRINT_REVERIFY_REQUIRED' ? (
+              // Récupérable (contrat sécurité §6) : contrairement à FINGERPRINT_MISMATCH
+              // ci-dessous, ce n'est pas un blocage définitif — un bouton suffit, pas besoin
+              // d'écrire au support.
+              <>
+                <Button
+                  variant="primary"
+                  onClick={handleReverify}
+                  loading={reverifyState === 'busy'}
+                  className="w-full sm:flex-1"
+                >
+                  {reverifyState === 'busy' ? t.security.reverifyBusy : t.security.reverifyCta}
+                </Button>
+                <Button variant="ghost" onClick={resetToUpload} className="w-full sm:flex-1">
+                  {t.common.back}
+                </Button>
+              </>
+            ) : error.code === 'FINGERPRINT_MISMATCH' ? (
               <>
                 {SUPPORT_EMAIL && (
                   <a
@@ -385,6 +466,11 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
               </>
             )}
           </div>
+          {error.code === 'FINGERPRINT_REVERIFY_REQUIRED' && reverifyState === 'error' && (
+            <p role="alert" className="text-sm text-rose-300">
+              {t.security.reverifyError}
+            </p>
+          )}
         </GlassCard>
       )}
 

@@ -169,6 +169,17 @@ const qc = {
     NETWORK: 'Pas de connexion. Vérifie ton réseau pis réessaie.',
   },
 
+  // Friction progressive fingerprint (contrat sécurité §6) : notice douce (1er/2e écart,
+  // requête déjà passée) vs blocage récupérable (3e+ écart, FINGERPRINT_REVERIFY_REQUIRED).
+  security: {
+    noticeText: "On a détecté que t'utilises un nouvel appareil. Confirme que c'est bien toi pour éviter d'être bloqué plus tard.",
+    reverifyCta: 'Confirmer cet appareil',
+    reverifyBusy: 'Confirmation...',
+    reverifyDone: 'Appareil confirmé !',
+    reverifyError: "Ça a pas marché. Reclique le lien magique reçu par courriel, pis réessaie.",
+    blockedTitle: 'Nouvel appareil détecté',
+  },
+
   settings: {
     title: 'Réglages',
     region: 'Ta région',
@@ -353,6 +364,15 @@ const fr = {
     OCR_FAIL: 'Photo pas nette ! Reprends-la avec plus de lumière, ton crédit est remboursé.',
     SERVER_ERROR: 'Oups, ça a planté de notre côté. Réessaie dans un instant.',
     NETWORK: 'Pas de connexion. Vérifie ton réseau et réessaie.',
+  },
+
+  security: {
+    noticeText: "Nous avons détecté un nouvel appareil. Confirme que c'est bien toi pour éviter d'être bloqué plus tard.",
+    reverifyCta: 'Confirmer cet appareil',
+    reverifyBusy: 'Confirmation...',
+    reverifyDone: 'Appareil confirmé !',
+    reverifyError: 'Ça n\'a pas fonctionné. Reclique le lien magique reçu par courriel, puis réessaie.',
+    blockedTitle: 'Nouvel appareil détecté',
   },
 
   settings: {
@@ -541,6 +561,15 @@ const us = {
     NETWORK: "No connection. Check your network and try again.",
   },
 
+  security: {
+    noticeText: "We noticed a new device. Confirm it's really you to avoid getting blocked later.",
+    reverifyCta: 'Confirm this device',
+    reverifyBusy: 'Confirming...',
+    reverifyDone: 'Device confirmed!',
+    reverifyError: "That didn't work. Click your magic link email again, then retry.",
+    blockedTitle: 'New device detected',
+  },
+
   settings: {
     title: 'Settings',
     region: 'Your region',
@@ -725,6 +754,15 @@ const uk = {
     OCR_FAIL: 'Blurry photo! Retake it with better light, your credit was refunded.',
     SERVER_ERROR: 'Oops, something went wrong on our end. Try again in a moment.',
     NETWORK: 'No connection. Check your network and try again.',
+  },
+
+  security: {
+    noticeText: "We noticed a new device. Confirm it's really you to avoid getting blocked later.",
+    reverifyCta: 'Confirm this device',
+    reverifyBusy: 'Confirming...',
+    reverifyDone: 'Device confirmed!',
+    reverifyError: "That didn't work. Tap your magic link email again, then retry.",
+    blockedTitle: 'New device detected',
   },
 
   settings: {

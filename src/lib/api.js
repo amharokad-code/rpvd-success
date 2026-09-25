@@ -78,6 +78,13 @@ export async function analyzeHomework({ base64, mimeType, region, notationText, 
   })
 }
 
+// Recours friction progressive (contrat sécurité §6) : réattache l'appareil courant comme
+// légitime après FINGERPRINT_REVERIFY_REQUIRED. Suppose une session valide (l'utilisateur a
+// recliqué son lien magique) — voir netlify/functions/reverify-device.js.
+export async function reverifyDevice() {
+  return callFunction('reverify-device', {})
+}
+
 export async function activateCode(code) {
   return callFunction('activate-code', { code })
 }
