@@ -196,6 +196,11 @@ const qc = {
     loggedInAs: (email) => `Connecté comme ${email}`,
     manageSubscription: 'Gérer mon abonnement',
     logout: 'Se déconnecter',
+    aboutTitle: 'À propos',
+    aboutAlt: 'Abdel-Majid et Ismael, fondateurs de RPVD Success',
+    aboutNames: 'Abdel-Majid & Ismael',
+    aboutBody:
+      "On a fondé RPVD Success parce qu'on s'est tannés de voir des élèves copier une réponse sans jamais comprendre la logique derrière. Pas de raccourci ici : on te montre le pattern, tu l'appliques toi-même. On construit ça comme si c'était pour notre propre petit frère ou notre propre petite sœur.",
   },
 
   auth: {
@@ -391,6 +396,11 @@ const fr = {
     loggedInAs: (email) => `Connecté comme ${email}`,
     manageSubscription: 'Gérer mon abonnement',
     logout: 'Se déconnecter',
+    aboutTitle: 'À propos',
+    aboutAlt: 'Abdel-Majid et Ismael, fondateurs de RPVD Success',
+    aboutNames: 'Abdel-Majid & Ismael',
+    aboutBody:
+      "On a fondé RPVD Success parce qu'on s'est tannés de voir des élèves copier une réponse sans jamais comprendre la logique derrière. Pas de raccourci ici : on te montre le pattern, tu l'appliques toi-même. On construit ça comme si c'était pour notre propre petit frère ou notre propre petite sœur.",
   },
 
   auth: {
@@ -586,6 +596,11 @@ const us = {
     loggedInAs: (email) => `Signed in as ${email}`,
     manageSubscription: 'Manage my subscription',
     logout: 'Sign out',
+    aboutTitle: 'About',
+    aboutAlt: 'Abdel-Majid and Ismael, founders of RPVD Success',
+    aboutNames: 'Abdel-Majid & Ismael',
+    aboutBody:
+      "We started RPVD Success because we were tired of watching students copy an answer without ever understanding the logic behind it. No shortcuts here: we show you the pattern, you apply it yourself. We build this the way we would for our own little brother or sister.",
   },
 
   auth: {
@@ -781,6 +796,11 @@ const uk = {
     loggedInAs: (email) => `Signed in as ${email}`,
     manageSubscription: 'Manage my subscription',
     logout: 'Sign out',
+    aboutTitle: 'About',
+    aboutAlt: 'Abdel-Majid and Ismael, founders of RPVD Success',
+    aboutNames: 'Abdel-Majid & Ismael',
+    aboutBody:
+      "We started RPVD Success because we were tired of watching students copy an answer without ever understanding the logic behind it. No shortcuts here: we show you the pattern, you apply it yourself. We build this the way we would for our own little brother or sister.",
   },
 
   auth: {
