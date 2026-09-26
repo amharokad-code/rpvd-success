@@ -77,7 +77,9 @@ async function reportConfirmation(payload) {
 }
 
 // `market` = région active (qc/fr/us/uk). `onConfirm` n'est appelé qu'une fois l'accès autorisé.
-export default function AgeGate({ market, lang, onConfirm }) {
+// `inline` : rendu sans son propre min-h-screen (utilisé quand un parent affiche déjà du
+// contenu au-dessus, ex. le texte marketing de LoginPage).
+export default function AgeGate({ market, lang, onConfirm, inline = false }) {
   const c = COPY[lang] || COPY.fr
   const threshold = AGE_THRESHOLDS[market] || AGE_THRESHOLDS.qc
   const [stage, setStage] = useState('checking') // checking | question | consent | blocked | done
@@ -119,7 +121,7 @@ export default function AgeGate({ market, lang, onConfirm }) {
   if (stage === 'checking' || stage === 'done') return null
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-10">
+    <div className={inline ? 'flex w-full items-center justify-center px-4' : 'flex min-h-screen items-center justify-center px-4 py-10'}>
       <GlassCard className="w-full max-w-sm motion-safe:animate-bop">
         {stage === 'blocked' && (
           <div className="flex flex-col gap-4 text-center">

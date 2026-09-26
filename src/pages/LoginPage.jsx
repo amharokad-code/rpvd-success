@@ -71,7 +71,18 @@ export default function LoginPage() {
   }
 
   if (!ageConfirmed) {
-    return <AgeGate market={region} lang={lang} onConfirm={() => setAgeConfirmed(true)} />
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-10">
+        {/* Contenu marketing statique, visible avant toute interaction (donc avant collecte de
+            donnée) : la seule chose qu'un visiteur non connecté — ou un crawler — voit sinon
+            est l'écran de la porte d'âge, sans un mot sur ce que fait le produit. */}
+        <div className="max-w-sm text-center">
+          <h1 className="font-display text-2xl font-bold text-slate-50">{t.auth.marketingTitle}</h1>
+          <p className="mt-2 leading-relaxed text-slate-300">{t.auth.marketingBody}</p>
+        </div>
+        <AgeGate market={region} lang={lang} onConfirm={() => setAgeConfirmed(true)} inline />
+      </div>
+    )
   }
 
   return (
