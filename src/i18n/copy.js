@@ -207,7 +207,7 @@ const qc = {
     brand: 'RPVD Success',
     marketingTitle: 'Comprends le pattern, pas juste la réponse',
     marketingBody:
-      'Photographie ton exercice et RPVD Success décompose la solution en trois niveaux — comme te l’expliquerait un ami, pas un manuel.',
+      'Photographie ton exercice de mathématiques, physique, chimie ou français et RPVD Success décompose la solution en trois niveaux — une aide aux devoirs pour le secondaire, expliquée comme par un ami, pas un manuel.',
     title: 'Connecte-toi',
     subtitle: 'Un petit lien par courriel, pas de mot de passe à retenir.',
     emailLabel: 'Ton courriel',
@@ -410,7 +410,7 @@ const fr = {
     brand: 'RPVD Success',
     marketingTitle: 'Comprends le pattern, pas juste la réponse',
     marketingBody:
-      'Photographie ton exercice et RPVD Success décompose la solution en trois niveaux — comme te l’expliquerait un ami, pas un manuel.',
+      'Photographie ton exercice de mathématiques, physique, chimie ou français et RPVD Success décompose la solution en trois niveaux — une aide aux devoirs pour le collège et le lycée, expliquée comme par un ami, pas un manuel.',
     title: 'Connecte-toi',
     subtitle: 'Un petit lien par e-mail, pas de mot de passe à retenir.',
     emailLabel: 'Ton e-mail',
@@ -613,7 +613,7 @@ const us = {
     brand: 'RPVD Success',
     marketingTitle: 'Understand the pattern, not just the answer',
     marketingBody:
-      'Photograph your homework problem and RPVD Success breaks the solution into three levels — explained like a friend would, not a textbook.',
+      'Photograph your math, physics, chemistry, or English homework problem and RPVD Success breaks the solution into three levels — homework help for middle school and high school students, explained like a friend would, not a textbook.',
     title: 'Sign in',
     subtitle: "A quick email link, buddy — no password to remember.",
     emailLabel: 'Your email',
@@ -816,7 +816,7 @@ const uk = {
     brand: 'RPVD Success',
     marketingTitle: 'Understand the pattern, not just the answer',
     marketingBody:
-      'Photograph your homework problem and RPVD Success breaks the solution into three levels — explained like a friend would, not a textbook.',
+      'Photograph your maths, physics, chemistry, or English homework problem and RPVD Success breaks the solution into three levels — homework help for secondary school students, explained like a friend would, not a textbook.',
     title: 'Sign in',
     subtitle: 'A quick email link, mate — no password to remember.',
     emailLabel: 'Your email',
