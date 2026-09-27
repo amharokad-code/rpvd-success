@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://rpvdsuccess.netlify.app/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://rpvdsuccess.netlify.app/legal/privacy</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://rpvdsuccess.netlify.app/legal/terms</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://rpvdsuccess.netlify.app/legal/cookies</loc><changefreq>monthly</changefreq><priority>0.2</priority></url>
-  <url><loc>https://rpvdsuccess.netlify.app/legal/refunds</loc><changefreq>monthly</changefreq><priority>0.2</priority></url>
-  <url><loc>https://rpvdsuccess.netlify.app/legal/contact</loc><changefreq>monthly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://rpvdsuccess.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://rpvdsuccess.com/legal/privacy</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://rpvdsuccess.com/legal/terms</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://rpvdsuccess.com/legal/cookies</loc><changefreq>monthly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://rpvdsuccess.com/legal/refunds</loc><changefreq>monthly</changefreq><priority>0.2</priority></url>
+  <url><loc>https://rpvdsuccess.com/legal/contact</loc><changefreq>monthly</changefreq><priority>0.2</priority></url>
 </urlset>
