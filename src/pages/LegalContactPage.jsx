@@ -1,6 +1,16 @@
 // Formulaire de contact légal (RGPD/Loi 25) — capté par Netlify Forms, aucun backend requis.
 // Rendu par le même routeur statique que LegalPage (src/main.jsx), sans authentification.
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+const PAGE_META = {
+  fr: { title: 'Contact légal — RPVD Success', description: 'Exerce tes droits RGPD ou Loi 25 (accès, effacement, rectification) sur tes données RPVD Success.' },
+  en: { title: 'Legal Contact — RPVD Success', description: 'Exercise your GDPR rights (access, erasure, rectification) over your RPVD Success data.' },
+}
+
+function setMetaDescription(content) {
+  const tag = document.querySelector('meta[name="description"]')
+  if (tag) tag.setAttribute('content', content)
+}
 
 function detectLang() {
   try {
@@ -70,6 +80,12 @@ export default function LegalContactPage() {
   const [busy, setBusy] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const meta = PAGE_META[lang]
+    document.title = meta.title
+    setMetaDescription(meta.description)
+  }, [lang])
 
   async function handleSubmit(event) {
     event.preventDefault()

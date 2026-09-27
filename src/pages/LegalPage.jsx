@@ -1,4 +1,5 @@
 // Pages légales statiques, accessibles sans authentification (voir src/main.jsx pour le routage).
+import { useEffect } from 'react'
 import { PRIVACY_POLICY, TERMS_OF_SERVICE, COOKIE_POLICY, REFUND_POLICY } from '../legal/content'
 
 const DOCS = {
@@ -6,6 +7,32 @@ const DOCS = {
   terms: TERMS_OF_SERVICE,
   cookies: COOKIE_POLICY,
   refunds: REFUND_POLICY,
+}
+
+// Title/description par page : sans ça, Google voit 4 pages légales identiques
+// (même <title>/<meta description> hérités d'index.html) — mauvais signal SEO.
+const PAGE_META = {
+  privacy: {
+    fr: { title: 'Politique de confidentialité — RPVD Success', description: "Comment RPVD Success collecte, utilise et protège les données de ton compte et de tes photos d'exercices." },
+    en: { title: 'Privacy Policy — RPVD Success', description: 'How RPVD Success collects, uses and protects your account and exercise photo data.' },
+  },
+  terms: {
+    fr: { title: "Conditions d'utilisation — RPVD Success", description: "Les règles d'utilisation de l'application RPVD Success : crédits, comptes, usage acceptable." },
+    en: { title: 'Terms of Service — RPVD Success', description: 'The rules for using the RPVD Success app: credits, accounts, acceptable use.' },
+  },
+  cookies: {
+    fr: { title: 'Politique de cookies — RPVD Success', description: 'Les cookies et technologies similaires utilisés par RPVD Success, et comment les gérer.' },
+    en: { title: 'Cookie Policy — RPVD Success', description: 'The cookies and similar technologies used by RPVD Success, and how to manage them.' },
+  },
+  refunds: {
+    fr: { title: 'Politique de remboursement — RPVD Success', description: 'Les conditions de remboursement pour les plans et crédits RPVD Success.' },
+    en: { title: 'Refund Policy — RPVD Success', description: 'The refund conditions for RPVD Success plans and credits.' },
+  },
+}
+
+function setMetaDescription(content) {
+  const tag = document.querySelector('meta[name="description"]')
+  if (tag) tag.setAttribute('content', content)
 }
 
 // fr pour QC/FR (défaut), en sinon — région persistée par le sélecteur principal.
@@ -67,6 +94,13 @@ function renderBody(text) {
 export default function LegalPage({ doc }) {
   const lang = detectLang()
   const text = (DOCS[doc] || DOCS.privacy)[lang]
+  const meta = (PAGE_META[doc] || PAGE_META.privacy)[lang]
+
+  useEffect(() => {
+    document.title = meta.title
+    setMetaDescription(meta.description)
+  }, [meta])
+
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-4 py-10">
       <a href="/" className="text-sm text-amber-400 hover:underline">
