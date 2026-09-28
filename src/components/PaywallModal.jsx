@@ -69,11 +69,17 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
                   <span className="flex w-full items-start justify-between gap-3">
                     <span className="flex flex-col">
                       <span className="font-display text-2xl font-bold text-slate-50">{t.paywall[plan.id]}</span>
-                      <span className="font-mono text-xs font-semibold tabular-nums text-emerald-400">
+                      <span className="font-mono text-xs font-semibold tabular-nums text-slate-400">
                         {t.paywall.monthlyPrice(monthly)}
                       </span>
                     </span>
-                    <span className="font-mono text-xl font-bold tabular-nums text-emerald-400">{total}</span>
+                    {/* Le prix RÉEL débité + sa période, toujours ensemble : jamais un chiffre
+                        sans son "/3 mois" à côté (contrat honnêteté commerciale — l'utilisateur
+                        doit comprendre au premier coup d'œil que ce n'est pas une charge mensuelle). */}
+                    <span className="flex flex-col items-end">
+                      <span className="font-mono text-xl font-bold tabular-nums text-emerald-400">{total}</span>
+                      <span className="font-mono text-xs font-semibold tabular-nums text-emerald-400">{t.paywall.perPeriod}</span>
+                    </span>
                   </span>
                 )
               })()}

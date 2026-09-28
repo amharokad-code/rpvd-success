@@ -442,9 +442,12 @@ export default function LandingPage({ market, lang, onAgeConfirm }) {
                 <div className={`glass h-full p-6 ${featured ? 'border-amber-500/50 shadow-glow-amber' : ''}`}>
                   <div className="flex items-baseline justify-between">
                     <span className="font-display text-xl font-bold text-slate-50">{t.paywall[id]}</span>
-                    <span className="font-mono text-2xl font-bold tabular-nums text-emerald-400">{price.total}</span>
+                    <span className="flex items-baseline gap-1">
+                      <span className="font-mono text-2xl font-bold tabular-nums text-emerald-400">{price.total}</span>
+                      <span className="font-mono text-xs font-semibold tabular-nums text-emerald-400">{t.paywall.perPeriod}</span>
+                    </span>
                   </div>
-                  <p className="font-mono text-xs font-semibold text-emerald-400/80">{t.paywall.monthlyPrice(price.monthly)}</p>
+                  <p className="font-mono text-xs font-semibold text-slate-500">{t.paywall.monthlyPrice(price.monthly)}</p>
                   <p className="mt-3 text-sm leading-relaxed text-slate-400">{t.paywall[`${id}Desc`]}</p>
                 </div>
               </Reveal>
