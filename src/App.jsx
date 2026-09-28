@@ -23,6 +23,7 @@ import LoginPage from './pages/LoginPage'
 import ExamPrep from './components/ExamPrep'
 import Footer from './components/Footer'
 import CookieConsentBanner from './components/CookieConsentBanner'
+import LanguageSwitch from './components/LanguageSwitch'
 
 function getSearch() {
   if (typeof window === 'undefined') return ''
@@ -324,6 +325,10 @@ function AppShell() {
 export default function App() {
   return (
     <RegionProvider>
+      {/* Fixe, présent sur TOUT écran (boot, AgeGate/connexion, app) : sans ça, changer de
+          langue pour lire les conditions ou comprendre la question d'âge n'était possible
+          qu'une fois déjà connecté. */}
+      <LanguageSwitch className="fixed right-4 top-4 z-50" />
       <AppShell />
     </RegionProvider>
   )
