@@ -24,6 +24,7 @@ import ExamPrep from './components/ExamPrep'
 import Footer from './components/Footer'
 import CookieConsentBanner from './components/CookieConsentBanner'
 import LanguageSwitch from './components/LanguageSwitch'
+import { isProPlan } from './lib/plan'
 
 function getSearch() {
   if (typeof window === 'undefined') return ''
@@ -244,6 +245,11 @@ function AppShell() {
     )
   }
 
+  // Contrat pricing v3 : Basic = scan de base + crédits seulement — ni bibliothèque, ni veille
+  // d'examen (les autres fonctionnalités annexes sont gérées dans AnalysisEngine/SettingsPage).
+  const hasFullAccess = isProPlan(profile?.plan)
+  const visibleTabs = NAV_TABS.filter((key) => hasFullAccess || (key !== 'examprep' && key !== 'library'))
+
   return (
     <div className="min-h-screen sm:flex">
       {/* Navigation : rail fixe à gauche à partir de sm (place pour de futures sections),
@@ -256,7 +262,7 @@ function AppShell() {
           <Logo variant="icon" className="h-9 w-9 motion-safe:animate-float" />
         </div>
         <ul className="mx-auto flex w-full max-w-3xl items-stretch justify-around px-2 sm:mx-0 sm:max-w-none sm:flex-col sm:items-stretch sm:justify-start sm:gap-1 sm:px-3 sm:py-2">
-          {NAV_TABS.map((key) => {
+          {visibleTabs.map((key) => {
             const active = tab === key
             return (
               <li key={key} className="flex-1 sm:flex-none">
@@ -289,11 +295,11 @@ function AppShell() {
           />
         </div>
 
-        {tab === 'examprep' && (
+        {tab === 'examprep' && hasFullAccess && (
           <ExamPrep region={activeRegion} onCreditsChange={(next) => handleProfileChange({ ...(profile ?? {}), credits: next })} />
         )}
 
-        {tab === 'library' && <LibraryPage />}
+        {tab === 'library' && hasFullAccess && <LibraryPage />}
 
         {tab === 'settings' && <SettingsPage profile={profile} onProfileChange={handleProfileChange} />}
 

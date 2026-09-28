@@ -9,6 +9,7 @@ const { HttpError, preflight, parseBody, json, getIp, sha256, handleError } = re
 const { getServiceClient, getUserFromRequest, getFingerprint, rpc } = require('./_lib/supabase');
 const { assertRateLimit } = require('./_lib/ratelimit');
 const { generateClone } = require('./_lib/gemini');
+const { isProPlan } = require('./_lib/codes');
 
 const REGIONS = ['qc', 'fr', 'us', 'uk'];
 const CLONE_RATE_LIMIT = 10;
@@ -25,6 +26,11 @@ exports.handler = async (event) => {
 
     const fingerprint = getFingerprint(event);
     if (!fingerprint) throw new HttpError(400, 'BAD_REQUEST', "Empreinte d'appareil manquante.");
+
+    // Contrat pricing v3 : les clones d'entraînement (et la simulation qui en découle) sont
+    // réservés au forfait Pro — Basic n'a droit qu'au scan de base.
+    const { data: planRow } = await getServiceClient().from('users').select('plan').eq('id', user.id).maybeSingle();
+    if (!isProPlan(planRow && planRow.plan)) throw new HttpError(403, 'PLAN_REQUIRED', 'Fonctionnalité réservée au forfait Pro.');
 
     await assertRateLimit(`clone:user:${user.id}`, CLONE_RATE_LIMIT, CLONE_RATE_WINDOW_SECONDS);
 

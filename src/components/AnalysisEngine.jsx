@@ -9,6 +9,7 @@ import GlassCard from './ui/GlassCard'
 import ArbreCheminement from './ArbreCheminement'
 import TextToSpeech from './TextToSpeech'
 import ClonePractice from './ClonePractice'
+import { isProPlan } from '../lib/plan'
 
 const SLOT_PATTERN = /\{\{(\d+)\}\}/g
 const VALUE_STAGGER_MS = 60
@@ -84,8 +85,13 @@ function PlainText({ text, mode }) {
   )
 }
 
-export default function AnalysisEngine({ analysis, submissionId, region, onDone, onSave, onNew, onCreditsChange }) {
+export default function AnalysisEngine({ analysis, submissionId, region, plan, onDone, onSave, onNew, onCreditsChange }) {
   const { t } = useCopy()
+  // Contrat pricing v3 : Basic = scan de base seulement. L'indice/pièges/consigne sont déjà
+  // retirés côté serveur pour ce plan (analyze-homework.js) — `analysis?.hint` etc. sont donc
+  // naturellement absents ci-dessous, sans condition supplémentaire à ajouter. Seuls le mode
+  // vocal et les clones/simulation (jamais gratuits en appel Gemini) ont besoin d'un garde ici.
+  const hasFullAccess = isProPlan(plan)
   const [level, setLevel] = useState(1)
   const [done, setDone] = useState(false)
   const [firstTry, setFirstTry] = useState(false)
@@ -161,7 +167,7 @@ export default function AnalysisEngine({ analysis, submissionId, region, onDone,
             )}
           </div>
 
-          {analysis?.hint && (
+          {hasFullAccess && analysis?.hint && (
             <div className="mt-4">
               <button
                 type="button"
@@ -197,8 +203,8 @@ export default function AnalysisEngine({ analysis, submissionId, region, onDone,
           <GlassCard as="article" className="motion-safe:animate-rise lg:col-span-2">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="font-display text-xl font-bold leading-snug text-slate-50 sm:text-2xl">{t.analysis.level3Title}</h2>
-              {/* Phase 4 : mode vocal, lit les étapes du niveau 3 — pas d'appel Gemini, navigateur seul. */}
-              {steps.length > 0 && (
+              {/* Phase 4 : mode vocal — réservé au forfait Pro (contrat pricing v3). */}
+              {hasFullAccess && steps.length > 0 && (
                 <TextToSpeech text={steps.map((step) => `${step.title}. ${step.text || ''}`).join(' ')} region={region} />
               )}
             </div>
@@ -237,8 +243,8 @@ export default function AnalysisEngine({ analysis, submissionId, region, onDone,
               </div>
             )}
 
-            {/* Phase 3 : piège classique + traduction de consigne — repliés, jamais imposés. */}
-            {(analysis?.pitfall || analysis?.consigne_translation) && (
+            {/* Phase 3 : piège classique + traduction de consigne — réservés au forfait Pro. */}
+            {hasFullAccess && (analysis?.pitfall || analysis?.consigne_translation) && (
               <div className="mt-6 space-y-2">
                 {analysis?.pitfall && (
                   <details className="rounded-2xl bg-slate-900/60 px-4 py-3">
@@ -257,8 +263,9 @@ export default function AnalysisEngine({ analysis, submissionId, region, onDone,
           </GlassCard>
         )}
 
-        {/* Phase 1/5 : clones d'entraînement + simulation chronométrée, une fois le niveau 3 vu. */}
-        {level >= 3 && submissionId && (
+        {/* Phase 1/5 : clones d'entraînement + simulation chronométrée — réservé au forfait Pro
+            (contrat pricing v3), une fois le niveau 3 vu. */}
+        {hasFullAccess && level >= 3 && submissionId && (
           <div className="lg:col-span-2">
             <ClonePractice submissionId={submissionId} region={region} onCreditsChange={onCreditsChange} />
           </div>

@@ -99,6 +99,13 @@ function isValidCodeFormat(code) {
   return CODE_PATTERN.test(code);
 }
 
+// Contrat pricing v3 : Basic = scan + credits seulement. Pro (et l'ancien Premium, equivalent)
+// debloque clones/simulation, veille d'examen, et les autres fonctionnalites annexes.
+const FULL_ACCESS_PLANS = ['pro', 'premium_solo', 'premium_trio'];
+function isProPlan(plan) {
+  return FULL_ACCESS_PLANS.includes(plan);
+}
+
 module.exports = {
   TRIAL_CREDITS,
   TRIAL_CODES_PER_EMAIL,
@@ -115,4 +122,5 @@ module.exports = {
   CODE_PATTERN,
   normalizeCode,
   isValidCodeFormat,
+  isProPlan,
 };

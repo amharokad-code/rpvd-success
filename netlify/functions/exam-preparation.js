@@ -7,6 +7,7 @@ const { HttpError, preflight, parseBody, json, getIp, sha256, handleError } = re
 const { getServiceClient, getUserFromRequest, getFingerprint, rpc } = require('./_lib/supabase');
 const { assertRateLimit } = require('./_lib/ratelimit');
 const { generateExamPrep } = require('./_lib/gemini');
+const { isProPlan } = require('./_lib/codes');
 
 const REGIONS = ['qc', 'fr', 'us', 'uk'];
 const MAX_TITLE_LENGTH = 200;
@@ -32,9 +33,11 @@ exports.handler = async (event) => {
 
     const { data: profile } = await getServiceClient()
       .from('users')
-      .select('region')
+      .select('region, plan')
       .eq('id', user.id)
       .maybeSingle();
+    // Contrat pricing v3 : la veille d'examen est réservée au forfait Pro.
+    if (!isProPlan(profile && profile.plan)) throw new HttpError(403, 'PLAN_REQUIRED', 'Fonctionnalité réservée au forfait Pro.');
     const region = REGIONS.includes(body.region) ? body.region : (profile && REGIONS.includes(profile.region) ? profile.region : 'qc');
 
     let consumed;

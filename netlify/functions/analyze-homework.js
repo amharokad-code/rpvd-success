@@ -8,6 +8,7 @@ const { HttpError, preflight, parseBody, json, getIp, sha256, handleError } = re
 const { getServiceClient, getUserFromRequest, getFingerprint, rpc } = require('./_lib/supabase');
 const { assertRateLimit } = require('./_lib/ratelimit');
 const { analyzeImage } = require('./_lib/gemini');
+const { isProPlan } = require('./_lib/codes');
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 // Quadri-langue (contrat §3) : qc/fr = français, us/uk = anglais (ton distinct chacun).
@@ -91,15 +92,17 @@ exports.handler = async (event) => {
     // sur la préférence enregistrée au profil, sans l'écraser silencieusement.
     const bodyNotation = typeof parsedBody.notationText === 'string' ? parsedBody.notationText.trim().slice(0, 300) : '';
 
-    // Préférences utilisateur (notation + région par défaut).
+    // Préférences utilisateur (notation + région par défaut) + plan (contrat pricing v3 : Basic
+    // n'a droit qu'au scan de base, l'indice/pièges/consigne sont réservés au forfait Pro).
     const { data: profile, error: profileError } = await getServiceClient()
       .from('users')
-      .select('preferred_notation, region')
+      .select('preferred_notation, region, plan')
       .eq('id', user.id)
       .maybeSingle();
     if (profileError) throw profileError;
     const region = bodyRegion || (profile && REGIONS.includes(profile.region) ? profile.region : 'qc');
     const preferredNotation = bodyNotation || (profile && profile.preferred_notation) || '';
+    const hasFullAccess = isProPlan(profile && profile.plan);
 
     // 5. Consommation atomique d'un crédit (NO_CREDITS → 402, FINGERPRINT_MISMATCH → 403).
     // Le RAISE EXCEPTION de consume_credit annule sa transaction (donc son propre insert
@@ -192,16 +195,23 @@ exports.handler = async (event) => {
         .then(() => {}, (e) => console.error('[analysis_cache] écriture échouée (non bloquant) :', e.message));
     }
 
+    // 6bis. Le cache (5bis) et le remboursement (6) doivent voir l'analyse COMPLETE (elle est
+    // partagée entre tous les plans) — on ne retire l'indice/les pièges/la consigne qu'à partir
+    // d'ici, pour ce que ce compte Basic reçoit et garde dans sa bibliothèque.
+    const clientAnalysis = hasFullAccess
+      ? analysis
+      : (({ hint, pitfall, consigne_translation, ...rest }) => rest)(analysis);
+
     // 7. Enregistrement de la soumission (sans l'image).
     const { data: submission, error: insertError } = await getServiceClient()
       .from('submissions')
       .insert({
         user_id: user.id,
-        problem_type: analysis.problem_type,
-        level_1_response: analysis.level_1,
-        level_2_response: analysis.level_2,
-        level_3_response: analysis.level_3_steps,
-        analysis,
+        problem_type: clientAnalysis.problem_type,
+        level_1_response: clientAnalysis.level_1,
+        level_2_response: clientAnalysis.level_2,
+        level_3_response: clientAnalysis.level_3_steps,
+        analysis: clientAnalysis,
         region,
         gemini_metrics: geminiMetrics,
       })
@@ -231,7 +241,7 @@ exports.handler = async (event) => {
       submission_id: submissionId,
       credits_remaining: creditsRemaining,
       streak_days: streakDays,
-      analysis,
+      analysis: clientAnalysis,
       fingerprint_notice: fingerprintNotice || undefined,
     });
   } catch (err) {

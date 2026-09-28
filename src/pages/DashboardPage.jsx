@@ -14,6 +14,7 @@ import Logo from '../components/Logo'
 import NotationBlock from '../components/NotationBlock'
 import SocialFollowPrompt from '../components/SocialFollowPrompt'
 import { useCopy } from '../context/RegionContext'
+import { isProPlan } from '../lib/plan'
 import { ApiError, analyzeHomework, reverifyDevice } from '../lib/api'
 import { DEMO_ANALYSIS } from '../fixtures/demoAnalysis'
 
@@ -222,15 +223,18 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
 
       {phase === 'upload' && (
         <div className="flex flex-col gap-4 motion-safe:animate-bop">
-          <NotationBlock
-            profile={profile}
-            onProfileChange={onProfileChange}
-            notationImage={notationImage}
-            onNotationImageChange={(next) => {
-              if (notationImage?.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(notationImage.previewUrl)
-              setNotationImage(next)
-            }}
-          />
+          {/* Contrat pricing v3 : la notation personnalisée est réservée au forfait Pro. */}
+          {isProPlan(profile?.plan) && (
+            <NotationBlock
+              profile={profile}
+              onProfileChange={onProfileChange}
+              notationImage={notationImage}
+              onNotationImageChange={(next) => {
+                if (notationImage?.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(notationImage.previewUrl)
+                setNotationImage(next)
+              }}
+            />
+          )}
 
           {/* Verrouillée nativement par `disabled` (aria-disabled, tabIndex=-1, ZONE_DISABLED) ;
               le clic bulle jusqu'ici (pas de stopPropagation dans UploadVortex) pour ouvrir le mur de paiement. */}
@@ -321,6 +325,7 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
             analysis={result.analysis}
             submissionId={result.submission_id}
             region={region}
+            plan={profile?.plan}
             onDone={noop}
             onSave={handleSaveRequest}
             onNew={resetToUpload}
