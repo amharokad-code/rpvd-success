@@ -62,13 +62,15 @@ const SUBSCRIPTION_PLANS = {
   basic: {
     credits: 50,
     label: 'Basic',
-    priceId: 'price_1UFYW1AJoPaz3Yer47V9GO6K',
+    // Price ID LIVE (contrat pricing v3) — les anciens price_1UFYW1.../price_1UGfk9... n'existaient
+    // qu'en mode test Stripe, jamais utilisables pour un vrai paiement.
+    priceId: 'price_1UKhEUAJoPaz3Yer2u32exlF',
     amounts: { usd: 1200, cad: 1700, eur: 1000, gbp: 900 },
   },
   pro: {
     credits: 120,
     label: 'Pro',
-    priceId: 'price_1UGfk9AJoPaz3Yerzr29Wzh4',
+    priceId: 'price_1UKhEUAJoPaz3YerAKsYfWcp',
     amounts: { usd: 2000, cad: 2800, eur: 1800, gbp: 1500 },
   },
 };
