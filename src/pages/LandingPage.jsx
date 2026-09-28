@@ -174,6 +174,9 @@ const ICONS = {
   tts: <><path d="M4 9v6h4l5 4V5L8 9H4z" /><path d="M16.5 8.5a5 5 0 0 1 0 7" /><path d="M19 6a8.5 8.5 0 0 1 0 12" /></>,
   examprep: <><rect x="4" y="4" width="16" height="17" rx="2" /><path d="M8 2v4M16 2v4M8 12l2.5 2.5L16 9" /></>,
   simulation: <><circle cx="12" cy="13" r="8" /><path d="M12 9v4l3 2M9 2h6M12 2v2" /></>,
+  grade: <><path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" /></>,
+  transfer: <><path d="M17 2.1l4 4-4 4" /><path d="M3 12.7V12a4 4 0 0 1 4-4h14" /><path d="M7 21.9l-4-4 4-4" /><path d="M21 11.3V12a4 4 0 0 1-4 4H3" /></>,
+  lasting: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></>,
 }
 
 // ---------------------------------------------------------------------------
@@ -340,6 +343,38 @@ export default function LandingPage({ market, lang, onAgeConfirm }) {
               </div>
             ))}
           </div>
+        </Reveal>
+
+        {/* ---------------------------------------------------------------- La démarche (thèse centrale) */}
+        <Reveal>
+          <section className="glass relative overflow-hidden p-8 pyramid-accent sm:p-12">
+            <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(242,153,74,0.12),transparent_55%)]" />
+            <div className="relative mx-auto max-w-2xl text-center">
+              <p className="inline-block rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold tracking-wide text-amber-300">
+                {l.approachEyebrow}
+              </p>
+              <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-slate-50 sm:text-4xl">
+                {l.approachTitle}
+              </h2>
+              <p className="mt-4 leading-relaxed text-slate-300">{l.approachBody}</p>
+            </div>
+
+            <div className="relative mt-10 grid gap-6 sm:grid-cols-3">
+              {[
+                ['grade', l.approachPoint1Title, l.approachPoint1Text],
+                ['transfer', l.approachPoint2Title, l.approachPoint2Text],
+                ['lasting', l.approachPoint3Title, l.approachPoint3Text],
+              ].map(([key, title, text]) => (
+                <div key={key} className="flex flex-col items-center gap-2 text-center">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-400/10 text-amber-400">
+                    <Icon path={ICONS[key]} />
+                  </span>
+                  <h3 className="font-display text-sm font-bold text-slate-50">{title}</h3>
+                  <p className="text-sm leading-relaxed text-slate-400">{text}</p>
+                </div>
+              ))}
+            </div>
+          </section>
         </Reveal>
 
         {/* ---------------------------------------------------------------- Comment ça marche */}
