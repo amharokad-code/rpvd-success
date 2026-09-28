@@ -105,6 +105,11 @@ module.exports = {
           '0%': { backgroundPosition: '-150% 0' },
           '60%, 100%': { backgroundPosition: '150% 0' },
         },
+        // Dégradé qui glisse sur un texte/bordure (landing page, contrat design v2 hero).
+        'gradient-pan': {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+        },
       },
       animation: {
         bop: 'bop 300ms ease-out both',
@@ -116,6 +121,7 @@ module.exports = {
         'grid-drift': 'grid-drift 22s linear infinite',
         float: 'float 5s ease-in-out infinite',
         sweep: 'sweep 6s ease-in-out infinite',
+        'gradient-pan': 'gradient-pan 6s ease-in-out infinite',
       },
       transitionTimingFunction: {
         spring: 'cubic-bezier(.34,1.56,.64,1)',

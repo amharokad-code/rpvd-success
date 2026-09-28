@@ -6,8 +6,8 @@ import { useEffect, useRef, useState } from 'react'
 import GlassCard from '../components/ui/GlassCard'
 import Button from '../components/ui/Button'
 import Footer from '../components/Footer'
-import AgeGate from '../components/AgeGate'
 import CookieConsentBanner from '../components/CookieConsentBanner'
+import LandingPage from './LandingPage'
 import { useCopy } from '../context/RegionContext'
 import { supabase } from '../lib/supabase'
 
@@ -70,19 +70,11 @@ export default function LoginPage() {
     sendLink(value)
   }
 
+  // Landing page complète (contrat design v3) : la seule chose qu'un visiteur non connecté — ou
+  // un crawler Google — voit avant de confirmer son âge. Le AgeGate/connexion est intégré tout
+  // en bas de cette page (ancre #start), jamais avant : rien n'est collecté avant ce point.
   if (!ageConfirmed) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-8 px-4 py-10">
-        {/* Contenu marketing statique, visible avant toute interaction (donc avant collecte de
-            donnée) : la seule chose qu'un visiteur non connecté — ou un crawler — voit sinon
-            est l'écran de la porte d'âge, sans un mot sur ce que fait le produit. */}
-        <div className="max-w-sm text-center">
-          <h1 className="font-display text-2xl font-bold text-slate-50">{t.auth.marketingTitle}</h1>
-          <p className="mt-2 leading-relaxed text-slate-300">{t.auth.marketingBody}</p>
-        </div>
-        <AgeGate market={region} lang={lang} onConfirm={() => setAgeConfirmed(true)} inline />
-      </div>
-    )
+    return <LandingPage market={region} lang={lang} onAgeConfirm={() => setAgeConfirmed(true)} />
   }
 
   return (
