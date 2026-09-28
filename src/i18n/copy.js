@@ -221,7 +221,7 @@ const qc = {
 
   landing: {
     eyebrow: 'QC · France · US · UK — même méthode, 4 marchés',
-    heroTitle: 'La photo qui explique, pas juste la photo qui répond.',
+    heroTitle: "On t'explique la démarche, on te donne pas la réponse.",
     heroSubtitle:
       "Prends ton exercice en photo. RPVD Success décompose la solution en 3 niveaux — jusqu'à ce que le pattern clique, pas juste la réponse.",
     ctaPrimary: 'Commencer gratuitement',
@@ -483,7 +483,7 @@ const fr = {
 
   landing: {
     eyebrow: 'QC · France · US · UK — même méthode, 4 marchés',
-    heroTitle: 'La photo qui explique, pas juste la photo qui répond.',
+    heroTitle: "On t'explique la démarche, on te donne pas la réponse.",
     heroSubtitle:
       "Prends ton exercice en photo. RPVD Success décompose la solution en 3 niveaux — jusqu'à ce que le pattern clique, pas juste la réponse.",
     ctaPrimary: 'Commencer gratuitement',
@@ -745,7 +745,7 @@ const us = {
 
   landing: {
     eyebrow: 'QC · France · US · UK — same method, 4 markets',
-    heroTitle: 'The photo that explains, not just the photo that answers.',
+    heroTitle: "We explain the approach. We don't give you the answer.",
     heroSubtitle:
       "Snap a photo of your problem. RPVD Success breaks the solution into 3 levels — until the pattern clicks, not just the answer.",
     ctaPrimary: 'Start for free',
@@ -1007,7 +1007,7 @@ const uk = {
 
   landing: {
     eyebrow: 'QC · France · US · UK — same method, 4 markets',
-    heroTitle: 'The photo that explains, not just the photo that answers.',
+    heroTitle: "We explain the approach. We don't give you the answer.",
     heroSubtitle:
       "Snap a photo of your problem. RPVD Success breaks the solution into 3 levels — until the pattern clicks, not just the answer.",
     ctaPrimary: 'Start for free',
