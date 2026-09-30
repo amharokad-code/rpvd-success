@@ -13,6 +13,7 @@ import Footer from '../components/Footer'
 import CookieConsentBanner from '../components/CookieConsentBanner'
 import { useCopy } from '../context/RegionContext'
 import { formatPlanPriceBreakdown } from '../lib/pricing'
+import { trackEvent } from '../utils/track'
 import foundersPhoto from '../assets/founders.jpg'
 
 const REGIONS = ['qc', 'fr', 'us', 'uk']
@@ -240,6 +241,12 @@ export default function LandingPage({ market, lang, onAgeConfirm }) {
   const { t, region, setRegion } = useCopy()
   const l = t.landing
 
+  // Analytics v1 (contrat honnêteté) : une seule pageview par montage, region au moment du chargement.
+  useEffect(() => {
+    trackEvent('pageview', { region })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const FEATURES = [
     ['hint', l.featureHintTitle, l.featureHintText],
     ['pitfall', l.featurePitfallTitle, l.featurePitfallText],
@@ -255,6 +262,7 @@ export default function LandingPage({ market, lang, onAgeConfirm }) {
 
   function scrollToStart(event) {
     event.preventDefault()
+    trackEvent('cta_click', { region })
     document.getElementById('start')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   function scrollToHow(event) {

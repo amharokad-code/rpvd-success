@@ -11,7 +11,7 @@
 
 const Stripe = require('stripe');
 const { HttpError, preflight, json, header, handleError } = require('./_lib/http');
-const { rpc } = require('./_lib/supabase');
+const { rpc, getServiceClient } = require('./_lib/supabase');
 const { sendEmail, subscriptionActivatedEmail, subscriptionRenewedEmail } = require('./_lib/email');
 const { SUBSCRIPTION_PLANS, SUBSCRIPTION_DURATION_DAYS } = require('./_lib/codes');
 const { sendPurchaseEvent } = require('./_lib/meta-capi');
@@ -82,6 +82,13 @@ async function handleCheckoutCompleted(stripeEvent) {
     p_plan_expires_at: planExpiryIso(),
   });
   if (!applied) return; // déjà traité (idempotence)
+
+  // Analytics v1 : seul point de vérité fiable pour "un paiement a réellement eu lieu" — le
+  // client ne voit jamais la confirmation Stripe elle-même (redirection vers success_url après).
+  await getServiceClient()
+    .from('analytics_events')
+    .insert({ event_type: 'checkout_completed', plan })
+    .then(() => {}, (e) => console.error('[analytics]', e.message));
 
   const email = (session.customer_details && session.customer_details.email) || session.customer_email || null;
   await reportPurchase({ email, amountCents: session.amount_total, currency: session.currency, eventId: stripeEvent.id });

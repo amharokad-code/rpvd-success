@@ -1439,3 +1439,30 @@ begin
   return v_profile;
 end;
 $$;
+
+
+-- =============================================================================
+-- ANALYTICS v1 — visites + entonnoir de conversion (contrat : premiere partie
+-- honnete, first-party, aucune donnee personnelle, aucun cookie tiers). Ecrit
+-- en best-effort par track-event.js (service_role uniquement) ; jamais lu par
+-- le client, seulement par toi via l'editeur SQL Supabase ou un futur tableau
+-- de bord admin.
+-- =============================================================================
+create table if not exists public.analytics_events (
+  id          uuid primary key default gen_random_uuid(),
+  event_type  text not null check (event_type in (
+                'pageview', 'cta_click', 'age_gate_confirmed', 'signup_started',
+                'checkout_started', 'checkout_completed'
+              )),
+  path        text,
+  region      text check (region in ('qc', 'fr', 'us', 'uk')),
+  plan        text,
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists analytics_events_type_created_idx
+  on public.analytics_events (event_type, created_at desc);
+
+alter table public.analytics_events enable row level security;
+-- Aucune policy pour anon/authenticated : ecriture reservee au service_role
+-- (Netlify Function), lecture seulement via le dashboard Supabase (toi).

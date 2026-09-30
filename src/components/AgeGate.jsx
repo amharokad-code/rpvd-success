@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import GlassCard from './ui/GlassCard'
 import Button from './ui/Button'
 import { getDeviceFingerprint } from '../utils/security-fingerprint'
+import { trackEvent } from '../utils/track'
 
 const AGE_THRESHOLDS = { qc: 14, fr: 15, uk: 13, us: 13 }
 const STORAGE_KEY = 'rpvd_age_gate'
@@ -107,6 +108,7 @@ export default function AgeGate({ market, lang, onConfirm, inline = false }) {
     }
     writeStored({ market, confirmed: true, parentAuthDeclared: false, ts: Date.now() })
     reportConfirmation({ market, ageConfirmed: true, parentAuthDeclared: false })
+    trackEvent('age_gate_confirmed', { region: market })
     setStage('done')
     onConfirm()
   }
@@ -114,6 +116,7 @@ export default function AgeGate({ market, lang, onConfirm, inline = false }) {
   function handleParentConsent() {
     writeStored({ market, confirmed: true, parentAuthDeclared: true, ts: Date.now() })
     reportConfirmation({ market, ageConfirmed: false, parentAuthDeclared: true })
+    trackEvent('age_gate_confirmed', { region: market })
     setStage('done')
     onConfirm()
   }

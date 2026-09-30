@@ -11,6 +11,7 @@ import Footer from './Footer'
 import { useCopy } from '../context/RegionContext'
 import { ApiError, createCheckout } from '../lib/api'
 import { formatPlanPriceBreakdown } from '../lib/pricing'
+import { trackEvent } from '../utils/track'
 
 const PLANS = [
   { id: 'basic', featured: false },
@@ -35,6 +36,7 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
     try {
       const { url } = await createCheckout(plan, region)
       if (!url) throw new ApiError('SERVER_ERROR')
+      trackEvent('checkout_started', { region, plan })
       window.location.assign(url)
     } catch (err) {
       const code = err instanceof ApiError ? err.code : 'SERVER_ERROR'

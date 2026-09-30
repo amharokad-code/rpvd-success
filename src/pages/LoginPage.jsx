@@ -10,6 +10,7 @@ import CookieConsentBanner from '../components/CookieConsentBanner'
 import LandingPage from './LandingPage'
 import { useCopy } from '../context/RegionContext'
 import { supabase } from '../lib/supabase'
+import { trackEvent } from '../utils/track'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 // Filet de sécurité : si l'appel Supabase ne répond jamais (réseau capricieux, onglet en
@@ -51,6 +52,7 @@ export default function LoginPage() {
       ])
       if (authError) throw authError
       if (!mountedRef.current) return
+      trackEvent('signup_started', { region })
       setSentTo(value)
     } catch (err) {
       if (!mountedRef.current) return
