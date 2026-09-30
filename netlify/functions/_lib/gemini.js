@@ -57,6 +57,24 @@ const RESPONSE_SCHEMA = {
     },
     level_1_fallback: { type: 'STRING', description: 'Template rendu avec les generic.' },
     level_2_fallback: { type: 'STRING', description: 'Template rendu avec les value.' },
+    connu: {
+      type: 'ARRAY',
+      items: { type: 'STRING' },
+      description: "MÉTHODE RPVD — Identification, ligne CONNU : liste de variables ou mots-clés (jamais de phrase), ex. [\"C1\", \"C2\", \"V2\"].",
+    },
+    cherche: {
+      type: 'STRING',
+      description: "MÉTHODE RPVD — Identification, ligne CHERCHE : UNE variable ou mot-clé (jamais de phrase), ex. \"V1\".",
+    },
+    demarche: {
+      type: 'STRING',
+      description:
+        "MÉTHODE RPVD — un seul paragraphe (pas d'étapes numérotées, pas de puces), chaque phrase commence par « Tu » + verbe simple (regardes, écris, convertis, calcules, compares, marques, remplaces, isoles, vérifies...). 1 phrase = 1 action. La toute dernière phrase se termine EXACTEMENT par « , et t'as la réponse. » (ou l'équivalent dans la langue de réponse).",
+    },
+    principe: {
+      type: 'STRING',
+      description: "MÉTHODE RPVD — 2 à 3 phrases qui expliquent l'idée derrière la démarche et son but, en langage simple, sans formule ni liste.",
+    },
     ocr_fail: {
       type: 'BOOLEAN',
       description: 'true si la photo est floue/illisible/vide ou ne montre pas un exercice — indépendant de la langue de réponse.',
@@ -107,6 +125,10 @@ const RESPONSE_SCHEMA = {
     'slots',
     'level_1_fallback',
     'level_2_fallback',
+    'connu',
+    'cherche',
+    'demarche',
+    'principe',
     'level_3_steps',
     'final_answer',
     'ocr_fail',
@@ -115,6 +137,14 @@ const RESPONSE_SCHEMA = {
     'consigne_translation',
     'cheminement',
   ],
+};
+
+// Fin de la phrase de clôture de la « démarche » (règle MÉTHODE RPVD), selon la langue de réponse.
+const DEMARCHE_CLOSING = {
+  qc: ", et t'as la réponse.",
+  fr: ", et t'as la réponse.",
+  us: ', and you’ve got your answer.',
+  uk: ', and you’ve got your answer.',
 };
 
 // Style de langue et jargon selon la région (contrat §3 — quadri-langue).
@@ -159,6 +189,8 @@ function sanitizeNotation(value) {
 function buildSystemInstruction({ region, preferredNotation }) {
   const { lang, style } = REGION_STYLE[region] || REGION_STYLE[DEFAULT_REGION];
   const notation = sanitizeNotation(preferredNotation);
+  const closing = DEMARCHE_CLOSING[region] || DEMARCHE_CLOSING[DEFAULT_REGION];
+  const tuWord = region === 'us' || region === 'uk' ? 'You' : 'Tu';
   const lines = [
     "Tu es RPVD, un ami qui aide un ado du secondaire à comprendre ses devoirs (maths, sciences, langues).",
     style,
@@ -174,11 +206,18 @@ function buildSystemInstruction({ region, preferredNotation }) {
     '7. « final_answer » : la réponse finale, courte (ex. « x = 5 »).',
     '8. « problem_type » : nom court et clair du type de problème, dans la langue de réponse.',
     `9. « subject_guess » : une valeur parmi ${SUBJECTS.join(', ')} (toujours en anglais, c\'est une clé technique, pas du texte affiché).`,
-    "10. « ocr_fail » = true si la photo est floue, vide, mal cadrée, ou ne montre clairement pas un exercice — indépendamment de la langue. Dans ce cas : problem_type = un nom court signalant le souci (dans la langue de réponse), subject_guess = « autre », template = \"\", slots = [], final_answer = \"\", hint = \"\", pitfall = \"\", consigne_translation = \"\", et level_1_fallback/level_2_fallback expliquent gentiment (dans la langue de réponse) qu'il faut reprendre la photo avec plus de lumière/de netteté, avec level_3_steps donnant 2 conseils photo concrets. S'il y a plusieurs exercices lisibles, prends le premier et mets ocr_fail = false.",
+    "10. « ocr_fail » = true si la photo est floue, vide, mal cadrée, ou ne montre clairement pas un exercice — indépendamment de la langue. Dans ce cas : problem_type = un nom court signalant le souci (dans la langue de réponse), subject_guess = « autre », template = \"\", slots = [], final_answer = \"\", hint = \"\", pitfall = \"\", consigne_translation = \"\", connu = [], cherche = \"\", demarche = \"\", principe = \"\", et level_1_fallback/level_2_fallback expliquent gentiment (dans la langue de réponse) qu'il faut reprendre la photo avec plus de lumière/de netteté, avec level_3_steps donnant 2 conseils photo concrets. S'il y a plusieurs exercices lisibles, prends le premier et mets ocr_fail = false.",
     '11. « hint » : UNE SEULE phrase (dans la langue de réponse) qui débloque la toute première étape sans jamais révéler la démarche complète ni la réponse. Ex. : « Regarde ce qui est déjà tout seul d\'un côté du = . » / "Look at what\'s already alone on one side of the =."',
     "12. « pitfall » : l'erreur la plus commune que font les élèves sur CE type d'exercice précis, en 1-2 phrases concrètes (dans la langue de réponse). Pas une généralité vague — un piège réel et spécifique à l'exercice.",
     '13. « consigne_translation » : réécris l\'énoncé de l\'exercice en mots très simples (dans la langue de réponse), pour un élève qui ne comprend pas ce qu\'on lui demande. Explique juste CE QU\'ON DEMANDE, jamais la méthode ni la réponse.',
-    "14. « cheminement » : PAS une nouvelle explication — découpe le « template » (niveau 1) en étapes séquentielles courtes, dans l'ordre où elles apparaissent dans la phrase. MÊME PRINCIPE que la règle 6 : la longueur suit la complexité réelle, pas un nombre fixe — un exercice simple donne 3-5 étapes, un exercice qui enchaîne plusieurs règles/sous-parties peut aller jusqu'à 16 étapes si c'est justifié par le contenu du template. Chaque étape a un « type » : « concept » (mot-clé théorique, ex. « l'inconnue » / « the unknown ») ou « action » (geste concret ou formule isolée, ex. « x = -b/2a »). « isFormula » = true seulement si « text » est une expression mathématique isolée (pas une phrase). Si ocr_fail est true, cheminement = [].",
+    '',
+    'MÉTHODE RPVD (règles 14bis à 14sex — la fiche que même un élève qui n\'a rien vu de la matière peut suivre du début à la fin sans aide, sans jamais résoudre SON numéro à sa place) :',
+    `14bis. « connu » : liste de 1 à 5 variables ou mots-clés SEULEMENT (jamais de phrase, jamais de chapitre ni de titre de section), dans la langue de réponse, ex. ["C1", "C2", "V2"] ou ["masse", "volume"]. L'élève doit reconnaître le type de problème seulement avec ce qu'il voit dans l'énoncé.`,
+    '14ter. « cherche » : UNE seule variable ou mot-clé (même règle, jamais de phrase), ex. "V1" ou "masse volumique".',
+    `14quater. « demarche » : UN SEUL paragraphe, aucune étape numérotée, aucune puce. Chaque phrase commence par « ${tuWord} » suivi d'un verbe simple (${region === 'us' || region === 'uk' ? 'look, write, convert, calculate, compare, mark, replace, isolate, check...' : 'regardes, écris, convertis, calcules, compares, marques, remplaces, isoles, vérifies...'}). 1 phrase = 1 action : tout ce que le crayon écrit OU tout ce que le cerveau doit vérifier/regarder est une action, une seule à la fois. Phrases courtes. N'inclus que les formules importantes ou poussées, jamais les formules basiques évidentes. Aucun saut, aucune phrase de remplissage qui ne fait rien. Inclus les pièges (unités, chiffres significatifs, sens du résultat, signe à garder, etc.) sous forme d'actions, pas à part. La TOUTE DERNIÈRE phrase du paragraphe se termine EXACTEMENT par « ${closing} ». Ne résous JAMAIS le numéro précis de l'élève (pas de chiffres finaux de SON exercice) — la démarche montre où se rendre et comment, en restant au niveau générique/méthode, exactement comme « template » (règle 3), mais rédigée en phrases d'action complètes plutôt qu'à trous.`,
+    "14quinq. « principe » : 2 à 3 phrases sous la démarche, qui expliquent l'idée derrière la démarche et son but, en langage simple. Aucune formule lourde, aucune liste.",
+    '',
+    "15. « cheminement » : PAS une nouvelle explication — découpe le « template » (niveau 1) en étapes séquentielles courtes, dans l'ordre où elles apparaissent dans la phrase. MÊME PRINCIPE que la règle 6 : la longueur suit la complexité réelle, pas un nombre fixe — un exercice simple donne 3-5 étapes, un exercice qui enchaîne plusieurs règles/sous-parties peut aller jusqu'à 16 étapes si c'est justifié par le contenu du template. Chaque étape a un « type » : « concept » (mot-clé théorique, ex. « l'inconnue » / « the unknown ») ou « action » (geste concret ou formule isolée, ex. « x = -b/2a »). « isFormula » = true seulement si « text » est une expression mathématique isolée (pas une phrase). Si ocr_fail est true, cheminement = [].",
   ];
   if (notation) {
     lines.push('', `Formule l'explication en respectant strictement cette convention : ${notation}.`);
@@ -207,6 +246,15 @@ function renderTemplate(template, slots, mode) {
 
 function cleanString(value) {
   return typeof value === 'string' ? value.trim() : '';
+}
+
+// MÉTHODE RPVD (§14bis) : « connu » est une liste courte de variables/mots-clés, jamais des
+// phrases — filtre les entrées vides/non-string, borne à 6 (au-delà, ce n'est plus une
+// identification rapide mais un résumé de l'énoncé, contraire à l'esprit de la méthode).
+const MAX_CONNU_ITEMS = 6;
+function normalizeConnu(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(cleanString).filter(Boolean).slice(0, MAX_CONNU_ITEMS);
 }
 
 // Normalise la liste des slots ; null si un élément est incomplet (les index doivent tenir).
@@ -287,6 +335,14 @@ function buildAnalysis(raw) {
   const hint = cleanString(raw.hint);
   const pitfall = cleanString(raw.pitfall);
   const consigneTranslation = cleanString(raw.consigne_translation);
+  // MÉTHODE RPVD (fiche Identification → Démarche → Principe) — la fiche affichée en priorité
+  // par AnalysisEngine ; `connu`/`cherche`/`demarche`/`principe` sont indépendants du
+  // template/slots ci-dessus (repli silencieux sur l'ancien format si absents, ex. anciennes
+  // analyses déjà sauvegardées dans la bibliothèque avant l'ajout de cette méthode).
+  const connu = normalizeConnu(raw.connu);
+  const cherche = cleanString(raw.cherche);
+  const demarche = cleanString(raw.demarche);
+  const principe = cleanString(raw.principe);
 
   if (level1 && level2) {
     return {
@@ -302,6 +358,10 @@ function buildAnalysis(raw) {
       pitfall,
       consigne_translation: consigneTranslation,
       cheminement,
+      connu,
+      cherche,
+      demarche,
+      principe,
     };
   }
 
@@ -322,6 +382,10 @@ function buildAnalysis(raw) {
     pitfall,
     consigne_translation: consigneTranslation,
     cheminement,
+    connu,
+    cherche,
+    demarche,
+    principe,
   };
 }
 

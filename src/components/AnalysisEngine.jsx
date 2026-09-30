@@ -121,8 +121,14 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, o
   const hasLevel3 = steps.length > 0 || Boolean(finalAnswer)
 
   const mode = level >= 2 ? 'value' : 'generic'
-  const patternTitle = level >= 2 ? t.analysis.level2Title : t.analysis.level1Title
   const cheminement = Array.isArray(analysis?.cheminement) ? analysis.cheminement : []
+  // MÉTHODE RPVD (Identification → Démarche → Principe) : repli silencieux sur l'ancien
+  // rendu template/slots pour les analyses sauvegardées avant l'ajout de ces champs.
+  const connu = Array.isArray(analysis?.connu) ? analysis.connu : []
+  const cherche = analysis?.cherche
+  const demarche = analysis?.demarche
+  const principe = analysis?.principe
+  const hasMethode = Boolean(demarche)
 
   function goToLevel2() {
     setAnimateValues(true)
@@ -155,17 +161,58 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, o
             </p>
           )}
 
-          <h2 key={mode} className="font-display text-xl font-bold leading-snug text-slate-50 motion-safe:animate-rise sm:text-2xl">
-            {patternTitle}
-          </h2>
+          {hasMethode ? (
+            <>
+              {/* MÉTHODE RPVD — Identification : toujours visible, aucun spoiler (juste les
+                  variables/mots-clés de l'énoncé, pas la façon de les utiliser). */}
+              <h2 className="font-display text-xl font-bold leading-snug text-slate-50 sm:text-2xl">{t.analysis.level1Title}</h2>
+              <dl className="mt-3 flex flex-col gap-2 font-mono text-sm">
+                {connu.length > 0 && (
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <dt className="shrink-0 font-semibold tracking-wide text-amber-400">{t.analysis.connuLabel} :</dt>
+                    <dd className="flex flex-wrap gap-1.5">
+                      {connu.map((item, i) => (
+                        <span key={i} className="rounded-md border border-white/10 bg-slate-900/60 px-2 py-0.5 text-slate-100">
+                          {item}
+                        </span>
+                      ))}
+                    </dd>
+                  </div>
+                )}
+                {cherche && (
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <dt className="shrink-0 font-semibold tracking-wide text-emerald-400">{t.analysis.chercheLabel} :</dt>
+                    <dd>
+                      <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-emerald-300">
+                        {cherche}
+                      </span>
+                    </dd>
+                  </div>
+                )}
+              </dl>
 
-          <div className="mt-4">
-            {usable ? (
-              <PatternText template={template} slots={slots} mode={mode} animateValues={animateValues} />
-            ) : (
-              <PlainText text={(mode === 'value' ? analysis.level_2 : analysis.level_1) ?? analysis.level_1 ?? ''} mode={mode} />
-            )}
-          </div>
+              {/* Démarche : dévoilée au niveau 2 — un seul paragraphe fluide, jamais de liste. */}
+              {level >= 2 && demarche && (
+                <div className="mt-5 border-l-2 border-amber-400/40 pl-4 motion-safe:animate-rise">
+                  <h3 className="font-display text-lg font-bold leading-snug text-slate-50">{t.analysis.level2Title}</h3>
+                  <p className="mt-2 text-base leading-loose text-slate-100 sm:text-lg">{demarche}</p>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <h2 key={mode} className="font-display text-xl font-bold leading-snug text-slate-50 motion-safe:animate-rise sm:text-2xl">
+                {level >= 2 ? t.analysis.level2Title : t.analysis.level1Title}
+              </h2>
+              <div className="mt-4">
+                {usable ? (
+                  <PatternText template={template} slots={slots} mode={mode} animateValues={animateValues} />
+                ) : (
+                  <PlainText text={(mode === 'value' ? analysis.level_2 : analysis.level_1) ?? analysis.level_1 ?? ''} mode={mode} />
+                )}
+              </div>
+            </>
+          )}
 
           {hasFullAccess && analysis?.hint && (
             <div className="mt-4">
@@ -208,6 +255,13 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, o
                 <TextToSpeech text={steps.map((step) => `${step.title}. ${step.text || ''}`).join(' ')} region={region} />
               )}
             </div>
+
+            {/* MÉTHODE RPVD — Principe : l'idée derrière la démarche, 2-3 phrases, jamais de formule. */}
+            {hasMethode && principe && (
+              <p className="mt-4 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm leading-relaxed text-emerald-100">
+                {principe}
+              </p>
+            )}
 
             {/* Exercices complexes = plus d'étapes (contrat) : scroll interne au-delà d'une
                 certaine hauteur plutôt que de laisser la carte s'étirer indéfiniment. */}

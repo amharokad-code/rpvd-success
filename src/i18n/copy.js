@@ -53,9 +53,11 @@ const qc = {
   loader: LOADER,
 
   analysis: {
-    level1Title: 'Le pattern derrière ton exercice :',
-    level2Title: 'Check ben avec tes chiffres :',
-    level3Title: "Ton ami t'explique :",
+    level1Title: 'Identification',
+    level2Title: 'La démarche',
+    level3Title: 'Le principe',
+    connuLabel: 'CONNU',
+    chercheLabel: 'CHERCHE',
     toLevel2: "J'comprends pas trop 🤔",
     toLevel3: 'Décortique-moi ça étape par étape 🛠️',
     done: "C'est good, j'ai catché ! 🚀",
@@ -318,9 +320,11 @@ const fr = {
   loader: LOADER,
 
   analysis: {
-    level1Title: 'Le pattern derrière ton exercice :',
-    level2Title: 'Regarde avec tes chiffres :',
-    level3Title: "Ton pote t'explique :",
+    level1Title: 'Identification',
+    level2Title: 'La démarche',
+    level3Title: 'Le principe',
+    connuLabel: 'CONNU',
+    chercheLabel: 'CHERCHE',
     toLevel2: 'Je capte pas trop 🤔',
     toLevel3: 'Montre-moi étape par étape 🛠️',
     done: "C'est clair, j'ai capté ! 🚀",
@@ -581,9 +585,11 @@ const us = {
   loader: LOADER,
 
   analysis: {
-    level1Title: 'The pattern behind your problem:',
-    level2Title: "Here it is with your own numbers:",
-    level3Title: 'Your buddy breaks it down:',
+    level1Title: 'Identification',
+    level2Title: 'The approach',
+    level3Title: 'The idea',
+    connuLabel: 'GIVEN',
+    chercheLabel: 'FIND',
     toLevel2: "I don't really get it 🤔",
     toLevel3: 'Break it down for me step by step 🛠️',
     done: "Awesome, math is a breeze! 🚀",
@@ -844,9 +850,11 @@ const uk = {
   loader: LOADER,
 
   analysis: {
-    level1Title: 'The pattern behind your problem:',
-    level2Title: 'Here it is with your own numbers:',
-    level3Title: 'Your mate breaks it down:',
+    level1Title: 'Identification',
+    level2Title: 'The approach',
+    level3Title: 'The idea',
+    connuLabel: 'GIVEN',
+    chercheLabel: 'FIND',
     toLevel2: "I'm not quite following 🤔",
     toLevel3: 'Break it down for me step by step 🛠️',
     done: 'Brilliant, spot on! 🚀',

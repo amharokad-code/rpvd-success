@@ -37,6 +37,12 @@ export const DEMO_ANALYSIS = {
     },
   ],
   final_answer: 'x = 5',
+  connu: ['3x', '7', '22'],
+  cherche: 'x',
+  demarche:
+    "Tu regardes ce qui traîne à côté du 3x. Tu enlèves 7 des deux bords de l'équation. Tu écris 3x = 15. Tu divises les deux bords par 3. Tu vérifies en remplaçant x par 5 dans l'équation de départ, et t'as la réponse.",
+  principe:
+    "L'idée, c'est de garder l'équation balancée : tout ce que tu fais d'un côté du =, tu dois le faire de l'autre. Le but est d'isoler x tout seul pour connaître sa valeur.",
   hint: 'Regarde le 7 qui traîne à côté du 3x — faut le faire disparaître en premier.',
   pitfall: "Le piège classique : oublier de faire la même opération des deux côtés du signe égal.",
   consigne_translation: 'On te demande de trouver la valeur cachée derrière le x pour que l’équation soit vraie.',
