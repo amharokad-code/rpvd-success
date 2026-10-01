@@ -3,7 +3,7 @@
   "short_name": "RPVD",
   "description": "Photographie ton exercice et comprends le pattern derrière la solution.",
   "lang": "fr",
-  "start_url": "/",
+  "start_url": "/app",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

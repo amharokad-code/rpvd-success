@@ -13,7 +13,7 @@
 | 5-30 | Séquence de démarche | Présenter les 3-4 étapes universelles du chapitre. Un mini-exemple, une étape à la fois. |
 | 30-90 | Exécution | 4 exercices-pièges : l'élève dicte l'étape suivante dans le chat avant la correction. Nommer le piège à chaque fois. |
 | 90-120 | Q&A | Employé trie les questions du chat ; répondre par la démarche, jamais par la réponse seule. |
-| 120-135 | Pitch PWA | Démo live du Moteur D : photo → pattern en 3 niveaux. Dire les vrais prix (Basic 12 $ / Pro 20 $ aux 3 mois, résiliable). Mettre le lien `/?src=bootcamp` dans le chat. |
+| 120-135 | Pitch PWA | Démo live du Moteur D : photo → pattern en 3 niveaux. Dire les vrais prix (Basic 12 $ / Pro 20 $ aux 3 mois, résiliable). Mettre le lien `/app?src=bootcamp` dans le chat. |
 
 ## Pitch PWA (script de 90 s)
 « Ce que vous venez de faire, l'app le fait pour n'importe quel exercice, à n'importe quelle heure. Je prends une photo… voilà le pattern, puis avec vos chiffres, puis étape par étape. Basic : 12 $ pour 50 exercices, Pro : 20 $ pour 120, aux 3 mois, vous annulez quand vous voulez dans Réglages. Le lien est dans le chat. »

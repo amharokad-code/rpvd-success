@@ -42,7 +42,7 @@ exports.handler = async (event) => {
 
     const session = await getStripe().billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
-      return_url: `${siteUrl()}/`,
+      return_url: `${siteUrl()}/app`,
     });
 
     return json(200, { url: session.url });

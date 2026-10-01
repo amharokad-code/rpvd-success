@@ -24,7 +24,7 @@ Règle : prix et places réels, pas de fausse urgence. Lien partout : `rpvdsucce
 > C'est maintenant : {sujet} à {heure}. On démarre dans 15 min.
 
 ## Lundi — Pont PWA
-> Tu as vu la démarche hier. Maintenant, applique-la sur TOUS tes devoirs : prends une photo, l'app te donne le pattern en 3 niveaux. 👉 rpvdsuccess.netlify.app/?src=bootcamp
+> Tu as vu la démarche hier. Maintenant, applique-la sur TOUS tes devoirs : prends une photo, l'app te donne le pattern en 3 niveaux. 👉 rpvdsuccess.netlify.app/app?src=bootcamp
 
 ## Scripts TikTok/Reels (20 s)
 1. « Tu rates tes examens de maths non pas par manque de théorie, mais par manque de DÉMARCHE. »

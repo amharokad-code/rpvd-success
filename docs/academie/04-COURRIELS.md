@@ -19,7 +19,7 @@ Ton : direct, chaleureux, « tu ». Aucun pronom genré pour l'élève.
 ## E3 — Post-session (lundi matin)
 **Objet** : Ta démarche pour {sujet} + l'app
 > Merci d'avoir été là. Résumé de la démarche vue hier : {3-4 étapes}.
-> Pour la refaire sur tes propres devoirs, essaie l'app : rpvdsuccess.netlify.app/?src=bootcamp
+> Pour la refaire sur tes propres devoirs, essaie l'app : rpvdsuccess.netlify.app/app?src=bootcamp
 > Basic 12 $ (50 crédits) ou Pro 20 $ (120 crédits), aux 3 mois, résiliable en tout temps depuis Réglages.
 
 ## E4 — Upsell Premium (lundi soir, seulement aux participants)

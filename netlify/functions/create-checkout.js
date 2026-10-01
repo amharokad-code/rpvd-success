@@ -51,8 +51,8 @@ exports.handler = async (event) => {
       metadata: { plan },
       subscription_data: { metadata: { plan, user_id: user.id } },
       client_reference_id: user.id,
-      success_url: `${base}/?checkout=success`,
-      cancel_url: `${base}/?checkout=cancel`,
+      success_url: `${base}/app?checkout=success`,
+      cancel_url: `${base}/app?checkout=cancel`,
       // Le catalogue Stripe indique « Informations requises » sur le code de taxe des 2 Products
       // (comme pour l'ancien price_data) — Managed Payments désactivé pour cette session pour ne
       // pas dépendre de ce champ tant qu'il n'est pas rempli côté dashboard Stripe.

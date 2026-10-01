@@ -5,10 +5,14 @@ import App from './App'
 import LegalPage from './pages/LegalPage'
 import LegalContactPage from './pages/LegalContactPage'
 import BootcampPage from './pages/BootcampPage'
+import AccueilPage from './pages/AccueilPage'
 import './index.css'
 
-// Routage minimal : /legal/<doc> est une page statique indépendante (pas d'auth, pas d'appel
-// réseau), le reste (pas de react-router dans ce projet) reste géré par l'état d'onglet d'App.
+// Routage minimal (pas de react-router) :
+//   /          page principale Bootcamp (Académie RPVD)
+//   /accueil   présentation de la méthode (ancienne landing)
+//   /app       l'application (connexion par lien magique, puis dashboard)
+//   /legal/*   pages statiques indépendantes
 const LEGAL_DOCS = ['privacy', 'terms', 'cookies', 'refunds']
 function legalDocFromPath() {
   if (typeof window === 'undefined') return null
@@ -19,19 +23,41 @@ function isLegalContactPath() {
   return typeof window !== 'undefined' && window.location.pathname === '/legal/contact'
 }
 
-function isBootcampPath() {
-  return typeof window !== 'undefined' && /^\/bootcamp\/?$/.test(window.location.pathname)
+// Retours qui doivent atterrir dans l'app et non sur la page Bootcamp : retour du lien magique
+// Supabase (jetons dans le hash ou ?code=), ou app PWA installée lancée depuis l'écran d'accueil.
+function shouldRedirectRootToApp() {
+  if (typeof window === 'undefined') return false
+  const { hash, search } = window.location
+  const authCallback = /access_token=|refresh_token=|error_description=|type=magiclink/.test(hash) || /[?&]code=/.test(search)
+  let standalone = false
+  try {
+    standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+  } catch {
+    standalone = false
+  }
+  return authCallback || standalone
 }
 
-const rootElement =typeof document !== 'undefined' ? document.getElementById('root') : null
-if (rootElement) {
+function pickRoute() {
+  const path = window.location.pathname.replace(/\/+$/, '') || '/'
+  if (path === '/') {
+    if (shouldRedirectRootToApp()) {
+      window.location.replace(`/app${window.location.search}${window.location.hash}`)
+      return null
+    }
+    return <BootcampPage />
+  }
+  if (path === '/bootcamp') return <BootcampPage />
+  if (path === '/accueil') return <AccueilPage />
+  if (isLegalContactPath()) return <LegalContactPage />
   const legalDoc = legalDocFromPath()
-  const isContact = isLegalContactPath()
-  createRoot(rootElement).render(
-    <StrictMode>
-      {isBootcampPath() ? <BootcampPage /> : isContact ? <LegalContactPage /> : legalDoc ? <LegalPage doc={legalDoc} /> : <App />}
-    </StrictMode>,
-  )
+  if (legalDoc) return <LegalPage doc={legalDoc} />
+  return <App />
+}
+
+const rootElement = typeof document !== 'undefined' ? document.getElementById('root') : null
+if (rootElement) {
+  createRoot(rootElement).render(<StrictMode>{pickRoute()}</StrictMode>)
 }
 
 // Le service worker n'est enregistré qu'en production : en dev il masquerait le HMR.

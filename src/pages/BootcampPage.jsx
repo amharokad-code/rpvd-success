@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { BOOTCAMP as B } from '../config/bootcamp'
 import { trackEvent } from '../utils/track'
+import SiteNav from '../components/SiteNav'
 
 const LEVELS = ['Sec 1', 'Sec 2', 'Sec 3', 'Sec 4', 'Sec 5']
 const SUBJECTS = ['Mathématiques', 'Sciences', 'Physique', 'Chimie']
@@ -130,11 +131,11 @@ export default function BootcampPage() {
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      <div className="relative mx-auto max-w-2xl px-5 pb-32 pt-8">
-        <a href="/" className="text-sm text-slate-400 transition hover:text-amber-400">← RPVD Success</a>
+      <SiteNav current="bootcamp" className="left-1/2 -translate-x-1/2" />
 
+      <div className="relative mx-auto max-w-2xl px-5 pb-32 pt-24">
         {/* HERO */}
-        <header className="mt-14 text-center">
+        <header className="mt-6 text-center">
           <motion.p
             initial={reduce ? false : { opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -176,6 +177,9 @@ export default function BootcampPage() {
           >
             <a href="#vote" onClick={() => trackEvent('cta_click', { path: '/bootcamp#hero' })} className={cta}>
               Je veux ma place pour {sunday}
+            </a>
+            <a href="/accueil" className="text-sm font-semibold text-slate-300 underline-offset-4 transition hover:text-amber-400 hover:underline">
+              Découvrir la méthode RPVD →
             </a>
             <p className="text-sm text-slate-400">
               Dès <b className="text-amber-400">{B.earlyPrice} $</b> en réservation anticipée · {B.lastMinutePriceMin}-{B.lastMinutePriceMax} $ ensuite
@@ -320,14 +324,26 @@ export default function BootcampPage() {
           </Reveal>
         </Section>
 
-        {/* PWA */}
-        <Section eyebrow="APRÈS LE BLITZ" title="Garde la méthode dans ta poche">
-          <Reveal>
-            <p className="text-lg text-slate-300">Une photo de n'importe quel exercice, et l'app RPVD Success t'explique le pattern en 3 niveaux. 24/7.</p>
-            <a href="/?src=bootcamp" onClick={() => trackEvent('cta_click', { path: '/bootcamp#pwa' })} className="focus-ring mt-5 inline-flex min-h-[48px] items-center rounded-2xl border border-white/15 px-6 font-semibold text-slate-100 transition hover:border-amber-500/50">
-              Essayer l'app →
-            </a>
-          </Reveal>
+        {/* DEUX PORTES */}
+        <Section eyebrow="ET APRÈS ?" title="Deux façons d'aller plus loin">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Reveal>
+              <a href="/accueil" onClick={() => trackEvent('cta_click', { path: '/bootcamp#door-accueil' })} className="group block h-full rounded-3xl border border-white/10 bg-white/[0.03] p-6 transition hover:-translate-y-1 hover:border-amber-500/50">
+                <p className="text-3xl">🧭</p>
+                <p className="mt-3 font-display text-xl font-bold text-slate-50">Accueil</p>
+                <p className="mt-1 text-sm text-slate-400">Comprends la méthode RPVD, vois un vrai exemple en 3 niveaux et les tarifs.</p>
+                <p className="mt-4 text-sm font-semibold text-amber-400 transition group-hover:translate-x-1">Découvrir →</p>
+              </a>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <a href="/app?src=bootcamp" onClick={() => trackEvent('cta_click', { path: '/bootcamp#door-app' })} className="group block h-full rounded-3xl border border-amber-500/40 bg-gradient-to-b from-amber-500/10 to-transparent p-6 transition hover:-translate-y-1 hover:border-amber-400">
+                <p className="text-3xl">📸</p>
+                <p className="mt-3 font-display text-xl font-bold text-slate-50">Application</p>
+                <p className="mt-1 text-sm text-slate-400">Une photo de ton exercice, le pattern expliqué en 3 niveaux. 24/7.</p>
+                <p className="mt-4 text-sm font-semibold text-amber-400 transition group-hover:translate-x-1">Ouvrir l'app →</p>
+              </a>
+            </Reveal>
+          </div>
         </Section>
 
         {/* FAQ */}
@@ -345,7 +361,7 @@ export default function BootcampPage() {
         </Section>
 
         <p className="mt-20 text-center text-xs text-slate-500">
-          <a href="/legal/terms" className="hover:underline">Conditions</a> · <a href="/legal/privacy" className="hover:underline">Confidentialité</a> · <a href="/legal/refunds" className="hover:underline">Remboursements</a>
+          <a href="/accueil" className="hover:underline">Accueil</a> · <a href="/app" className="hover:underline">Application</a> · <a href="/legal/terms" className="hover:underline">Conditions</a> · <a href="/legal/privacy" className="hover:underline">Confidentialité</a> · <a href="/legal/refunds" className="hover:underline">Remboursements</a>
         </p>
       </div>
 
