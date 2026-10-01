@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "RPVD Success",
+    "slug": "rpvd-success",
+    "scheme": "rpvd",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#000000",
+    "ios": {
+      "bundleIdentifier": "com.rpvdsuccess.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.rpvdsuccess.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#000000",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "RPVD Success utilise la caméra pour photographier ton exercice. / RPVD Success uses the camera to photograph your exercise.",
+          "photosPermission": "RPVD Success accède à tes photos pour choisir un exercice. / RPVD Success accesses your photos to pick an exercise."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#c98a52"
+        }
+      ],
+      "expo-font"
+    ]
+  }
+}
