@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import LegalPage from './pages/LegalPage'
 import LegalContactPage from './pages/LegalContactPage'
+import BootcampPage from './pages/BootcampPage'
 import './index.css'
 
 // Routage minimal : /legal/<doc> est une page statique indépendante (pas d'auth, pas d'appel
@@ -18,13 +19,17 @@ function isLegalContactPath() {
   return typeof window !== 'undefined' && window.location.pathname === '/legal/contact'
 }
 
-const rootElement = typeof document !== 'undefined' ? document.getElementById('root') : null
+function isBootcampPath() {
+  return typeof window !== 'undefined' && /^\/bootcamp\/?$/.test(window.location.pathname)
+}
+
+const rootElement =typeof document !== 'undefined' ? document.getElementById('root') : null
 if (rootElement) {
   const legalDoc = legalDocFromPath()
   const isContact = isLegalContactPath()
   createRoot(rootElement).render(
     <StrictMode>
-      {isContact ? <LegalContactPage /> : legalDoc ? <LegalPage doc={legalDoc} /> : <App />}
+      {isBootcampPath() ? <BootcampPage /> : isContact ? <LegalContactPage /> : legalDoc ? <LegalPage doc={legalDoc} /> : <App />}
     </StrictMode>,
   )
 }
