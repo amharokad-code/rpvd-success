@@ -3,6 +3,8 @@
 // Produit l'objet `Analysis` du contrat §1 : template + slots rendus côté serveur.
 
 const { HttpError } = require('./http');
+const { safeParseGemini } = require('./safeParse');
+const { MOTEUR_D_PROMPT } = require('../_prompts/moteur-d');
 
 // gemini-1.5/2.0/2.5-flash sont retirés pour cette clé (404 « no longer available to new
 // users », malgré /v1beta/models qui les liste encore). Et gemini-3.6/3.7/3.5-flash + flash-latest
@@ -33,118 +35,54 @@ const MAX_NOTATION_CHARS = 300;
 // Index du premier modèle qui a répondu (mémorisé le temps de vie du conteneur).
 let activeModelIndex = 0;
 
-// Schéma de réponse imposé à Gemini (JSON structuré).
+// Schéma de réponse imposé à Gemini — Moteur D « RPVD Visuel v2 » (section 12 du prompt).
+const LEVEL_SCHEMA = {
+  type: 'OBJECT',
+  properties: {
+    niveau: { type: 'INTEGER', description: '1, 2 ou 3.' },
+    connu: { type: 'STRING', description: "Variables ou mots-clés de l'énoncé, séparés par des virgules (jamais de phrase)." },
+    cherche: { type: 'STRING', description: 'UNE variable ou UN mot-clé (jamais de formule ni de « = »).' },
+    schema_ascii: { type: 'STRING', description: 'Schéma ASCII (niveau 1 seulement, 30 car. max de large, 8 lignes max) ou chaîne vide.' },
+    demarche: {
+      type: 'ARRAY',
+      items: {
+        type: 'OBJECT',
+        properties: {
+          expression: { type: 'STRING', description: 'Expression en LaTeX ($...$).' },
+          explication: { type: 'STRING', description: 'Action ou raison en 3 à 10 mots.' },
+        },
+        required: ['expression', 'explication'],
+      },
+    },
+    reponse: { type: 'STRING' },
+    principe: { type: 'STRING', description: '2 à 3 lignes, sans formule ni calcul.' },
+  },
+  required: ['niveau', 'connu', 'cherche', 'schema_ascii', 'demarche', 'reponse', 'principe'],
+};
+
 const RESPONSE_SCHEMA = {
   type: 'OBJECT',
   properties: {
-    problem_type: { type: 'STRING', description: 'Nom court du type de problème, en français.' },
-    subject_guess: { type: 'STRING', format: 'enum', enum: SUBJECTS },
-    template: {
-      type: 'STRING',
-      description: 'Méthode générale en 1-2 phrases avec des trous {{0}}, {{1}}, ... (0-indexés).',
-    },
-    slots: {
-      type: 'ARRAY',
-      description: 'slots[i] correspond au trou {{i}}.',
-      items: {
-        type: 'OBJECT',
-        properties: {
-          generic: { type: 'STRING', description: "Rôle générique avec article, ex. « l'inconnue »." },
-          value: { type: 'STRING', description: "Valeur concrète tirée de l'exercice, ex. « 7 »." },
-        },
-        required: ['generic', 'value'],
-      },
-    },
-    level_1_fallback: { type: 'STRING', description: 'Template rendu avec les generic.' },
-    level_2_fallback: { type: 'STRING', description: 'Template rendu avec les value.' },
-    connu: {
-      type: 'ARRAY',
-      items: { type: 'STRING' },
-      description: "MÉTHODE RPVD — Identification, ligne CONNU : liste de variables ou mots-clés (jamais de phrase), ex. [\"C1\", \"C2\", \"V2\"].",
-    },
-    cherche: {
-      type: 'STRING',
-      description: "MÉTHODE RPVD — Identification, ligne CHERCHE : UNE variable ou mot-clé (jamais de phrase), ex. \"V1\".",
-    },
-    demarche: {
-      type: 'STRING',
-      description:
-        "MÉTHODE RPVD — un seul paragraphe (pas d'étapes numérotées, pas de puces), chaque phrase commence par « Tu » + verbe simple (regardes, écris, convertis, calcules, compares, marques, remplaces, isoles, vérifies...). 1 phrase = 1 action. La toute dernière phrase se termine EXACTEMENT par « , et t'as la réponse. » (ou l'équivalent dans la langue de réponse).",
-    },
-    principe: {
-      type: 'STRING',
-      description: "MÉTHODE RPVD — 2 à 3 phrases qui expliquent l'idée derrière la démarche et son but, en langage simple, sans formule ni liste.",
-    },
-    ocr_fail: {
-      type: 'BOOLEAN',
-      description: 'true si la photo est floue/illisible/vide ou ne montre pas un exercice — indépendant de la langue de réponse.',
-    },
-    level_3_steps: {
-      type: 'ARRAY',
-      items: {
-        type: 'OBJECT',
-        properties: {
-          title: { type: 'STRING' },
-          text: { type: 'STRING' },
-        },
-        required: ['title', 'text'],
-      },
-    },
-    final_answer: { type: 'STRING' },
-    hint: {
-      type: 'STRING',
-      description: "Une SEULE phrase qui débloque la première étape sans jamais donner la réponse ni la démarche complète.",
-    },
-    pitfall: {
-      type: 'STRING',
-      description: "L'erreur la plus commune sur ce type d'exercice, en 1-2 phrases concrètes.",
-    },
-    consigne_translation: {
-      type: 'STRING',
-      description: "L'énoncé réécrit en mots très simples pour un élève qui a du mal à comprendre ce qu'on lui demande — pas la solution, juste la consigne clarifiée.",
-    },
+    statut: { type: 'STRING', format: 'enum', enum: ['ok', 'incomplet'] },
+    message: { type: 'STRING', description: "Phrase d'explication si incomplet, sinon chaîne vide." },
+    matiere_cible: { type: 'STRING', description: 'Ex. « Chimie / Solutions et dilution ».' },
+    niveaux: { type: 'ARRAY', items: LEVEL_SCHEMA, description: 'Exactement 3 objets : niveau 1, 2, 3.' },
     cheminement: {
       type: 'ARRAY',
-      description:
-        "Extraction du niveau 1 (« template ») en séquence linéaire d'étapes pour l'Arbre de Cheminement — PAS une nouvelle génération pédagogique, juste un parsing typé du même contenu.",
       items: {
         type: 'OBJECT',
         properties: {
           type: { type: 'STRING', format: 'enum', enum: ['concept', 'action'] },
-          text: { type: 'STRING', description: 'Mot-clé ou formule courte, extrait du template.' },
-          isFormula: { type: 'BOOLEAN' },
+          texte: { type: 'STRING', description: '2 à 5 mots.' },
         },
-        required: ['type', 'text', 'isFormula'],
+        required: ['type', 'texte'],
       },
     },
+    hint: { type: 'STRING', description: 'Une SEULE phrase qui débloque la première ligne sans donner la démarche ni la réponse.' },
+    pitfall: { type: 'STRING', description: "L'erreur la plus courante sur ce type d'exercice, 1-2 phrases." },
+    consigne_translation: { type: 'STRING', description: "L'énoncé réécrit en mots très simples (pas de méthode, pas de réponse)." },
   },
-  required: [
-    'problem_type',
-    'subject_guess',
-    'template',
-    'slots',
-    'level_1_fallback',
-    'level_2_fallback',
-    'connu',
-    'cherche',
-    'demarche',
-    'principe',
-    'level_3_steps',
-    'final_answer',
-    'ocr_fail',
-    'hint',
-    'pitfall',
-    'consigne_translation',
-    'cheminement',
-  ],
-};
-
-// Fin de la phrase de clôture de la « démarche » (règle MÉTHODE RPVD), selon la langue de réponse.
-const DEMARCHE_CLOSING = {
-  qc: ", et t'as la réponse.",
-  fr: ", et t'as la réponse.",
-  us: ', and you’ve got your answer.',
-  uk: ', and you’ve got your answer.',
+  required: ['statut', 'message', 'matiere_cible', 'niveaux', 'cheminement'],
 };
 
 // Style de langue et jargon selon la région (contrat §3 — quadri-langue).
@@ -183,44 +121,23 @@ function sanitizeNotation(value) {
     .slice(0, MAX_NOTATION_CHARS);
 }
 
-// Instruction système : persona + règles de format (le schéma JSON fait le reste).
-// Écrite en français pour Gemini (qui comprend très bien la consigne quelle que soit la
-// langue de sortie demandée) ; seule la règle #2 impose la VRAIE langue de réponse.
+// Instruction système : prompt Moteur D (netlify/functions/_prompts/moteur-d.js) + région + notation.
 function buildSystemInstruction({ region, preferredNotation }) {
-  const { lang, style } = REGION_STYLE[region] || REGION_STYLE[DEFAULT_REGION];
+  const code = String(REGION_STYLE[region] ? region : DEFAULT_REGION).toUpperCase();
   const notation = sanitizeNotation(preferredNotation);
-  const closing = DEMARCHE_CLOSING[region] || DEMARCHE_CLOSING[DEFAULT_REGION];
-  const tuWord = region === 'us' || region === 'uk' ? 'You' : 'Tu';
   const lines = [
-    "Tu es RPVD, un ami qui aide un ado du secondaire à comprendre ses devoirs (maths, sciences, langues).",
-    style,
-    "Ton but : montrer le PATTERN (la méthode générale) derrière l'exercice, puis l'appliquer avec les chiffres de l'exercice, puis tout décortiquer étape par étape.",
+    MOTEUR_D_PROMPT,
     '',
-    'Règles absolues :',
-    '1. Réponds UNIQUEMENT avec le JSON demandé, rien autour.',
-    `2. Tout le texte (problem_type, template, level_1_fallback, level_2_fallback, level_3_steps, final_answer) est en ${lang}, tutoiement/ton informel selon le style ci-dessus, phrases courtes, ton hyper casual. Interdit : jargon scolaire formel (« soit », « on pose », « d'où », « théorème », « démontrer » ou leurs équivalents anglais « thus », «  hence », « theorem », « prove »). Dis plutôt des verbes d'action simples (« on enlève / we remove », « on divise / we divide », « on regarde / we look at »).`,
-    '3. « template » : une ou deux phrases qui décrivent la méthode générale, avec des trous numérotés {{0}}, {{1}}, {{2}}... (0-indexés, sans saut de numéro, chaque numéro apparaît au moins une fois). La phrase doit rester correcte quand on remplace chaque trou par son nom générique OU par sa valeur concrète.',
-    "4. « slots » : un objet par trou, dans l'ordre (slots[i] correspond à {{i}}). « generic » = le rôle en mots simples avec son article, dans la langue de réponse (ex. « l'inconnue » / « the unknown »). « value » = la valeur exacte de l'exercice (ex. « x », « 7 », « 3 »). Entre 2 et 6 trous. Si deux trous ont le même rôle, répète le même generic.",
-    '5. « level_1_fallback » = le template avec chaque {{i}} remplacé par slots[i].generic. « level_2_fallback » = le template avec chaque {{i}} remplacé par slots[i].value. Mot pour mot.',
-    `6. « level_3_steps » : entre ${MIN_STEPS} et ${MAX_STEPS} étapes — LE NOMBRE DOIT SUIVRE LA VRAIE COMPLEXITÉ DE L'EXERCICE, pas une longueur fixe. Un exercice simple (ex. une équation à une étape) : ${MIN_STEPS}-3 étapes, ne rallonge pas artificiellement. Un exercice avec plusieurs sous-parties, plusieurs règles appliquées successivement, ou un raisonnement en plusieurs étapes distinctes (ex. système d'équations, problème à plusieurs inconnues, preuve, exercice à plusieurs questions) : va jusqu'à ${MAX_STEPS} étapes s'il le faut réellement, ne saute aucune étape intermédiaire juste pour rester court. « title » : 3 à 8 mots, une action concrète (ex. « On enlève 7 des deux bords » / « We subtract 7 from both sides »). « text » : 1 à 3 phrases, chaque calcul écrit au complet (ex. « 3x + 7 − 7 = 22 − 7, donc 3x = 15. »).`,
-    '7. « final_answer » : la réponse finale, courte (ex. « x = 5 »).',
-    '8. « problem_type » : nom court et clair du type de problème, dans la langue de réponse.',
-    `9. « subject_guess » : une valeur parmi ${SUBJECTS.join(', ')} (toujours en anglais, c\'est une clé technique, pas du texte affiché).`,
-    "10. « ocr_fail » = true si la photo est floue, vide, mal cadrée, ou ne montre clairement pas un exercice — indépendamment de la langue. Dans ce cas : problem_type = un nom court signalant le souci (dans la langue de réponse), subject_guess = « autre », template = \"\", slots = [], final_answer = \"\", hint = \"\", pitfall = \"\", consigne_translation = \"\", connu = [], cherche = \"\", demarche = \"\", principe = \"\", et level_1_fallback/level_2_fallback expliquent gentiment (dans la langue de réponse) qu'il faut reprendre la photo avec plus de lumière/de netteté, avec level_3_steps donnant 2 conseils photo concrets. S'il y a plusieurs exercices lisibles, prends le premier et mets ocr_fail = false.",
-    '11. « hint » : UNE SEULE phrase (dans la langue de réponse) qui débloque la toute première étape sans jamais révéler la démarche complète ni la réponse. Ex. : « Regarde ce qui est déjà tout seul d\'un côté du = . » / "Look at what\'s already alone on one side of the =."',
-    "12. « pitfall » : l'erreur la plus commune que font les élèves sur CE type d'exercice précis, en 1-2 phrases concrètes (dans la langue de réponse). Pas une généralité vague — un piège réel et spécifique à l'exercice.",
-    '13. « consigne_translation » : réécris l\'énoncé de l\'exercice en mots très simples (dans la langue de réponse), pour un élève qui ne comprend pas ce qu\'on lui demande. Explique juste CE QU\'ON DEMANDE, jamais la méthode ni la réponse.',
+    '## RÉGION DEMANDÉE',
+    code,
     '',
-    'MÉTHODE RPVD (règles 14bis à 14sex — la fiche que même un élève qui n\'a rien vu de la matière peut suivre du début à la fin sans aide, sans jamais résoudre SON numéro à sa place) :',
-    `14bis. « connu » : liste de 1 à 5 variables ou mots-clés SEULEMENT (jamais de phrase, jamais de chapitre ni de titre de section), dans la langue de réponse, ex. ["C1", "C2", "V2"] ou ["masse", "volume"]. L'élève doit reconnaître le type de problème seulement avec ce qu'il voit dans l'énoncé.`,
-    '14ter. « cherche » : UNE seule variable ou mot-clé (même règle, jamais de phrase), ex. "V1" ou "masse volumique".',
-    `14quater. « demarche » : UN SEUL paragraphe, aucune étape numérotée, aucune puce. Chaque phrase commence par « ${tuWord} » suivi d'un verbe simple (${region === 'us' || region === 'uk' ? 'look, write, convert, calculate, compare, mark, replace, isolate, check...' : 'regardes, écris, convertis, calcules, compares, marques, remplaces, isoles, vérifies...'}). 1 phrase = 1 action : tout ce que le crayon écrit OU tout ce que le cerveau doit vérifier/regarder est une action, une seule à la fois. Phrases courtes. N'inclus que les formules importantes ou poussées, jamais les formules basiques évidentes. Aucun saut, aucune phrase de remplissage qui ne fait rien. Inclus les pièges (unités, chiffres significatifs, sens du résultat, signe à garder, etc.) sous forme d'actions, pas à part. La TOUTE DERNIÈRE phrase du paragraphe se termine EXACTEMENT par « ${closing} ». Ne résous JAMAIS le numéro précis de l'élève (pas de chiffres finaux de SON exercice) — la démarche montre où se rendre et comment, en restant au niveau générique/méthode, exactement comme « template » (règle 3), mais rédigée en phrases d'action complètes plutôt qu'à trous.`,
-    "14quinq. « principe » : 2 à 3 phrases sous la démarche, qui expliquent l'idée derrière la démarche et son but, en langage simple. Aucune formule lourde, aucune liste.",
+    'Rappel : le champ expression contient toujours du LaTeX entre $...$ (même une équation simple comme $3x + 7 = 22$).',
     '',
-    "15. « cheminement » : PAS une nouvelle explication — découpe le « template » (niveau 1) en étapes séquentielles courtes, dans l'ordre où elles apparaissent dans la phrase. MÊME PRINCIPE que la règle 6 : la longueur suit la complexité réelle, pas un nombre fixe — un exercice simple donne 3-5 étapes, un exercice qui enchaîne plusieurs règles/sous-parties peut aller jusqu'à 16 étapes si c'est justifié par le contenu du template. Chaque étape a un « type » : « concept » (mot-clé théorique, ex. « l'inconnue » / « the unknown ») ou « action » (geste concret ou formule isolée, ex. « x = -b/2a »). « isFormula » = true seulement si « text » est une expression mathématique isolée (pas une phrase). Si ocr_fail est true, cheminement = [].",
+    '## CHAMPS OPTIONNELS (hors fiche, mêmes langue et tutoiement que la région)',
+    "hint : UNE phrase qui débloque la première ligne sans révéler la démarche ni la réponse. pitfall : l'erreur la plus courante sur CE type d'exercice, 1-2 phrases concrètes. consigne_translation : l'énoncé réécrit en mots très simples, sans méthode ni réponse. Chaînes vides si statut = incomplet.",
   ];
   if (notation) {
-    lines.push('', `Formule l'explication en respectant strictement cette convention : ${notation}.`);
+    lines.push('', "## NOTATION PERSONNALISÉE (texte de l'élève)", notation);
   }
   return lines.join('\n');
 }
@@ -246,15 +163,6 @@ function renderTemplate(template, slots, mode) {
 
 function cleanString(value) {
   return typeof value === 'string' ? value.trim() : '';
-}
-
-// MÉTHODE RPVD (§14bis) : « connu » est une liste courte de variables/mots-clés, jamais des
-// phrases — filtre les entrées vides/non-string, borne à 6 (au-delà, ce n'est plus une
-// identification rapide mais un résumé de l'énoncé, contraire à l'esprit de la méthode).
-const MAX_CONNU_ITEMS = 6;
-function normalizeConnu(raw) {
-  if (!Array.isArray(raw)) return [];
-  return raw.map(cleanString).filter(Boolean).slice(0, MAX_CONNU_ITEMS);
 }
 
 // Normalise la liste des slots ; null si un élément est incomplet (les index doivent tenir).
@@ -283,109 +191,111 @@ function normalizeSteps(raw) {
   return steps;
 }
 
-// Parsing typé du niveau 1 pour l'Arbre de Cheminement — pas une nouvelle génération pédagogique,
-// juste une extraction bornée et filtrée de ce que Gemini a déjà produit dans `cheminement`.
+// Cheminement du Moteur D : [{ type: concept|action, texte }] → format de l'Arbre [{ type, text, isFormula }].
 const CHEMINEMENT_TYPES = ['concept', 'action'];
-// Plafond relevé en même temps que MAX_STEPS — un exercice complexe a droit à un cheminement
-// aussi long que le niveau 3, l'UI scrolle plutôt que de tronquer.
 const MAX_CHEMINEMENT_STEPS = 16;
 function normalizeCheminement(raw) {
   if (!Array.isArray(raw)) return [];
   const steps = [];
   for (const item of raw) {
     const type = CHEMINEMENT_TYPES.includes(item && item.type) ? item.type : null;
-    const text = cleanString(item && item.text);
+    const text = cleanString(item && (item.texte || item.text));
     if (!type || !text) continue;
-    steps.push({ type, text, isFormula: Boolean(item && item.isFormula) });
+    steps.push({ type, text, isFormula: false });
     if (steps.length >= MAX_CHEMINEMENT_STEPS) break;
   }
   return steps;
 }
 
-// Valide la sortie brute de Gemini et construit l'objet Analysis (fallback si template invalide).
+const MAX_DEMARCHE_LINES = 20;
+const MAX_ASCII_LINES = 8;
+const MAX_ASCII_WIDTH = 40;
+
+function normalizeAscii(value, index) {
+  if (index !== 0) return '';
+  const text = String(value == null ? '' : value).replace(/\s+$/, '');
+  if (!text.trim()) return '';
+  const lines = text.split('\n');
+  if (lines.length > MAX_ASCII_LINES || lines.some((line) => line.length > MAX_ASCII_WIDTH)) return '';
+  return text;
+}
+
+function normalizeLevel(item, index) {
+  if (!item || typeof item !== 'object') return null;
+  const demarche = (Array.isArray(item.demarche) ? item.demarche : [])
+    .map((line) => ({ expression: cleanString(line && line.expression), explication: cleanString(line && line.explication) }))
+    .filter((line) => line.expression)
+    .slice(0, MAX_DEMARCHE_LINES);
+  if (demarche.length === 0) return null;
+  return {
+    niveau: index + 1,
+    connu: cleanString(item.connu),
+    cherche: cleanString(item.cherche),
+    schema_ascii: normalizeAscii(item.schema_ascii, index),
+    demarche,
+    reponse: cleanString(item.reponse),
+    principe: cleanString(item.principe),
+  };
+}
+
+// Sortie exploitable : fiche incomplète signalée par Gemini, OU 3 niveaux avec une démarche chacun.
+// Utilisée par runGeminiJson : sinon on bascule sur le modèle suivant de la chaîne.
+function isUsableRaw(raw) {
+  if (!raw || typeof raw !== 'object') return false;
+  if (raw.statut === 'incomplet') return true;
+  return Array.isArray(raw.niveaux) && raw.niveaux.length >= 3 && raw.niveaux.slice(0, 3).every((l, i) => normalizeLevel(l, i));
+}
+
+function guessSubject(matiere) {
+  const m = String(matiere || '').toLowerCase();
+  if (/math/.test(m)) return 'math';
+  if (/chim|chem/.test(m)) return 'chimie';
+  if (/phys/.test(m)) return 'physique';
+  if (/scien/.test(m)) return 'sciences';
+  if (/fran|french/.test(m)) return 'francais';
+  if (/angl|english/.test(m)) return 'anglais';
+  return 'autre';
+}
+
+const asLines = (level) =>
+  level.demarche.map((l) => (l.explication ? l.expression + ' (' + l.explication + ')' : l.expression)).join('\n');
+
+// Valide la sortie Moteur D et construit l'Analysis : le format v2 (niveaux, cheminement) pour le
+// rendu visuel + les champs historiques (level_1/2/3_steps, final_answer...) pour la bibliothèque,
+// le générateur de clones, la veille d'examen et l'app mobile.
 function buildAnalysis(raw) {
   if (!raw || typeof raw !== 'object') throw new HttpError(502, 'AI_ERROR');
 
-  // Smart Retry (contrat §3) : image floue/inexploitable → code dédié OCR_FAIL (pas une
-  // erreur technique), message ludique, crédit remboursé comme AI_ERROR côté appelant.
-  if (raw.ocr_fail === true) {
-    throw new HttpError(422, 'OCR_FAIL');
+  // Fiche incomplète (photo floue, donnée coupée, pas un exercice) → OCR_FAIL : message précis de
+  // Gemini, crédit remboursé par l'appelant.
+  if (raw.statut === 'incomplet') {
+    throw new HttpError(422, 'OCR_FAIL', cleanString(raw.message) || undefined);
   }
 
-  const problemType = cleanString(raw.problem_type) || 'Exercice';
+  const niveaux = (Array.isArray(raw.niveaux) ? raw.niveaux.slice(0, 3) : []).map(normalizeLevel);
+  if (niveaux.length < 3 || niveaux.some((l) => !l)) throw new HttpError(502, 'AI_ERROR');
+  const [n1, n2, n3] = niveaux;
 
-  const subject = SUBJECTS.includes(raw.subject_guess) ? raw.subject_guess : 'autre';
-  const finalAnswer = cleanString(raw.final_answer);
+  const matiere = cleanString(raw.matiere_cible);
+  const steps = n3.demarche.map((l) => ({ title: l.expression, text: l.explication || l.expression }));
 
-  let steps = normalizeSteps(raw.level_3_steps);
-  if (steps.length === 0) throw new HttpError(502, 'AI_ERROR');
-  if (steps.length < MIN_STEPS) {
-    // Une seule étape reçue : on complète avec la réponse finale pour garder la cascade lisible.
-    steps = steps.concat([{ title: 'On écrit la réponse', text: finalAnswer || steps[0].text }]);
-  }
-
-  const template = cleanString(raw.template);
-  const slots = normalizeSlots(raw.slots);
-  const level1 = slots ? renderTemplate(template, slots, 'generic') : null;
-  const level2 = slots ? renderTemplate(template, slots, 'value') : null;
-  const cheminement = normalizeCheminement(raw.cheminement);
-  // Phase 2/3 (RPVD_FEATURES_PROMPT.md) : indice gradué, piège classique, traduction de
-  // consigne — mêmes règles de nettoyage que les autres champs texte, jamais bloquants
-  // (absents/vides → simplement pas affichés côté UI, pas d'erreur).
-  const hint = cleanString(raw.hint);
-  const pitfall = cleanString(raw.pitfall);
-  const consigneTranslation = cleanString(raw.consigne_translation);
-  // MÉTHODE RPVD (fiche Identification → Démarche → Principe) — la fiche affichée en priorité
-  // par AnalysisEngine ; `connu`/`cherche`/`demarche`/`principe` sont indépendants du
-  // template/slots ci-dessus (repli silencieux sur l'ancien format si absents, ex. anciennes
-  // analyses déjà sauvegardées dans la bibliothèque avant l'ajout de cette méthode).
-  const connu = normalizeConnu(raw.connu);
-  const cherche = cleanString(raw.cherche);
-  const demarche = cleanString(raw.demarche);
-  const principe = cleanString(raw.principe);
-
-  if (level1 && level2) {
-    return {
-      problem_type: problemType,
-      subject_guess: subject,
-      template,
-      slots,
-      level_1: level1,
-      level_2: level2,
-      level_3_steps: steps,
-      final_answer: finalAnswer,
-      hint,
-      pitfall,
-      consigne_translation: consigneTranslation,
-      cheminement,
-      connu,
-      cherche,
-      demarche,
-      principe,
-    };
-  }
-
-  // Fallback : template inutilisable → textes fournis par Gemini, sans slots.
-  const fallback1 = cleanString(raw.level_1_fallback);
-  const fallback2 = cleanString(raw.level_2_fallback) || fallback1;
-  if (!fallback1) throw new HttpError(502, 'AI_ERROR');
   return {
-    problem_type: problemType,
-    subject_guess: subject,
-    template: fallback1,
+    moteur: 2,
+    problem_type: matiere || 'Exercice',
+    subject_guess: guessSubject(matiere),
+    matiere_cible: matiere,
+    niveaux,
+    cheminement: normalizeCheminement(raw.cheminement),
+    // Champs historiques (voir commentaire de la fonction).
+    template: '',
     slots: [],
-    level_1: fallback1,
-    level_2: fallback2,
+    level_1: asLines(n1),
+    level_2: asLines(n2),
     level_3_steps: steps,
-    final_answer: finalAnswer,
-    hint,
-    pitfall,
-    consigne_translation: consigneTranslation,
-    cheminement,
-    connu,
-    cherche,
-    demarche,
-    principe,
+    final_answer: n3.reponse || n2.reponse || n1.reponse,
+    hint: cleanString(raw.hint),
+    pitfall: cleanString(raw.pitfall),
+    consigne_translation: cleanString(raw.consigne_translation),
   };
 }
 
@@ -399,15 +309,14 @@ function scrub(message, key) {
   return key ? text.split(key).join('***') : text;
 }
 
-// Extrait le texte JSON de la réponse Gemini (tolère des fences ``` éventuelles).
+// Extrait et parse (tolérant au LaTeX mal échappé) le JSON de la réponse Gemini ; null si inexploitable.
 function extractJson(payload) {
   const candidate = payload && Array.isArray(payload.candidates) ? payload.candidates[0] : null;
   const parts = candidate && candidate.content && Array.isArray(candidate.content.parts) ? candidate.content.parts : [];
   const text = parts.map((part) => (typeof part.text === 'string' ? part.text : '')).join('').trim();
   if (!text) return null;
-  const unfenced = text.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
   try {
-    return JSON.parse(unfenced);
+    return safeParseGemini(text);
   } catch (_) {
     return null;
   }
@@ -465,7 +374,7 @@ function estimateCost(inputTokens, outputTokens) {
 // Chaîne de repli + métriques, factorisée pour tout appel Gemini JSON (image ou texte seul) —
 // utilisée par analyzeImage, generateClone, generateExamPrep, analyzeTentative (Phase 1/6/7,
 // RPVD_FEATURES_PROMPT.md). Lance HttpError(502, 'AI_ERROR') si aucun modèle ne répond.
-async function runGeminiJson(body, taskType) {
+async function runGeminiJson(body, taskType, validate) {
   const startTime = Date.now();
   const key = getApiKey();
   if (!key) {
@@ -474,13 +383,32 @@ async function runGeminiJson(body, taskType) {
   }
 
   let payload = null;
+  let raw = null;
   let modelUsed = null;
+  let finishReason = 'inconnu';
   for (let i = activeModelIndex; i < MODEL_CHAIN.length; i += 1) {
     const model = MODEL_CHAIN[i];
     try {
-      payload = await callModel(model, body, key);
+      const candidatePayload = await callModel(model, body, key);
+      if (candidatePayload.promptFeedback && candidatePayload.promptFeedback.blockReason) {
+        payload = candidatePayload; // bloqué : traité plus bas, inutile d'essayer un autre modèle
+        modelUsed = model;
+        break;
+      }
+      const finish = candidatePayload.candidates && candidatePayload.candidates[0] ? candidatePayload.candidates[0].finishReason : 'inconnu';
+      // JSON illisible (ex. MAX_TOKENS) ou structure incomplète : repli sur le modèle suivant, pas de 502.
+      const parsed = extractJson(candidatePayload);
+      if (!parsed || (validate && !validate(parsed))) {
+        const unusable = new Error(parsed ? 'Structure JSON incomplète' : 'Réponse sans JSON exploitable');
+        unusable.message += ` (finishReason: ${finish})`;
+        unusable.modelNotFound = true;
+        throw unusable;
+      }
+      payload = candidatePayload;
+      raw = parsed;
       activeModelIndex = i;
       modelUsed = model;
+      finishReason = finish;
       break;
     } catch (err) {
       // Repliable : modèle retiré (404), surcharge transitoire (503/429, voir callModel) OU
@@ -504,12 +432,7 @@ async function runGeminiJson(body, taskType) {
     throw new HttpError(502, 'AI_ERROR', "L'analyse a été bloquée. Essaie avec une autre photo, ton crédit est remboursé.");
   }
 
-  const raw = extractJson(payload);
-  if (!raw) {
-    const finish = payload.candidates && payload.candidates[0] ? payload.candidates[0].finishReason : 'inconnu';
-    console.error(`[gemini] Réponse sans JSON exploitable (finishReason: ${finish}).`);
-    throw new HttpError(502, 'AI_ERROR');
-  }
+  if (!raw) throw new HttpError(502, 'AI_ERROR');
 
   // Phase 0.2 (RPVD_FEATURES_PROMPT.md) : "logue chaque appel Gemini, connais le coût réel".
   // Le nom des champs suit la casse de l'API Gemini (usageMetadata.*TokenCount).
@@ -525,6 +448,7 @@ async function runGeminiJson(body, taskType) {
     totalTokens: Number(usage.totalTokenCount) || inputTokens + outputTokens,
     estimatedCostUsd: estimateCost(inputTokens, outputTokens),
     modelUsed,
+    finishReason,
   };
   console.log('ANALYSIS_METRIC', JSON.stringify(metrics));
 
@@ -547,7 +471,7 @@ async function analyzeImage({
     userParts.push(
       { inlineData: { mimeType: notationImage.mimeType, data: notationImage.base64 } },
       {
-        text: "L'image ci-dessus est un EXEMPLE de la notation/démarche demandée par l'élève (pas un exercice à résoudre) — imite ce style d'écriture dans level_1/level_2/level_3_steps.",
+        text: "L'image ci-dessus est un EXEMPLE de la notation/démarche demandée par l'élève (pas un exercice à résoudre) — imite ce style d'écriture (symboles, ordre, niveau de détail) dans la démarche des 3 niveaux.",
       },
     );
   }
@@ -573,7 +497,7 @@ async function analyzeImage({
     },
   };
 
-  const { raw, metrics } = await runGeminiJson(body, taskType);
+  const { raw, metrics } = await runGeminiJson(body, taskType, isUsableRaw);
   const analysis = buildAnalysis(raw);
   return { analysis, metrics };
 }
@@ -784,4 +708,5 @@ module.exports = {
   renderTemplate,
   buildAnalysis,
   buildSystemInstruction,
+  isUsableRaw,
 };

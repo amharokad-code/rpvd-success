@@ -46,10 +46,54 @@ export const DEMO_ANALYSIS = {
   hint: 'Regarde le 7 qui traîne à côté du 3x — faut le faire disparaître en premier.',
   pitfall: "Le piège classique : oublier de faire la même opération des deux côtés du signe égal.",
   consigne_translation: 'On te demande de trouver la valeur cachée derrière le x pour que l’équation soit vraie.',
+  // Moteur D « RPVD Visuel v2 » (dev uniquement : ?demo).
+  moteur: 2,
+  matiere_cible: 'Chimie / Solutions et dilution',
+  niveaux: [
+    {
+      niveau: 1,
+      connu: '$C_1$, $C_2$, $V_2$',
+      cherche: '$V_1$',
+      schema_ascii: '  [ C1 ]  --V1-->  [ C2 ]\n  mere             fille (V2)',
+      demarche: [
+        { expression: '$C_1 \\cdot V_1 = C_2 \\cdot V_2$', explication: 'Conservation de la matière' },
+        { expression: '$V_1 = \\frac{C_2 \\cdot V_2}{C_1}$', explication: 'Isoler le volume initial' },
+      ],
+      reponse: '$V_1$ en mL, prélevé à la pipette volumétrique',
+      principe: "Lors d'une dilution, la quantité de soluté prélevée dans la solution mère reste la même dans la solution fille.",
+    },
+    {
+      niveau: 2,
+      connu: '$C_1 = 12\\ \\text{mol/L}$, $C_2 = 0{,}50\\ \\text{mol/L}$, $V_2 = 250\\ \\text{mL}$',
+      cherche: '$V_1$',
+      schema_ascii: '',
+      demarche: [
+        { expression: '$V_1 = \\frac{C_2 \\cdot V_2}{C_1}$', explication: "Même formule, valeurs de l'énoncé" },
+        { expression: '$V_1 = \\frac{0{,}50 \\cdot 250}{12}$', explication: 'Substituer avec les unités cohérentes' },
+      ],
+      reponse: '$V_1 \\approx 10\\ \\text{mL}$ (à confirmer avec ton prof)',
+      principe: "Lors d'une dilution, la quantité de soluté prélevée dans la solution mère reste la même dans la solution fille.",
+    },
+    {
+      niveau: 3,
+      connu: '$C_1 = 12\\ \\text{mol/L}$, $C_2 = 0{,}50\\ \\text{mol/L}$, $V_2 = 250\\ \\text{mL}$',
+      cherche: '$V_1$',
+      schema_ascii: '',
+      demarche: [
+        { expression: '$C_1 \\cdot V_1 = C_2 \\cdot V_2$', explication: 'Conservation de la matière' },
+        { expression: '$12 \\cdot V_1 = 0{,}50 \\cdot 250$', explication: 'Substituer les valeurs' },
+        { expression: '$12 \\cdot V_1 = 125$', explication: 'Calculer le membre de droite' },
+        { expression: '$V_1 = \\frac{125}{12}$', explication: 'Diviser par 12 des deux côtés' },
+        { expression: '$V_1 \\approx 10{,}4\\ \\text{mL}$', explication: 'Calculer la valeur finale' },
+      ],
+      reponse: '$V_1 \\approx 10\\ \\text{mL}$',
+      principe: "Lors d'une dilution, la quantité de soluté prélevée dans la solution mère reste la même dans la solution fille.",
+    },
+  ],
   cheminement: [
-    { type: 'concept', text: "l'inconnue", isFormula: false },
-    { type: 'action', text: 'on enlève 7', isFormula: false },
-    { type: 'action', text: '3x = 15', isFormula: true },
-    { type: 'action', text: 'x = 5', isFormula: true },
+    { type: 'concept', text: 'Conservation de la matière', isFormula: false },
+    { type: 'action', text: 'Isoler $V_1$', isFormula: false },
+    { type: 'action', text: 'Calculer', isFormula: false },
+    { type: 'action', text: 'Choisir la pipette', isFormula: false },
   ],
 }

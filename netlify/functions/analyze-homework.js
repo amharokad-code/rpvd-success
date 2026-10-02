@@ -146,7 +146,7 @@ exports.handler = async (event) => {
     // on sert l'analyse en cache et on saute l'appel Gemini (contrat cache, voir
     // supabase_schema.sql/analysis_cache). Le crédit reste consommé normalement
     // (étape 5, déjà faite) : le cache économise la latence/le coût Gemini, pas le crédit.
-    const contentHash = sha256(`${base64}:${mimeType}:${region}`);
+    const contentHash = sha256(`${base64}:${mimeType}:${region}:moteur-d-v2`);
     const notationKey = preferredNotation || '';
     let analysis;
     let geminiMetrics = null;

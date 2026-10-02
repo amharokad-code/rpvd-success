@@ -9,6 +9,8 @@ import GlassCard from './ui/GlassCard'
 import ArbreCheminement from './ArbreCheminement'
 import TextToSpeech from './TextToSpeech'
 import ClonePractice from './ClonePractice'
+import VisualLevel from './VisualLevel'
+import { stripMath } from './MathText'
 import { isProPlan } from '../lib/plan'
 
 const SLOT_PATTERN = /\{\{(\d+)\}\}/g
@@ -129,6 +131,9 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, o
   const demarche = analysis?.demarche
   const principe = analysis?.principe
   const hasMethode = Boolean(demarche)
+  // Moteur D « RPVD Visuel v2 » : 3 niveaux structurés (analyses plus anciennes : rendu historique ci-dessous).
+  const niveaux = Array.isArray(analysis?.niveaux) && analysis.niveaux.length >= 3 ? analysis.niveaux : null
+  const hasVisuel = Boolean(niveaux)
 
   function goToLevel2() {
     setAnimateValues(true)
@@ -161,7 +166,14 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, o
             </p>
           )}
 
-          {hasMethode ? (
+          {hasVisuel ? (
+            <>
+              <h2 key={level} className="mb-4 font-display text-xl font-bold leading-snug text-slate-50 motion-safe:animate-rise sm:text-2xl">
+                {t.analysis.visuelTitles?.[level - 1]}
+              </h2>
+              <VisualLevel key={level} level={niveaux[level - 1]} answerLabel={t.analysis.finalAnswer} />
+            </>
+          ) : hasMethode ? (
             <>
               {/* MÉTHODE RPVD — Identification : toujours visible, aucun spoiler (juste les
                   variables/mots-clés de l'énoncé, pas la façon de les utiliser). */}
@@ -246,13 +258,13 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, o
         )}
 
         {/* Niveau 3 : étapes en cascade + réponse finale. */}
-        {level >= 3 && (
+        {level >= 3 && (!hasVisuel || hasFullAccess) && (
           <GlassCard as="article" className="motion-safe:animate-rise lg:col-span-2">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-xl font-bold leading-snug text-slate-50 sm:text-2xl">{t.analysis.level3Title}</h2>
+              {!hasVisuel && <h2 className="font-display text-xl font-bold leading-snug text-slate-50 sm:text-2xl">{t.analysis.level3Title}</h2>}
               {/* Phase 4 : mode vocal — réservé au forfait Pro (contrat pricing v3). */}
               {hasFullAccess && steps.length > 0 && (
-                <TextToSpeech text={steps.map((step) => `${step.title}. ${step.text || ''}`).join(' ')} region={region} />
+                <TextToSpeech text={steps.map((step) => stripMath(`${step.title}. ${step.text || ''}`)).join(' ')} region={region} />
               )}
             </div>
 
@@ -265,7 +277,7 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, o
 
             {/* Exercices complexes = plus d'étapes (contrat) : scroll interne au-delà d'une
                 certaine hauteur plutôt que de laisser la carte s'étirer indéfiniment. */}
-            {steps.length > 0 && (
+            {!hasVisuel && steps.length > 0 && (
               <ol className="mt-5 max-h-[40rem] space-y-5 overflow-y-auto pr-1" role="list">
                 {steps.map((step, i) => (
                   <li
@@ -288,7 +300,7 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, o
               </ol>
             )}
 
-            {finalAnswer && (
+            {!hasVisuel && finalAnswer && (
               <div className="mt-6 motion-safe:animate-rise" style={{ animationDelay: `${steps.length * STEP_STAGGER_MS}ms` }}>
                 <p className="text-sm font-medium text-slate-400">{t.analysis.finalAnswer}</p>
                 <p className="mt-2 inline-block max-w-full rounded-full border-2 border-emerald-500/60 bg-emerald-500/10 px-5 py-2 font-mono text-xl font-bold tabular-nums text-emerald-300">

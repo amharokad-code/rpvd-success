@@ -7,6 +7,7 @@
 // partagée) — ce composant ne possède aucun IntersectionObserver ni état de lecture interne,
 // pour éviter deux sources de vérité qui se désynchronisent sur scroll rapide / mobile.
 import { motion } from 'framer-motion'
+import MathText from './MathText'
 
 // concept (bleu) = mot-clé théorique vulgarisé. action (vert) = étape exécutable / formule isolée.
 const STEP_STYLES = {
@@ -44,10 +45,12 @@ function StepBubble({ step, index, active, onSelect }) {
       <div className="min-w-0 flex-1 pb-6">
         {step.isFormula ? (
           <span className="inline-block rounded-lg border border-slate-700/80 bg-slate-950/60 px-3 py-1.5 font-mono text-sm text-slate-100">
-            {step.text}
+            <MathText text={step.text} />
           </span>
         ) : (
-          <p className={`text-sm leading-relaxed ${active ? 'text-slate-100' : 'text-slate-400'}`}>{step.text}</p>
+          <p className={`text-sm leading-relaxed ${active ? 'text-slate-100' : 'text-slate-400'}`}>
+            <MathText text={step.text} />
+          </p>
         )}
       </div>
     </li>

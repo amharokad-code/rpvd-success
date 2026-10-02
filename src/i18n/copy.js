@@ -54,6 +54,7 @@ const qc = {
 
   analysis: {
     level1Title: 'Identification',
+    visuelTitles: ['Le pattern', 'Avec tes chiffres', 'Étape par étape'],
     level2Title: 'La démarche',
     level3Title: 'Le principe',
     connuLabel: 'CONNU',
@@ -321,6 +322,7 @@ const fr = {
 
   analysis: {
     level1Title: 'Identification',
+    visuelTitles: ['Le pattern', 'Avec tes chiffres', 'Étape par étape'],
     level2Title: 'La démarche',
     level3Title: 'Le principe',
     connuLabel: 'CONNU',
@@ -586,6 +588,7 @@ const us = {
 
   analysis: {
     level1Title: 'Identification',
+    visuelTitles: ['The pattern', 'With your numbers', 'Step by step'],
     level2Title: 'The approach',
     level3Title: 'The idea',
     connuLabel: 'GIVEN',
@@ -851,6 +854,7 @@ const uk = {
 
   analysis: {
     level1Title: 'Identification',
+    visuelTitles: ['The pattern', 'With your numbers', 'Step by step'],
     level2Title: 'The approach',
     level3Title: 'The idea',
     connuLabel: 'GIVEN',
