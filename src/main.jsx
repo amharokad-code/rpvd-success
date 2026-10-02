@@ -6,11 +6,13 @@ import LegalPage from './pages/LegalPage'
 import LegalContactPage from './pages/LegalContactPage'
 import BootcampPage from './pages/BootcampPage'
 import AccueilPage from './pages/AccueilPage'
+import BootcampAdminPage from './pages/BootcampAdminPage'
 import './index.css'
 
 // Routage minimal (pas de react-router) :
 //   /          page principale Bootcamp (Académie RPVD)
 //   /accueil   présentation de la méthode (ancienne landing)
+//   /admin/bootcamp  décompte des votes + envoi des courriels (jeton requis)
 //   /app       l'application (connexion par lien magique, puis dashboard)
 //   /legal/*   pages statiques indépendantes
 const LEGAL_DOCS = ['privacy', 'terms', 'cookies', 'refunds']
@@ -49,6 +51,7 @@ function pickRoute() {
   }
   if (path === '/bootcamp') return <BootcampPage />
   if (path === '/accueil') return <AccueilPage />
+  if (path === '/admin/bootcamp') return <BootcampAdminPage />
   if (isLegalContactPath()) return <LegalContactPage />
   const legalDoc = legalDocFromPath()
   if (legalDoc) return <LegalPage doc={legalDoc} />
