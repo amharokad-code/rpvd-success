@@ -29,8 +29,14 @@ function codeBlock(code) {
 </div>`;
 }
 
+// Bouton d'action (lien https uniquement, jamais d'URL arbitraire non validée).
+function buttonBlock({ label, url }) {
+  if (!/^https:\/\//.test(url || '')) return '';
+  return `<p style="margin:20px 0;text-align:center;"><a href="${escapeHtml(url)}" style="display:inline-block;padding:14px 28px;background:#f59e0b;color:#0f172a;font-weight:800;font-size:16px;text-decoration:none;border-radius:14px;">${escapeHtml(label)}</a></p>`;
+}
+
 // Mise en page sombre commune (fond slate-900, carte slate-800, titre amber).
-function layout({ title, paragraphs, codes = [], outro = [] }) {
+function layout({ title, paragraphs, codes = [], outro = [], button = null }) {
   const p = (text) => `<p style="margin:0 0 14px;font-size:16px;line-height:1.6;color:#e2e8f0;">${text}</p>`;
   return `<!doctype html>
 <html lang="fr">
@@ -44,6 +50,7 @@ function layout({ title, paragraphs, codes = [], outro = [] }) {
           ${paragraphs.map((text) => p(escapeHtml(text))).join('\n')}
           ${codes.map(codeBlock).join('\n')}
           ${outro.map((text) => p(escapeHtml(text))).join('\n')}
+          ${button ? buttonBlock(button) : ''}
           <p style="margin:24px 0 0;font-size:13px;line-height:1.5;color:#94a3b8;">Tu n'as rien demandé ? Ignore simplement ce courriel.</p>
         </td></tr>
       </table>
@@ -54,8 +61,9 @@ function layout({ title, paragraphs, codes = [], outro = [] }) {
 }
 
 // Version texte brut (clients sans HTML).
-function plainText({ title, paragraphs, codes = [], outro = [] }) {
-  return [title, '', ...paragraphs, '', ...codes.map((c) => `  ${c}`), '', ...outro].join('\n').trim();
+function plainText({ title, paragraphs, codes = [], outro = [], button = null }) {
+  const link = button ? ['', `${button.label} : ${button.url}`] : [];
+  return [title, '', ...paragraphs, '', ...codes.map((c) => `  ${c}`), '', ...outro, ...link].join('\n').trim();
 }
 
 // Contenu localisé (contrat §3, quadri-langue) : titre/sujet + paragraphes + consignes.
@@ -193,6 +201,60 @@ function activationConfirmedEmail({ plan, credits }) {
   return { subject: `Code activé : ${credits} crédits ajoutés ✅`, html: layout(content), text: plainText(content) };
 }
 
+// --- Academie RPVD : courriels du bootcamp -------------------------------------------------
+
+function mk(content, subject) {
+  return { subject, html: layout(content), text: plainText(content) };
+}
+
+// Confirmation immediate du vote.
+function bootcampVoteEmail({ topic, level }) {
+  return mk(
+    {
+      title: 'Vote reçu ✅',
+      paragraphs: [
+        `Ton vote est enregistré : ${topic} (${level}).`,
+        "Jeudi matin, on retient les sujets les plus demandés. Si le tien est choisi, tu reçois un courriel avec le lien de réservation en priorité, au tarif anticipé.",
+      ],
+      outro: ['Garde un œil sur ta boîte de réception (et les courriels indésirables).'],
+    },
+    'Vote reçu : on te réécrit jeudi ✅',
+  );
+}
+
+// Sujet retenu : lien de reservation.
+function bootcampSelectedEmail({ topic, level, when, url, price }) {
+  return mk(
+    {
+      title: 'Ton sujet est retenu 🎯',
+      paragraphs: [
+        `Bonne nouvelle : « ${topic} » (${level}) fait partie des sessions de cette semaine.`,
+        `Blitz en direct de 2 h 15 : ${when}. Tarif anticipé : ${price}. Les places sont limitées par la salle Zoom.`,
+        'Réserve ta place avec le bouton ci-dessous : le lien Zoom est dans la confirmation.',
+      ],
+      outro: ['Si tu as moins de 18 ans, un parent ou tuteur doit faire la réservation.'],
+      button: { label: 'Réserver ma place', url },
+    },
+    `Ton sujet est retenu : ${topic} 🎯`,
+  );
+}
+
+// Sujet non retenu cette semaine.
+function bootcampNotSelectedEmail({ topic, level, url }) {
+  return mk(
+    {
+      title: 'Pas cette semaine, mais…',
+      paragraphs: [
+        `Ton sujet « ${topic} » (${level}) n'a pas été retenu cette semaine : on prend les plus demandés.`,
+        "Ton vote compte pour la suite. En attendant, tu peux t'entraîner sur n'importe quel exercice avec l'app RPVD Success.",
+      ],
+      outro: [],
+      button: url ? { label: "Essayer l'app", url } : null,
+    },
+    'Cette semaine, ce sera pour un autre sujet',
+  );
+}
+
 // Envoi via Resend. Renvoie { sent: boolean }, ne lance jamais.
 async function sendEmail({ to, subject, html, text }) {
   const apiKey = process.env.RESEND_API_KEY;
@@ -232,5 +294,8 @@ module.exports = {
   subscriptionActivatedEmail,
   subscriptionRenewedEmail,
   activationConfirmedEmail,
+  bootcampVoteEmail,
+  bootcampSelectedEmail,
+  bootcampNotSelectedEmail,
   escapeHtml,
 };

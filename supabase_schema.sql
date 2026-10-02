@@ -1466,3 +1466,32 @@ create index if not exists analytics_events_type_created_idx
 alter table public.analytics_events enable row level security;
 -- Aucune policy pour anon/authenticated : ecriture reservee au service_role
 -- (Netlify Function), lecture seulement via le dashboard Supabase (toi).
+
+
+-- =============================================================================
+-- Academie RPVD : votes "Vote & Clutch" (formulaire en cascade de /)
+-- Un vote par courriel et par semaine (week_key = lundi ISO de la semaine du vote).
+-- Ecriture/lecture reservees au service_role (Netlify Functions submit-vote / bootcamp-admin).
+-- =============================================================================
+create table if not exists public.bootcamp_votes (
+  id           uuid primary key default gen_random_uuid(),
+  email        text not null,
+  level        text not null,
+  subject      text not null,
+  topic        text not null,
+  topic_other  text,
+  exams        text,
+  source       text,
+  week_key     date not null,
+  ip_hash      text,
+  notified_at  timestamptz,
+  notified_kind text check (notified_kind in ('selected', 'not_selected')),
+  created_at   timestamptz not null default now(),
+  unique (email, week_key)
+);
+
+create index if not exists bootcamp_votes_week_idx
+  on public.bootcamp_votes (week_key, level, subject, topic);
+
+alter table public.bootcamp_votes enable row level security;
+-- Aucune policy : acces service_role uniquement.

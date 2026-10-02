@@ -7,9 +7,8 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { BOOTCAMP as B } from '../config/bootcamp'
 import { trackEvent } from '../utils/track'
 import SiteNav from '../components/SiteNav'
+import { LEVELS, OTHER_TOPIC, subjectsFor, topicsFor } from '../config/curriculum'
 
-const LEVELS = ['Sec 1', 'Sec 2', 'Sec 3', 'Sec 4', 'Sec 5']
-const SUBJECTS = ['Mathématiques', 'Sciences', 'Physique', 'Chimie']
 
 const PAINS = [
   ['Tu as « compris » en classe…', 'mais devant l\'examen, plus rien ne revient.'],
@@ -46,12 +45,6 @@ function nextSunday() {
   return d.toLocaleDateString('fr-CA', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
-function encodeForNetlify(data) {
-  return Object.keys(data)
-    .map((k) => `${encodeURIComponent(k)}=${encodeURIComponent(data[k])}`)
-    .join('&')
-}
-
 function Reveal({ children, delay = 0, className = '' }) {
   const reduce = useReducedMotion()
   return (
@@ -81,11 +74,16 @@ function Section({ eyebrow, title, children }) {
 
 export default function BootcampPage() {
   const reduce = useReducedMotion()
-  const [form, setForm] = useState({ email: '', level: '', subject: '', topic: '', exams: '' })
+  const [form, setForm] = useState({ email: '', level: '', subject: '', topic: '', topic_other: '', exams: '', bot_field: '' })
   const [busy, setBusy] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState(null)
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
+  // Cascade : changer le niveau réinitialise matière et sujet ; changer la matière, le sujet.
+  const setLevel = (e) => setForm((f) => ({ ...f, level: e.target.value, subject: '', topic: '', topic_other: '' }))
+  const setSubject = (e) => setForm((f) => ({ ...f, subject: e.target.value, topic: '', topic_other: '' }))
+  const subjects = subjectsFor(form.level)
+  const topics = topicsFor(form.level, form.subject)
   const sunday = nextSunday()
 
   useEffect(() => {
@@ -100,10 +98,11 @@ export default function BootcampPage() {
     setBusy(true)
     setError(null)
     try {
-      const res = await fetch('/', {
+      const src = new URLSearchParams(window.location.search).get('src') || new URLSearchParams(window.location.search).get('utm_source') || ''
+      const res = await fetch('/.netlify/functions/submit-vote', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: encodeForNetlify({ 'form-name': 'bootcamp-vote', ...form }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, source: src }),
       })
       if (!res.ok) throw new Error('SUBMIT_FAILED')
       trackEvent('cta_click', { path: '/bootcamp#vote' })
@@ -274,30 +273,36 @@ export default function BootcampPage() {
             {sent ? (
               <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-6">
                 <p className="font-display text-xl font-bold text-emerald-300">✓ Vote reçu</p>
-                <p className="mt-2 text-emerald-200">On t'écrit dès que les sessions de dimanche sont ouvertes. Surveille tes courriels.</p>
+                <p className="mt-2 text-emerald-200">Un courriel de confirmation arrive. Jeudi, si ton sujet est retenu, tu reçois le lien de réservation en priorité.</p>
               </motion.div>
             ) : (
-              <form name="bootcamp-vote" method="POST" data-netlify="true" netlify-honeypot="bot-field" onSubmit={submit} className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur sm:p-7">
-                <input type="hidden" name="form-name" value="bootcamp-vote" />
-                <p hidden><label>Ne pas remplir <input name="bot-field" /></label></p>
-                <label className="flex flex-col gap-2 text-sm"><span className="font-semibold">Courriel</span>
-                  <input type="email" name="email" required value={form.email} onChange={set('email')} className={input} /></label>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="flex flex-col gap-2 text-sm"><span className="font-semibold">Niveau</span>
-                    <select name="level" required value={form.level} onChange={set('level')} className={input}>
-                      <option value="" disabled>—</option>{LEVELS.map((l) => <option key={l}>{l}</option>)}</select></label>
-                  <label className="flex flex-col gap-2 text-sm"><span className="font-semibold">Matière</span>
-                    <select name="subject" required value={form.subject} onChange={set('subject')} className={input}>
-                      <option value="" disabled>—</option>{SUBJECTS.map((s) => <option key={s}>{s}</option>)}</select></label>
-                </div>
-                <label className="flex flex-col gap-2 text-sm"><span className="font-semibold">Le chapitre à détruire</span>
-                  <input name="topic" required value={form.topic} onChange={set('topic')} placeholder="ex. Fractions, Équations, Optique…" className={input} /></label>
-                <label className="flex flex-col gap-2 text-sm"><span className="font-semibold">Tes examens cette semaine <span className="font-normal text-slate-500">(optionnel)</span></span>
-                  <input name="exams" value={form.exams} onChange={set('exams')} className={input} /></label>
-                {error && <p role="alert" className="rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</p>}
-                <button type="submit" disabled={busy} className={cta + ' w-full disabled:opacity-60'}>{busy ? '…' : 'Envoyer mon vote'}</button>
-                <p className="text-center text-xs text-slate-500">Ton courriel sert uniquement à t'avertir des sessions. Aucune revente.</p>
-              </form>
+              <form onSubmit={submit} className="flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur sm:p-7">
+            <p hidden aria-hidden="true"><label>Ne pas remplir <input tabIndex={-1} autoComplete="off" value={form.bot_field} onChange={set('bot_field')} /></label></p>
+            <label className="flex flex-col gap-2 text-sm"><span className="font-semibold">Courriel</span>
+              <input type="email" required autoComplete="email" value={form.email} onChange={set('email')} className={input} /></label>
+            <label className="flex flex-col gap-2 text-sm"><span className="font-semibold">Ton niveau</span>
+              <select required value={form.level} onChange={setLevel} className={input}>
+                <option value="" disabled>Choisis ton niveau</option>{LEVELS.map((l) => <option key={l}>{l}</option>)}</select></label>
+            {form.level && (
+              <motion.label initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-2 text-sm"><span className="font-semibold">Ta matière</span>
+                <select required value={form.subject} onChange={setSubject} className={input}>
+                  <option value="" disabled>Choisis ta matière</option>{subjects.map(([name]) => <option key={name}>{name}</option>)}</select></motion.label>
+            )}
+            {form.subject && (
+              <motion.label initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-2 text-sm"><span className="font-semibold">Le sujet à détruire</span>
+                <select required value={form.topic} onChange={set('topic')} className={input}>
+                  <option value="" disabled>Choisis ton sujet</option>{topics.map((t) => <option key={t}>{t}</option>)}</select></motion.label>
+            )}
+            {form.topic === OTHER_TOPIC && (
+              <motion.label initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-2 text-sm"><span className="font-semibold">Précise ton sujet</span>
+                <input required value={form.topic_other} onChange={set('topic_other')} className={input} /></motion.label>
+            )}
+            <label className="flex flex-col gap-2 text-sm"><span className="font-semibold">Tes examens cette semaine <span className="font-normal text-slate-500">(optionnel)</span></span>
+              <input value={form.exams} onChange={set('exams')} className={input} /></label>
+            {error && <p role="alert" className="rounded-2xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{error}</p>}
+            <button type="submit" disabled={busy} className={cta + ' w-full disabled:opacity-60'}>{busy ? '…' : 'Envoyer mon vote'}</button>
+            <p className="text-center text-xs text-slate-500">Ton courriel sert uniquement à t'avertir des sessions. Aucune revente.</p>
+          </form>
             )}
           </Reveal>
         </Section>
