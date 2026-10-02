@@ -17,8 +17,8 @@ const PAGE_META = {
     en: { title: 'Privacy Policy — RPVD Success', description: 'How RPVD Success collects, uses and protects your account and exercise photo data.' },
   },
   terms: {
-    fr: { title: "Conditions d'utilisation — RPVD Success", description: "Les règles d'utilisation de l'application RPVD Success : crédits, comptes, usage acceptable." },
-    en: { title: 'Terms of Service — RPVD Success', description: 'The rules for using the RPVD Success app: credits, accounts, acceptable use.' },
+    fr: { title: "Conditions d'utilisation — RPVD Success", description: "Les règles d'utilisation du site RPVD Success : crédits, comptes, usage acceptable." },
+    en: { title: 'Terms of Service — RPVD Success', description: 'The rules for using the RPVD Success website: credits, accounts, acceptable use.' },
   },
   cookies: {
     fr: { title: 'Politique de cookies — RPVD Success', description: 'Les cookies et technologies similaires utilisés par RPVD Success, et comment les gérer.' },
@@ -103,7 +103,7 @@ export default function LegalPage({ doc }) {
 
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-4 py-10">
-      <a href="/" className="text-sm text-amber-400 hover:underline">
+      <a href="/" className="inline-block py-2.5 text-sm text-amber-400 hover:underline">
         {lang === 'fr' ? '← Retour à RPVD Success' : '← Back to RPVD Success'}
       </a>
       <div className="mt-6 flex flex-col gap-3 text-sm">{renderBody(text)}</div>

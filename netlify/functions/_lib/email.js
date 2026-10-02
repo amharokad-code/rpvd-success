@@ -72,28 +72,28 @@ const TRIAL_EMAIL_TEXT = {
     subject: "Tes 3 codes d'essai RPVD Success 🎁",
     title: "Tes codes d'essai gratuits sont là 🎁",
     intro: (look) => `Salut ! ${look} : chaque code donne 3 analyses de devoirs et se lie à un seul appareil. Un enfant, un appareil, un code.`,
-    howTo: "Pour activer : ouvre l'app RPVD Success, va dans « J'ai un code », tape-le et c'est parti.",
+    howTo: "Pour activer : ouvre le site RPVD Success, va dans « J'ai un code », tape-le et c'est parti.",
     validity: 'Les codes sont valides 30 jours.',
   },
   fr: {
     subject: "Tes 3 codes d'essai RPVD Success 🎁",
     title: "Tes codes d'essai gratuits sont là 🎁",
     intro: (look) => `Salut ! ${look} : chaque code donne 3 analyses de devoirs et se lie à un seul appareil. Un enfant, un appareil, un code.`,
-    howTo: "Pour activer : ouvre l'app RPVD Success, va dans « J'ai un code », tape-le et c'est parti.",
+    howTo: "Pour activer : ouvre le site RPVD Success, va dans « J'ai un code », tape-le et c'est parti.",
     validity: 'Les codes sont valides 30 jours.',
   },
   us: {
     subject: 'Your 3 RPVD Success trial codes 🎁',
     title: 'Your free trial codes are here 🎁',
     intro: (look) => `Hey! ${look}: each code gives 3 homework analyses and locks to one device. One kid, one device, one code.`,
-    howTo: 'To activate: open the RPVD Success app, go to "I have a code", type it in, and you\'re set.',
+    howTo: 'To activate: open the RPVD Success site, go to "I have a code", type it in, and you\'re set.',
     validity: 'Codes are valid for 30 days.',
   },
   uk: {
     subject: 'Your 3 RPVD Success trial codes 🎁',
     title: 'Your free trial codes are here 🎁',
     intro: (look) => `Hiya! ${look}: each code gives 3 homework analyses and locks to one device. One kid, one device, one code.`,
-    howTo: 'To activate: open the RPVD Success app, go to "I have a code", type it in, and off you go.',
+    howTo: 'To activate: open the RPVD Success site, go to "I have a code", type it in, and off you go.',
     validity: 'Codes are valid for 30 days.',
   },
 };
@@ -127,8 +127,8 @@ function premiumCodeEmail({ codes, plan, credits }) {
     codes,
     outro: [
       multiple
-        ? "Pour activer : chacun ouvre l'app RPVD Success sur SON appareil, va dans « J'ai un code », tape un des codes ci-dessus (un code par appareil)."
-        : "Pour activer : ouvre l'app RPVD Success, va dans « J'ai un code », tape-le et c'est parti.",
+        ? "Pour activer : chacun ouvre le site RPVD Success sur SON appareil, va dans « J'ai un code », tape un des codes ci-dessus (un code par appareil)."
+        : "Pour activer : ouvre le site RPVD Success, va dans « J'ai un code », tape-le et c'est parti.",
       'Garde ce courriel précieusement : chaque code est à usage unique.',
     ],
   };
@@ -246,10 +246,10 @@ function bootcampNotSelectedEmail({ topic, level, url }) {
       title: 'Pas cette semaine, mais…',
       paragraphs: [
         `Ton sujet « ${topic} » (${level}) n'a pas été retenu cette semaine : on prend les plus demandés.`,
-        "Ton vote compte pour la suite. En attendant, tu peux t'entraîner sur n'importe quel exercice avec l'app RPVD Success.",
+        "Ton vote compte pour la suite. En attendant, tu peux t'entraîner sur n'importe quel exercice avec le site RPVD Success.",
       ],
       outro: [],
-      button: url ? { label: "Essayer l'app", url } : null,
+      button: url ? { label: "Essayer le site", url } : null,
     },
     'Cette semaine, ce sera pour un autre sujet',
   );

@@ -1,4 +1,4 @@
-// Point d'entrée React : monte l'application et enregistre le service worker en production.
+// Point d'entrée React : monte le site et retire tout ancien service worker (le site n'est plus une PWA).
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
@@ -13,7 +13,7 @@ import './index.css'
 //   /          page principale Bootcamp (Académie RPVD)
 //   /accueil   présentation de la méthode (ancienne landing)
 //   /admin/bootcamp  décompte des votes + envoi des courriels (jeton requis)
-//   /app       l'application (connexion par lien magique, puis dashboard)
+//   /app       l'outil d'analyse (connexion par lien magique, puis tableau de bord)
 //   /legal/*   pages statiques indépendantes
 const LEGAL_DOCS = ['privacy', 'terms', 'cookies', 'refunds']
 function legalDocFromPath() {
@@ -25,19 +25,12 @@ function isLegalContactPath() {
   return typeof window !== 'undefined' && window.location.pathname === '/legal/contact'
 }
 
-// Retours qui doivent atterrir dans l'app et non sur la page Bootcamp : retour du lien magique
-// Supabase (jetons dans le hash ou ?code=), ou app PWA installée lancée depuis l'écran d'accueil.
+// Retour du lien magique Supabase (jetons dans le hash ou ?code=) : doit atterrir sur /app, pas sur la page Bootcamp.
 function shouldRedirectRootToApp() {
   if (typeof window === 'undefined') return false
   const { hash, search } = window.location
   const authCallback = /access_token=|refresh_token=|error_description=|type=magiclink/.test(hash) || /[?&]code=/.test(search)
-  let standalone = false
-  try {
-    standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
-  } catch {
-    standalone = false
-  }
-  return authCallback || standalone
+  return authCallback
 }
 
 function pickRoute() {
@@ -63,11 +56,13 @@ if (rootElement) {
   createRoot(rootElement).render(<StrictMode>{pickRoute()}</StrictMode>)
 }
 
-// Le service worker n'est enregistré qu'en production : en dev il masquerait le HMR.
-if (import.meta.env.PROD && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
-      console.error('Service worker : enregistrement impossible', err)
-    })
-  })
+// Le site n'est plus une PWA : on retire le service worker (et ses caches) installé chez d'anciens visiteurs.
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .getRegistrations()
+    .then((regs) => regs.forEach((r) => r.unregister()))
+    .catch(() => {})
+  if (window.caches) {
+    caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {})
+  }
 }

@@ -1,12 +1,12 @@
 // Navigation globale entre les 3 pages du site : Bootcamp (page principale, "/"), Accueil
-// (présentation de la méthode, "/accueil") et Application (l'app elle-même, "/app").
+// (présentation de la méthode, "/accueil") et Analyser (l'outil, "/app").
 // Pilule flottante en verre, identique sur toutes les pages publiques.
 import Logo from './Logo'
 
 const LINKS = [
   { id: 'bootcamp', href: '/', label: 'Bootcamp' },
   { id: 'accueil', href: '/accueil', label: 'Accueil' },
-  { id: 'app', href: '/app', label: 'Application' },
+  { id: 'app', href: '/app', label: 'Analyser' },
 ]
 
 export default function SiteNav({ current, className = '' }) {

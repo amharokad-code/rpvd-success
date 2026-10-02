@@ -302,7 +302,7 @@ export default function LandingPage({ market, lang, onAgeConfirm }) {
                   {l.ctaPrimary}
                 </a>
               </Magnetic>
-              <a href="#how" onClick={scrollToHow} className="focus-ring squishy text-sm font-semibold text-slate-300 hover:text-slate-100">
+              <a href="#how" onClick={scrollToHow} className="focus-ring squishy inline-flex min-h-[44px] items-center text-sm font-semibold text-slate-300 hover:text-slate-100">
                 {l.ctaSecondary} →
               </a>
             </div>

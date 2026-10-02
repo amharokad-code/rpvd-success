@@ -1,6 +1,6 @@
 // Landing de l'Académie RPVD (/bootcamp) — page statique indépendante (comme /legal/contact),
 // sans authentification. Vote Netlify Forms, sessions pilotées par src/config/bootcamp.js,
-// pont vers la PWA. Urgence = la vraie (l'examen approche) ; prix et places réels uniquement,
+// pont vers le site RPVD. Urgence = la vraie (l'examen approche) ; prix et places réels uniquement,
 // jamais de faux compte à rebours ni de fausse rareté (contrat honnêteté commerciale).
 import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -33,7 +33,7 @@ const TIMELINE = [
 const FAQ = [
   ["C'est quoi la différence avec un cours ?", "Zéro théorie abstraite. On t'enseigne la démarche de résolution, étape par étape, appliquée aux exercices qui piègent le plus."],
   ['Combien de places ?', `La salle Zoom est plafonnée à ${B.roomCap} personnes. On vend un peu moins pour garder une marge de sécurité.`],
-  ['Et si je ne comprends pas ?', "Période de questions de 30 min en direct, puis tu peux refaire la démarche sur tes propres devoirs avec l'app RPVD Success."],
+  ['Et si je ne comprends pas ?', "Période de questions de 30 min en direct, puis tu peux refaire la démarche sur tes propres devoirs avec le site RPVD Success."],
   ['Remboursement ?', 'Voir la politique de remboursement : /legal/refunds.'],
   ['Je suis mineur(e) ?', 'Un parent ou tuteur doit effectuer la réservation et le paiement.'],
 ]
@@ -177,7 +177,7 @@ export default function BootcampPage() {
             <a href="#vote" onClick={() => trackEvent('cta_click', { path: '/bootcamp#hero' })} className={cta}>
               Je veux ma place pour {sunday}
             </a>
-            <a href="/accueil" className="text-sm font-semibold text-slate-300 underline-offset-4 transition hover:text-amber-400 hover:underline">
+            <a href="/accueil" className="inline-block py-2 text-sm font-semibold text-slate-300 underline-offset-4 transition hover:text-amber-400 hover:underline">
               Découvrir la méthode RPVD →
             </a>
             <p className="text-sm text-slate-400">
@@ -314,7 +314,7 @@ export default function BootcampPage() {
               <p className="font-display text-2xl font-bold text-slate-50">{B.premiumPriceMin}-{B.premiumPriceMax} $ <span className="text-base font-normal text-slate-400">· micro-groupe de 4-5</span></p>
               <ul className="mt-4 space-y-2 text-slate-300">
                 <li>✓ Marathon intensif sur un domaine complet</li>
-                <li>✓ App RPVD Success incluse</li>
+                <li>✓ Accès au site RPVD Success inclus</li>
                 <li>✓ Coaching 1-on-1 de 5-15 min avant tes examens</li>
                 <li>✓ Garantie « Démarche maîtrisée » : reprise individuelle gratuite si une démarche n'est pas assimilée</li>
               </ul>
@@ -343,9 +343,9 @@ export default function BootcampPage() {
             <Reveal delay={0.1}>
               <a href="/app?src=bootcamp" onClick={() => trackEvent('cta_click', { path: '/bootcamp#door-app' })} className="group block h-full rounded-3xl border border-amber-500/40 bg-gradient-to-b from-amber-500/10 to-transparent p-6 transition hover:-translate-y-1 hover:border-amber-400">
                 <p className="text-3xl">📸</p>
-                <p className="mt-3 font-display text-xl font-bold text-slate-50">Application</p>
+                <p className="mt-3 font-display text-xl font-bold text-slate-50">Le site</p>
                 <p className="mt-1 text-sm text-slate-400">Une photo de ton exercice, le pattern expliqué en 3 niveaux. 24/7.</p>
-                <p className="mt-4 text-sm font-semibold text-amber-400 transition group-hover:translate-x-1">Ouvrir l'app →</p>
+                <p className="mt-4 text-sm font-semibold text-amber-400 transition group-hover:translate-x-1">Ouvrir le site →</p>
               </a>
             </Reveal>
           </div>
@@ -365,8 +365,8 @@ export default function BootcampPage() {
           </div>
         </Section>
 
-        <p className="mt-20 text-center text-xs text-slate-500">
-          <a href="/accueil" className="hover:underline">Accueil</a> · <a href="/app" className="hover:underline">Application</a> · <a href="/legal/terms" className="hover:underline">Conditions</a> · <a href="/legal/privacy" className="hover:underline">Confidentialité</a> · <a href="/legal/refunds" className="hover:underline">Remboursements</a>
+        <p className="mt-20 flex flex-wrap justify-center gap-x-1 text-center text-xs text-slate-500">
+          <a href="/accueil" className="inline-block px-2 py-2.5 hover:underline">Accueil</a> <a href="/app" className="inline-block px-2 py-2.5 hover:underline">Analyser</a> <a href="/legal/terms" className="inline-block px-2 py-2.5 hover:underline">Conditions</a> <a href="/legal/privacy" className="inline-block px-2 py-2.5 hover:underline">Confidentialité</a> <a href="/legal/refunds" className="inline-block px-2 py-2.5 hover:underline">Remboursements</a>
         </p>
       </div>
 

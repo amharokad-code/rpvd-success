@@ -108,7 +108,7 @@ export default function LegalContactPage() {
 
   return (
     <div className="mx-auto min-h-screen max-w-md px-4 py-10 text-slate-200">
-      <a href="/" className="text-sm text-amber-400 hover:underline">
+      <a href="/" className="inline-block py-2.5 text-sm text-amber-400 hover:underline">
         {c.back}
       </a>
 

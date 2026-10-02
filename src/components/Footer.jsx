@@ -21,9 +21,9 @@ export default function Footer({ className = '' }) {
   const { region } = useCopy()
   const links = region === 'us' || region === 'uk' ? LINKS_EN : LINKS_FR
   return (
-    <footer className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-slate-500 ${className}`}>
+    <footer className={`flex flex-wrap items-center justify-center gap-x-4 gap-y-0 text-xs text-slate-500 ${className}`}>
       {links.map((link) => (
-        <a key={link.href} href={link.href} className="hover:text-slate-300 hover:underline">
+        <a key={link.href} href={link.href} className="inline-block py-2 hover:text-slate-300 hover:underline">
           {link.label}
         </a>
       ))}
