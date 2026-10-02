@@ -37,7 +37,7 @@ src/app/           routes (Expo Router) : onboarding, (auth)/login, (tabs)/{inde
 src/context/       AppContext (région + onboarding), AuthContext (session + profil + RevenueCat), AnalysisStore
 src/lib/           api.ts (Functions + RPC), supabase.ts, storage.ts (SecureStore par morceaux), device.ts (empreinte),
                    image.ts (capture + compression), purchases.ts (RevenueCat), push.ts, track.ts, plan.ts
-src/components/    ui.tsx (primitives), AnalysisView.tsx (Identification → Démarche → Principe + cheminement), LegalLinks.tsx
+src/components/    ui.tsx (primitives), AnalysisView.tsx (3 niveaux), MathFiche.tsx (rendu LaTeX : WebView + KaTeX embarqué, hors ligne), LegalLinks.tsx
 ```
 
 Principes : l'app **ne crédite jamais rien** (le serveur est la source de vérité) ; **jamais d'appel direct à
@@ -91,3 +91,9 @@ npx eas-cli@latest update --branch production --message "..."   # correctif JS s
 
 Apple 99 $ US/an · Google 25 $ US unique · EAS gratuit pour démarrer · RevenueCat gratuit jusqu'à 2 500 $/mois
 suivis · commission des stores 15 % (petites entreprises). Review Apple : quelques jours.
+
+## Rendu LaTeX (Moteur D v2)
+
+Les fiches `niveaux[]` sont rendues par `MathFiche` : une WebView par niveau affiché, KaTeX embarqué
+(`src/lib/katexSource.ts`, généré — `node scripts/build-katex-asset.cjs` après une mise à jour de `katex`),
+sortie MathML, aucun réseau. `react-native-webview` a du code natif : il faut un nouveau development build.

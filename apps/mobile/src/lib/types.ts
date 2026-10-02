@@ -3,6 +3,17 @@ import type { Region } from '../config'
 export type CheminementStep = { type: 'concept' | 'action'; text: string; isFormula: boolean }
 export type Level3Step = { title: string; text: string }
 
+// Moteur D « RPVD Visuel v2 » : un des 3 niveaux (expressions en LaTeX, rendues par MathFiche).
+export type VisualLevel = {
+  niveau: number
+  connu: string
+  cherche: string
+  schema_ascii: string
+  demarche: { expression: string; explication: string }[]
+  reponse: string
+  principe: string
+}
+
 // Objet `Analysis` renvoyé par analyze-homework (voir netlify/functions/_lib/gemini.js).
 // hint/pitfall/consigne_translation sont retirés côté serveur pour les comptes Basic.
 export type Analysis = {
@@ -22,6 +33,8 @@ export type Analysis = {
   cherche?: string
   demarche?: string
   principe?: string
+  // Moteur D v2 : 3 niveaux structurés (absents des analyses plus anciennes).
+  niveaux?: VisualLevel[]
 }
 
 export type AnalyzeResponse = {

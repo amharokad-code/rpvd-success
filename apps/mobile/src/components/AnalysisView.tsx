@@ -3,12 +3,14 @@
 // et le détail étape par étape au niveau 3. L'arbre de cheminement est le résumé condensé de la
 // démarche (sur le web il vit dans la colonne de droite ; sur téléphone, sous la démarche).
 // Les analyses sauvegardées avant la méthode (sans `demarche`) retombent sur level_1 / level_2.
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useApp } from '../context/AppContext'
 import { isProPlan } from '../lib/plan'
 import type { Analysis, CheminementStep } from '../lib/types'
 import { colors, font, spacing } from '../theme'
+import { plainMath } from '../lib/math'
+import { MathFiche } from './MathFiche'
 import { Body, Button, Card, Chip, FadeIn, H2, Muted } from './ui'
 
 type Props = {
@@ -37,7 +39,7 @@ function CheminementTree({ steps, title }: { steps: CheminementStep[]; title: st
               step.type === 'concept' && { color: colors.textMuted },
             ]}
           >
-            {step.text}
+            {plainMath(step.text)}
           </Text>
         </View>
       ))}
@@ -61,10 +63,13 @@ export function AnalysisView({ analysis, plan, saved, canSave, onSave, onNew }: 
     setShowHint(false)
   }, [analysis])
 
+  // Moteur D v2 : 3 niveaux LaTeX rendus dans MathFiche (les analyses plus anciennes gardent le rendu ci-dessous).
+  const niveaux = analysis.niveaux && analysis.niveaux.length >= 3 ? analysis.niveaux : null
+  const mathLabels = useMemo(() => ({ connu: a.connu, cherche: a.cherche, answer: a.finalAnswer }), [a])
   const hasMethode = Boolean(analysis.demarche)
-  const steps = analysis.level_3_steps ?? []
+  const steps = niveaux ? [] : (analysis.level_3_steps ?? [])
   const tree = analysis.cheminement ?? []
-  const hasLevel3 = steps.length > 0 || Boolean(analysis.final_answer) || Boolean(analysis.principe)
+  const hasLevel3 = Boolean(niveaux) || steps.length > 0 || Boolean(analysis.final_answer) || Boolean(analysis.principe)
 
   function finish() {
     if (level === 1) setFirstTry(true)
@@ -81,7 +86,14 @@ export function AnalysisView({ analysis, plan, saved, canSave, onSave, onNew }: 
 
       <FadeIn>
         <Card>
-          {hasMethode ? (
+          {niveaux ? (
+            <>
+              <H2>{a.visuelTitles[level - 1]}</H2>
+              <View style={{ marginTop: spacing.md }}>
+                <MathFiche key={level} level={niveaux[level - 1]} labels={mathLabels} />
+              </View>
+            </>
+          ) : hasMethode ? (
             <>
               <H2>{a.level1Title}</H2>
               <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
@@ -141,12 +153,14 @@ export function AnalysisView({ analysis, plan, saved, canSave, onSave, onNew }: 
         </Card>
       </FadeIn>
 
-      {hasMethode && level >= 2 ? (
+      {(hasMethode || niveaux) && level >= 2 ? (
         <FadeIn>
-          <Card accent="amber">
-            <H2>{a.level2Title}</H2>
-            <Body style={{ marginTop: spacing.sm, lineHeight: 28, fontSize: 17 }}>{analysis.demarche}</Body>
-          </Card>
+          {niveaux ? null : (
+            <Card accent="amber">
+              <H2>{a.level2Title}</H2>
+              <Body style={{ marginTop: spacing.sm, lineHeight: 28, fontSize: 17 }}>{analysis.demarche}</Body>
+            </Card>
+          )}
           {tree.length > 0 ? <CheminementTree steps={tree} title={a.treeTitle} /> : null}
         </FadeIn>
       ) : null}
@@ -179,7 +193,7 @@ export function AnalysisView({ analysis, plan, saved, canSave, onSave, onNew }: 
             </Card>
           ) : null}
 
-          {analysis.final_answer ? (
+          {!niveaux && analysis.final_answer ? (
             <Card>
               <Muted>{a.finalAnswer}</Muted>
               <View style={styles.answerBox}>

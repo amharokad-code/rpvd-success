@@ -67,6 +67,7 @@ const fr = {
   analysis: {
     patternLabel: 'Pattern',
     level1Title: 'Identification',
+    visuelTitles: ['Le pattern', 'Avec tes chiffres', 'Étape par étape'],
     level2Title: 'La démarche',
     level3Title: 'Le principe',
     connu: 'CONNU',
@@ -227,6 +228,7 @@ const en: Copy = {
   analysis: {
     patternLabel: 'Pattern',
     level1Title: 'Identification',
+    visuelTitles: ['The pattern', 'With your numbers', 'Step by step'],
     level2Title: 'The approach',
     level3Title: 'The idea',
     connu: 'GIVEN',
