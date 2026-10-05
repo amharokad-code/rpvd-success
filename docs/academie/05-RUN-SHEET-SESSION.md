@@ -1,7 +1,9 @@
 # Déroulé d'une session (1 h 30)
 
 ## Avant (T-30 min)
-- [ ] Ouvrir la réunion Zoom de la session (créée automatiquement, ou celle collée dans l'admin). Micro des participants coupé à l'entrée, chat ouvert.
+- [ ] Ouvrir la réunion Zoom de la session (créée automatiquement, ou celle collée dans l'admin).
+- [ ] Menu Sécurité : « Démarrer la vidéo » décoché, « Réactiver leur micro » décoché, chat privé désactivé, aucun enregistrement. Détails : `docs/legal/02-ZOOM-PROTECTION-ELEVES.md`.
+- [ ] Jamais demander une caméra, un nom complet ou un âge. Donner la parole = « Demander de réactiver le micro ».
 - [ ] Vérifier dans l'admin (« Participants ») que les liens sont partis (colonne « lien ✓ »). Sinon : « Envoyer les liens maintenant ».
 - [ ] Tablette d'écriture + écran partagé prêts. Un deuxième membre de l'équipe modère le chat.
 - [ ] La démarche (3-4 étapes) écrite, les 3-4 exercices-pièges prêts du plus simple au plus dur, la fiche des règles d'or.

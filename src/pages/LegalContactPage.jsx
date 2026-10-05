@@ -1,6 +1,8 @@
 // Formulaire de contact légal (RGPD/Loi 25) — capté par Netlify Forms, aucun backend requis.
 // Rendu par le même routeur statique que LegalPage (src/main.jsx), sans authentification.
 import { useEffect, useState } from 'react'
+import BUSINESS from '../legal/business.json'
+import { CARD, PageShell } from '../components/bootcamp/BootcampUI'
 
 const PAGE_META = {
   fr: { title: 'Contact légal — RPVD Success', description: 'Exerce tes droits RGPD ou Loi 25 (accès, effacement, rectification) sur tes données RPVD Success.' },
@@ -23,12 +25,15 @@ function detectLang() {
 
 const COPY = {
   fr: {
-    back: '← Retour à RPVD Success',
+    back: '← Politique de confidentialité',
+    intro: "Accès, copie, correction, suppression, retrait du consentement : réponse sous 30 jours, gratuitement.",
     title: 'Contact légal',
     emailLabel: 'Ton courriel',
     typeLabel: 'Type de demande',
     types: [
       { value: 'access', label: "Droit d'accès (RGPD / Loi 25)" },
+      { value: 'portability', label: 'Copie de mes données (portabilité)' },
+      { value: 'withdraw', label: 'Retrait de mon consentement / désabonnement' },
       { value: 'delete', label: "Droit à l'effacement (« droit à l'oubli »)" },
       { value: 'rectify', label: 'Rectification de données' },
       { value: 'parental', label: 'Consentement parental' },
@@ -42,12 +47,15 @@ const COPY = {
     directEmail: 'Ou directement par courriel : ',
   },
   en: {
-    back: '← Back to RPVD Success',
+    back: '← Privacy Policy',
+    intro: 'Access, copy, correction, deletion, withdrawal of consent: answer within 30 days, free of charge.',
     title: 'Legal Contact',
     emailLabel: 'Your email',
     typeLabel: 'Request type',
     types: [
       { value: 'access', label: 'Right of access (GDPR / UK GDPR)' },
+      { value: 'portability', label: 'Copy of my data (portability)' },
+      { value: 'withdraw', label: 'Withdraw consent / unsubscribe' },
       { value: 'delete', label: 'Right to erasure ("right to be forgotten")' },
       { value: 'rectify', label: 'Data rectification' },
       { value: 'parental', label: 'Parental consent' },
@@ -62,7 +70,7 @@ const COPY = {
   },
 }
 
-const SUPPORT_EMAIL = 'support@rpvdsuccess.app'
+const SUPPORT_EMAIL = BUSINESS.email
 
 // Encodage requis par Netlify Forms pour une soumission AJAX (form-encoded, pas JSON).
 function encodeForNetlify(data) {
@@ -107,12 +115,14 @@ export default function LegalContactPage() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md px-4 py-10 text-slate-200">
-      <a href="/" className="inline-block py-2.5 text-sm text-amber-400 hover:underline">
+    <PageShell current="" width="max-w-xl">
+      <a href="/legal/privacy" className="inline-block py-2.5 text-sm text-pyramid-orange hover:underline">
         {c.back}
       </a>
 
-      <h1 className="mt-6 font-display text-2xl font-bold text-slate-50">{c.title}</h1>
+      <h1 className="mt-6 font-display text-4xl font-bold text-slate-50">{c.title}</h1>
+      <p className="mt-2 text-sm text-slate-400">{c.intro}</p>
+      <div className={`${CARD} mt-6 rounded-3xl p-5 sm:p-6`}>
 
       {sent ? (
         <div className="mt-6 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4">
@@ -189,12 +199,14 @@ export default function LegalContactPage() {
         </form>
       )}
 
+      </div>
+
       <p className="mt-6 text-xs text-slate-500">
         {c.directEmail}
-        <a href={`mailto:${SUPPORT_EMAIL}`} className="text-amber-400 hover:underline">
+        <a href={`mailto:${SUPPORT_EMAIL}`} className="text-pyramid-orange hover:underline">
           {SUPPORT_EMAIL}
         </a>
       </p>
-    </div>
+    </PageShell>
   )
 }

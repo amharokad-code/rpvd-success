@@ -8,13 +8,17 @@
 //   4. dim ≥ 8 h     courriel « places libérées » si de vrais désistements ont eu lieu
 //   5. lun ≥ 9 h     courriel de suivi aux participants
 //   6. sessions terminées → status 'done'
+//   7. conservation : votes et courriels des billets effacés après 6 mois (Loi 25)
 // Chaque étape est idempotente (horodatages en base) : une exécution ratée est rattrapée à la suivante.
 
 const { getServiceClient } = require('./_lib/supabase');
 const B = require('./_lib/bootcamp');
 const ops = require('./_lib/bootcamp-ops');
 
-async function run(now = new Date()) {
+const RETENTION_DAYS = 183;
+
+// `retention: false` pour les tests : la purge ne doit jamais tourner avec une date simulée.
+async function run(now = new Date(), { retention = true } = {}) {
   const db = getServiceClient();
   const log = {};
   const week = B.currentWeekKey(now);
@@ -79,6 +83,22 @@ async function run(now = new Date()) {
       }
     }
   }
+  // 7. Conservation limitée (Loi 25 : détruire quand la finalité est accomplie) — 6 mois.
+  //    Votes : supprimés. Billets : courriel et lien Zoom effacés ; montant, date et référence
+  //    Stripe gardés (pièces comptables). La liste de désabonnement est conservée (pour la respecter).
+  if (!retention) return log;
+  const cutoff = new Date(Date.now() - RETENTION_DAYS * 86400000); // toujours l'heure réelle
+  const { count: purgedVotes } = await db
+    .from('bootcamp_votes')
+    .delete({ count: 'exact' })
+    .lt('week_key', cutoff.toISOString().slice(0, 10));
+  const { count: anonymized } = await db
+    .from('bootcamp_tickets')
+    .update({ email: null, zoom_join_url: null, zoom_registrant_id: null }, { count: 'exact' })
+    .lt('created_at', cutoff.toISOString())
+    .not('email', 'is', null);
+  if (purgedVotes || anonymized) log.retention = { purgedVotes, anonymized };
+
   return log;
 }
 

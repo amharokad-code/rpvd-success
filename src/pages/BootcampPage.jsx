@@ -34,6 +34,7 @@ const PROMISES = [
   ['↩', 'Remboursement intégral', "Sur simple demande jusqu'au samedi 23 h 59, en un clic depuis ton courriel. Aucun remboursement le dimanche, jour du cours."],
   ['🔒', 'Lien Zoom personnel', 'Envoyé 30 à 60 minutes avant le cours, à ton nom. Il ne fonctionne que sur un appareil à la fois.'],
   ['👥', `${B.capacity} élèves maximum`, 'La salle Zoom est plafonnée : quand les places sont vendues, la session est complète. Pour vrai.'],
+  ['🛡', 'Zéro donnée inutile', "Seulement ton courriel. Pas de nom, pas d'âge, pas de caméra : tu apparais comme « Élève » et ton micro s'ouvre seulement quand on te donne la parole."],
 ]
 
 const FAQ = [
@@ -42,7 +43,8 @@ const FAQ = [
   ['Comment je reçois le lien ?', "Par courriel, 30 à 60 minutes avant le début. C'est un lien personnel : il ne marche que sur un appareil à la fois, donc ne le partage pas."],
   ['Et si je ne peux plus venir ?', "Remboursement intégral sur simple demande jusqu'au samedi 23 h 59 (bouton dans ton courriel de confirmation). Le dimanche, plus de remboursement."],
   ["Mon sujet n'a pas été choisi ?", "Les 4 sessions retenues restent ouvertes à tous, et ton vote compte pour la semaine suivante : revote dès lundi."],
-  ['Je suis mineur(e) ?', 'Un parent ou un tuteur doit faire la réservation et le paiement.'],
+  ['Je dois allumer ma caméra ?', "Non. Les caméras des élèves sont désactivées et ton micro est coupé : il s'ouvre seulement quand l'animateur te donne la parole. On ne te demande ni ton nom ni ton âge, tu apparais comme « Élève »."],
+  ['Je suis mineur(e) ?', "Dès 14 ans, tu peux voter toi-même. Moins de 14 ans : demande à un parent de remplir le vote. Le paiement est toujours fait par un adulte (parent, tuteur ou élève de 18 ans et plus)."],
   ['Pourquoi pas l’histoire ou la géo ?', "Le Bootcamp ne couvre que ce qui se décompose en démarche : maths, sciences, chimie, physique et le français vu comme un algorithme."],
 ]
 
@@ -93,11 +95,12 @@ function SessionCard({ s, index }) {
 }
 
 function VoteForm() {
-  const [form, setForm] = useState({ email: '', level: '', subject: '', topic: '', topic_other: '', exams: '', bot_field: '' })
+  const [form, setForm] = useState({ email: '', level: '', subject: '', topic: '', topic_other: '', bot_field: '', consent: false, age_ok: false })
   const [busy, setBusy] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState(null)
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }))
+  const tick = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.checked }))
   const setLevel = (e) => setForm((f) => ({ ...f, level: e.target.value, subject: '', topic: '', topic_other: '' }))
   const setSubject = (e) => setForm((f) => ({ ...f, subject: e.target.value, topic: '', topic_other: '' }))
   const subjects = subjectsFor(form.level)
@@ -178,17 +181,24 @@ function VoteForm() {
           <input required maxLength={200} value={form.topic_other} onChange={set('topic_other')} className={INPUT} />
         </motion.label>
       )}
-      <label className="flex flex-col gap-2 text-sm">
-        <span className="font-semibold text-slate-200">
-          Tes examens cette semaine <span className="font-normal text-slate-500">(optionnel)</span>
-        </span>
-        <input maxLength={300} placeholder="ex. examen de chimie mardi" value={form.exams} onChange={set('exams')} className={INPUT} />
+      <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-300">
+        <input type="checkbox" required checked={form.consent} onChange={tick('consent')} className="mt-1 h-5 w-5 shrink-0 accent-[#f2994a]" />
+        <span>J'accepte de recevoir par courriel le résultat du vote et les annonces du Bootcamp RPVD. Désabonnement en un clic dans chaque courriel.</span>
+      </label>
+      <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-300">
+        <input type="checkbox" required checked={form.age_ok} onChange={tick('age_ok')} className="mt-1 h-5 w-5 shrink-0 accent-[#f2994a]" />
+        <span>J'ai 14 ans ou plus, ou je suis le parent / tuteur qui remplit ce formulaire pour mon enfant.</span>
       </label>
       {error && <Notice tone="error">{error}</Notice>}
       <button type="submit" disabled={busy} className={`${CTA} w-full`}>
         {busy ? <Spinner /> : 'Envoyer mon vote'}
       </button>
-      <p className="text-center text-xs text-slate-500">Ton courriel sert uniquement à t'avertir des sessions. Aucune revente, jamais.</p>
+      <p className="text-center text-xs leading-relaxed text-slate-500">
+        On te demande seulement ton courriel : jamais ton nom, ton âge ni ta photo. Aucune revente, jamais.{' '}
+        <a href="/legal/privacy" className="text-pyramid-orange hover:underline">
+          Confidentialité
+        </a>
+      </p>
     </form>
   )
 }
@@ -209,10 +219,15 @@ export default function BootcampPage() {
         setCycle(d.cycle || null)
       })
       .catch(() => setSessions([]))
-    if (window.location.pathname.replace(/\/+$/, '') === '/vote' || window.location.hash === '#vote') {
-      setTimeout(() => document.getElementById('vote')?.scrollIntoView({ behavior: 'smooth' }), 300)
-    }
   }, [])
+
+  // Lien court des pubs (/vote) : on descend au formulaire une fois les sessions affichées,
+  // sinon leur chargement décale la page après le défilement.
+  useEffect(() => {
+    if (sessions === null) return
+    const wantsVote = window.location.pathname.replace(/\/+$/, '') === '/vote' || window.location.hash === '#vote'
+    if (wantsVote) setTimeout(() => document.getElementById('vote')?.scrollIntoView({ behavior: 'smooth' }), 400)
+  }, [sessions])
 
   const buyable = (sessions || []).filter((s) => (s.state === 'open' || s.state === 'last_call') && s.seats_left > 0)
   const nextSelection = cycle ? new Date(cycle.next_selection_at).toLocaleDateString('fr-CA', { timeZone: 'America/Toronto', weekday: 'long', day: 'numeric', month: 'long' }) : 'jeudi'
@@ -375,7 +390,7 @@ export default function BootcampPage() {
 
       {/* ENGAGEMENTS */}
       <Section eyebrow="CLAIR ET NET" title="Nos engagements">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           {PROMISES.map(([icon, title, text], i) => (
             <Reveal key={title} delay={i * 0.08}>
               <div className={`${CARD} h-full p-5`}>

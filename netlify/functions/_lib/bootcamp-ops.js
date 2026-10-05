@@ -15,13 +15,18 @@ const {
   bootcampFollowupEmail,
 } = require('./email');
 const B = require('./bootcamp');
+const { unsubscribeLinks } = require('./legal');
 
 // Inscrit un billet payé à la réunion Zoom → lien personnel (un appareil à la fois).
 async function registerZoom(db, ticket, session) {
   if (ticket.zoom_join_url || !session.zoom_meeting_id || !ticket.email || !zoom.zoomConfigured()) return ticket;
   try {
-    const first = (ticket.buyer_name || '').split(/\s+/)[0] || ticket.email.split('@')[0];
-    const { registrantId, joinUrl } = await zoom.addRegistrant(session.zoom_meeting_id, { email: ticket.email, firstName: first });
+    // Aucun nom demandé : l'élève apparaît comme « Élève » + un code court (modifiable dans Zoom).
+    const { registrantId, joinUrl } = await zoom.addRegistrant(session.zoom_meeting_id, {
+      email: ticket.email,
+      firstName: 'Élève',
+      lastName: ticket.id.slice(0, 4).toUpperCase(),
+    });
     const { data } = await db
       .from('bootcamp_tickets')
       .update({ zoom_registrant_id: registrantId, zoom_join_url: joinUrl })
@@ -43,13 +48,11 @@ async function confirmPaidCheckout(db, checkout) {
   if (!ticketId) return { skipped: 'no_ticket' };
 
   const email = ((checkout.customer_details && checkout.customer_details.email) || checkout.customer_email || '').toLowerCase() || null;
-  const name = (checkout.customer_details && checkout.customer_details.name) || null;
   const { data: updated, error } = await db
     .from('bootcamp_tickets')
     .update({
       status: 'paid',
       email,
-      buyer_name: name,
       amount_cents: checkout.amount_total,
       stripe_checkout_id: checkout.id,
       stripe_payment_intent: typeof checkout.payment_intent === 'string' ? checkout.payment_intent : checkout.payment_intent && checkout.payment_intent.id,
@@ -82,6 +85,7 @@ async function confirmPaidCheckout(db, checkout) {
         refundDeadline: B.formatDeadline(session.week_key),
         refundUrl: `${B.siteUrl()}/rembourser?t=${ticket.refund_token}`,
         reference: ticket.id.slice(0, 8).toUpperCase(),
+        termsUrl: `${B.siteUrl()}/legal/terms`,
       }),
     });
     if (!sent) console.error(`[bootcamp] Confirmation non envoyée pour le billet ${ticket.id}.`);
@@ -119,14 +123,20 @@ async function sendLinks(db, session) {
 async function notifyFreedSeats(db, session, seats) {
   const { data: voters } = await db
     .from('bootcamp_votes')
-    .select('email')
+    .select('id, email')
     .eq('week_key', session.week_key)
     .eq('level', session.level)
     .eq('subject', session.subject)
     .eq('topic', session.topic);
   const { data: buyers } = await db.from('bootcamp_tickets').select('email').eq('session_id', session.id).eq('status', 'paid');
   const bought = new Set((buyers || []).map((b) => b.email));
-  const targets = [...new Set((voters || []).map((v) => v.email))].filter((e) => !bought.has(e));
+  const unsub = await B.unsubscribedSet(db, (voters || []).map((v) => v.email));
+  const seen = new Set();
+  const targets = (voters || []).filter((v) => {
+    if (bought.has(v.email) || unsub.has(v.email) || seen.has(v.email)) return false;
+    seen.add(v.email);
+    return true;
+  });
   const markDone = () => db.from('bootcamp_sessions').update({ freed_notice_sent_at: new Date().toISOString() }).eq('id', session.id);
   if (targets.length === 0) {
     await markDone();
@@ -134,7 +144,9 @@ async function notifyFreedSeats(db, session, seats) {
   }
   const when = B.formatWhen(session.starts_at);
   const url = `${B.siteUrl()}/reserver?s=${session.id}`;
-  const results = await sendBatch(targets.map((to) => ({ to, ...bootcampFreedSeatsEmail({ topic: session.topic, when, seats, url }) })));
+  const results = await sendBatch(
+    targets.map((v) => ({ to: v.email, ...bootcampFreedSeatsEmail({ topic: session.topic, when, seats, url, unsubscribe: unsubscribeLinks('v', v.id) }) })),
+  );
   const sent = results.filter(Boolean).length;
   if (sent > 0) await markDone(); // sinon la prochaine exécution réessaie
   return { sent };
@@ -148,12 +160,13 @@ async function sendFollowups(db, session) {
     .eq('session_id', session.id)
     .eq('status', 'paid')
     .is('followup_sent_at', null);
-  const list = (tickets || []).filter((t) => t.email);
+  const unsub = await B.unsubscribedSet(db, (tickets || []).map((t) => t.email));
+  const list = (tickets || []).filter((t) => t.email && !unsub.has(t.email));
   if (list.length === 0) return { sent: 0 };
   const results = await sendBatch(
     list.map((t) => ({
       to: t.email,
-      ...bootcampFollowupEmail({ topic: session.topic, appUrl: `${B.siteUrl()}/app?src=bootcamp`, voteUrl: `${B.siteUrl()}/vote` }),
+      ...bootcampFollowupEmail({ topic: session.topic, appUrl: `${B.siteUrl()}/app?src=bootcamp`, voteUrl: `${B.siteUrl()}/vote`, unsubscribe: unsubscribeLinks('b', t.id) }),
     })),
   );
   const ids = list.filter((_, i) => results[i]).map((t) => t.id);

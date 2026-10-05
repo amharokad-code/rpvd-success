@@ -12,7 +12,8 @@
 | `/merci` | Après paiement : prochaines étapes + ajout au calendrier |
 | `/rembourser?t=…` | Gérer / annuler (lien unique dans le courriel de confirmation) |
 | `/admin/bootcamp` | Tableau de bord interne (jeton `BOOTCAMP_ADMIN_TOKEN`) |
-| `/legal/refunds` | Politique de remboursement (section Bootcamp) |
+| `/legal/privacy`, `/legal/terms`, `/legal/refunds` | Cadre légal (Loi 25, consommateur, anti-pourriel) |
+| `/desabonner?v=…` | Ne plus recevoir les annonces (lien dans chaque courriel d'annonce) |
 
 ## Ce qui tourne tout seul (tâche planifiée toutes les 10 min)
 
@@ -26,6 +27,7 @@
 | **Dim 8 h** | Seules les places libérées par de VRAIS remboursements sont remises en vente (non remboursables). Courriel « N places libérées » aux votants de ce sujet sans billet. |
 | **T-60 min** | Lien Zoom personnel envoyé à chaque billet payé (au plus tard jusqu'à 15 min après le début). |
 | Fin du cours | Session marquée terminée. |
+| En continu | Conservation limitée (Loi 25) : votes supprimés après 6 mois, courriel et lien Zoom des billets effacés après 6 mois. |
 | **Lundi 9 h** | Courriel de suivi : passerelle vers l'outil d'analyse + lien pour revoter. |
 
 L'admin peut tout faire plus tôt ou à la main : sélection auto en un clic, choix manuel des sujets et des créneaux, essai à blanc des courriels, envoi des liens, annulation d'une session avec remboursement automatique de tous les billets, export CSV des participants, texte du post « places libérées » prêt à copier.
@@ -40,6 +42,7 @@ L'admin peut tout faire plus tôt ou à la main : sélection auto en un clic, ch
 
 Détail pas à pas : `02-ZOOM-RESEND-STRIPE.md`. L'admin affiche en haut l'état de chacun (vert/rouge).
 
+- [ ] **Adresse postale** dans `src/legal/business.json` (obligatoire : contrats à distance + loi anti-pourriel). Tout le cadre légal : `docs/legal/01-CONFORMITE.md`.
 - [ ] **Resend** : `RESEND_API_KEY` + domaine vérifié + `EMAIL_FROM` (sinon AUCUN courriel ne part).
 - [ ] **`EMAIL_REPLY_TO`** : l'adresse où arrivent les réponses des élèves et parents.
 - [ ] **Zoom Pro** + application Server-to-Server OAuth : `ZOOM_ACCOUNT_ID`, `ZOOM_CLIENT_ID`, `ZOOM_CLIENT_SECRET`. Sans ça : colle un lien Zoom par session dans l'admin (lien commun, salle d'attente conseillée).

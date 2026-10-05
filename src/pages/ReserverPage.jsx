@@ -5,6 +5,7 @@ import { BOOTCAMP as B } from '../config/bootcamp'
 import { trackEvent } from '../utils/track'
 import { bootcampCall, queryParam } from '../lib/bootcampApi'
 import { CARD, CTA, CTA_GHOST, INPUT, LegalLinks, Notice, PageShell, SeatMeter, Spinner } from '../components/bootcamp/BootcampUI'
+import BUSINESS from '../legal/business.json'
 
 function Row({ label, value }) {
   return (
@@ -123,28 +124,43 @@ export default function ReserverPage() {
             <form onSubmit={pay} className="mt-6 flex flex-col gap-4">
               <label className="flex flex-col gap-2 text-sm">
                 <span className="font-semibold text-slate-200">
-                  Courriel qui recevra le lien Zoom <span className="font-normal text-slate-500">(tu pourras le confirmer au paiement)</span>
+                  Courriel qui recevra le lien Zoom <span className="font-normal text-slate-500">(le seul renseignement qu'on te demande)</span>
                 </span>
                 <input type="email" autoComplete="email" placeholder="toi@exemple.com" value={email} onChange={(e) => setEmail(e.target.value)} className={INPUT} />
               </label>
               <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-300">
                 <input type="checkbox" checked={policy} onChange={(e) => setPolicy(e.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-[#f2994a]" />
                 <span>
-                  J'ai compris : remboursement intégral sur demande jusqu'au {session.refund_deadline}, aucun remboursement le dimanche. Le lien Zoom est personnel et ne se partage pas.{' '}
-                  <a href="/legal/refunds" target="_blank" rel="noreferrer" className="text-pyramid-orange hover:underline">
-                    Politique complète
-                  </a>
+                  J'accepte les{' '}
+                  <a href="/legal/terms" target="_blank" rel="noreferrer" className="text-pyramid-orange hover:underline">
+                    conditions du Bootcamp
+                  </a>{' '}
+                  : remboursement intégral sur demande jusqu'au {session.refund_deadline}, aucun remboursement le dimanche, lien Zoom personnel, caméra désactivée et micro ouvert seulement sur invitation.
                 </span>
               </label>
               <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-300">
                 <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-[#f2994a]" />
-                <span>J'ai 18 ans ou plus, ou je suis le parent / tuteur de l'élève qui assistera au cours.</span>
+                <span>Le paiement est fait par un adulte : parent, tuteur ou élève de 18 ans et plus.</span>
               </label>
               {error && <Notice tone="error">{error}</Notice>}
               <button type="submit" disabled={busy || !policy || !adult} className={`${CTA} w-full text-lg`}>
                 {busy ? <Spinner /> : `Payer ${B.price} et réserver`}
               </button>
               <p className="text-center text-xs text-slate-500">Paiement sécurisé par Stripe. Le montant affiché est le montant payé : rien ne s'ajoute.</p>
+              <div className="rounded-2xl border border-white/10 px-4 py-3 text-xs leading-relaxed text-slate-500">
+                <p>
+                  Commerçant : <span className="text-slate-300">{BUSINESS.operator}</span> · {BUSINESS.postalAddress || BUSINESS.city} ·{' '}
+                  <a href={`mailto:${BUSINESS.email}`} className="text-pyramid-orange hover:underline">
+                    {BUSINESS.email}
+                  </a>
+                </p>
+                <p className="mt-1">
+                  Paiement unique, aucun abonnement. Ton courriel de confirmation est ta copie du contrat.{' '}
+                  <a href="/legal/privacy" target="_blank" rel="noreferrer" className="text-pyramid-orange hover:underline">
+                    Confidentialité
+                  </a>
+                </p>
+              </div>
             </form>
           ) : (
             <div className="mt-6 space-y-4">

@@ -95,6 +95,7 @@ export function LegalLinks() {
       <a href="/legal/terms" className="inline-block px-2 py-2.5 hover:underline">Conditions</a>
       <a href="/legal/privacy" className="inline-block px-2 py-2.5 hover:underline">Confidentialité</a>
       <a href="/legal/refunds" className="inline-block px-2 py-2.5 hover:underline">Remboursements</a>
+      <a href="/legal/contact" className="inline-block px-2 py-2.5 hover:underline">Contact légal</a>
     </p>
   )
 }

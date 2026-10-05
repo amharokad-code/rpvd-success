@@ -12,6 +12,7 @@
 
 const crypto = require('crypto');
 const { sendBatch, bootcampSelectedEmail, bootcampNotSelectedEmail } = require('./email');
+const { unsubscribeLinks } = require('./legal');
 const zoom = require('./zoom');
 
 const TZ = 'America/Toronto';
@@ -297,11 +298,20 @@ async function weekSessions(db, weekKey) {
   return data || [];
 }
 
+// Courriels désabonnés des annonces (LCAP) : exclus de tout courriel non transactionnel.
+async function unsubscribedSet(db, emails) {
+  const list = [...new Set(emails.filter(Boolean))];
+  if (list.length === 0) return new Set();
+  const { data } = await db.from('bootcamp_unsubscribes').select('email').in('email', list);
+  return new Set((data || []).map((r) => r.email));
+}
+
 // Courriels « SÉLECTIONNÉ » / « pas ce dimanche » à tous les votants pas encore notifiés.
 async function notifyVoters(db, weekKey, { dryRun = false } = {}) {
   const sessions = (await weekSessions(db, weekKey)).filter((s) => s.status === 'open');
   const { votes } = await tallyWeek(db, weekKey);
-  const pending = votes.filter((v) => !v.notified_at);
+  const unsub = await unsubscribedSet(db, votes.map((v) => v.email));
+  const pending = votes.filter((v) => !v.notified_at && !unsub.has(v.email));
   const match = (v) => sessions.find((s) => s.level === v.level && s.subject === v.subject && s.topic === v.topic);
   const plan = pending.map((v) => ({ vote: v, session: match(v) }));
   const summary = {
@@ -325,8 +335,9 @@ async function notifyVoters(db, weekKey, { dryRun = false } = {}) {
           price: formatPrice(session.price_cents),
           deadline,
           url: `${siteUrl()}/reserver?s=${session.id}`,
+          unsubscribe: unsubscribeLinks('v', vote.id),
         })
-      : bootcampNotSelectedEmail({ topic: shown, level: vote.level, sessions: list, url: `${siteUrl()}/#sessions` });
+      : bootcampNotSelectedEmail({ topic: shown, level: vote.level, sessions: list, url: `${siteUrl()}/#sessions`, unsubscribe: unsubscribeLinks('v', vote.id) });
     return { to: vote.email, ...body };
   });
   const results = await sendBatch(messages);
@@ -384,4 +395,5 @@ module.exports = {
   autoSelect,
   weekSessions,
   notifyVoters,
+  unsubscribedSet,
 };

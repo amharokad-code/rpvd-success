@@ -16,6 +16,7 @@ const crypto = require('crypto');
 const { HttpError, preflight, parseBody, json, header, handleError } = require('./_lib/http');
 const { getServiceClient } = require('./_lib/supabase');
 const { zoomConfigured } = require('./_lib/zoom');
+const { BUSINESS } = require('./_lib/legal');
 const B = require('./_lib/bootcamp');
 const ops = require('./_lib/bootcamp-ops');
 
@@ -47,6 +48,7 @@ function health() {
     reply_to: Boolean(process.env.EMAIL_REPLY_TO),
     stripe: Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET),
     zoom: zoomConfigured(),
+    postal_address: Boolean(BUSINESS.postalAddress),
   };
 }
 
@@ -156,7 +158,7 @@ exports.handler = async (event) => {
         const s = await loadSession(db, body.id);
         const { data, error } = await db
           .from('bootcamp_tickets')
-          .select('id, status, email, buyer_name, amount_cents, paid_at, refunded_at, link_sent_at, zoom_join_url, source, created_at')
+          .select('id, status, email, amount_cents, paid_at, refunded_at, link_sent_at, zoom_join_url, source, created_at')
           .eq('session_id', s.id)
           .neq('status', 'expired')
           .order('created_at', { ascending: true });

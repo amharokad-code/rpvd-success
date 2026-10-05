@@ -1557,3 +1557,21 @@ create index if not exists bootcamp_tickets_session_idx on public.bootcamp_ticke
 alter table public.bootcamp_tickets enable row level security;
 
 alter table public.bootcamp_votes add column if not exists session_id uuid references public.bootcamp_sessions(id) on delete set null;
+
+
+-- =============================================================================
+-- Academie RPVD v2.1 : conformite (Loi 25, LCAP). Consentement du vote, liste de
+-- desabonnement (courriels d'annonce), plus de stockage du nom ni des examens.
+-- =============================================================================
+alter table public.bootcamp_votes add column if not exists consent_at timestamptz;
+
+create table if not exists public.bootcamp_unsubscribes (
+  email      text primary key,
+  created_at timestamptz not null default now()
+);
+alter table public.bootcamp_unsubscribes enable row level security;
+-- Minimisation : exams, ip_hash (votes) et buyer_name (billets) ne sont plus collectes ni lus.
+-- Optionnel (efface definitivement les anciennes valeurs, a lancer par le proprietaire) :
+--   alter table public.bootcamp_votes drop column if exists exams;
+--   alter table public.bootcamp_votes drop column if exists ip_hash;
+--   alter table public.bootcamp_tickets drop column if exists buyer_name;

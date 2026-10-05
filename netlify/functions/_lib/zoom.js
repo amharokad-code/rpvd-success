@@ -38,6 +38,8 @@ async function call(method, path, body) {
 
 // Réunion de 90 min, inscription automatique (approval_type 0), aucun courriel Zoom (c'est
 // nous qui envoyons le lien personnel 30-60 min avant), un seul appareil par lien.
+// Protection des élèves mineurs : caméras coupées, micros coupés à l'entrée, mode focus (les
+// élèves ne voient que l'animateur), aucun enregistrement automatique.
 async function createMeeting({ topic, startsAt, durationMin }) {
   const data = await call('POST', '/users/me/meetings', {
     topic: topic.slice(0, 190),
@@ -55,6 +57,8 @@ async function createMeeting({ topic, startsAt, durationMin }) {
       waiting_room: false,
       mute_upon_entry: true,
       participant_video: false,
+      focus_mode: true,
+      auto_recording: 'none',
       host_video: true,
       meeting_authentication: false,
     },
@@ -62,11 +66,11 @@ async function createMeeting({ topic, startsAt, durationMin }) {
   return { meetingId: String(data.id), joinUrl: data.join_url || null };
 }
 
-async function addRegistrant(meetingId, { email, firstName }) {
+async function addRegistrant(meetingId, { email, firstName, lastName }) {
   const data = await call('POST', `/meetings/${meetingId}/registrants`, {
     email,
-    first_name: (firstName || 'Participant').slice(0, 60),
-    last_name: 'RPVD',
+    first_name: (firstName || 'Élève').slice(0, 60),
+    last_name: (lastName || 'RPVD').slice(0, 60),
   });
   return { registrantId: data.registrant_id || data.id || null, joinUrl: data.join_url || null };
 }

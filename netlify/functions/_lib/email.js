@@ -2,6 +2,8 @@
 // Envoi de courriels via l'API Resend (fetch natif) + gabarits FR.
 // `sendEmail` ne lance jamais : un échec d'envoi ne doit pas casser le flux métier.
 
+const { senderLine, unsubscribeHeaders } = require('./legal');
+
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 const DEFAULT_FROM = 'RPVD Success <onboarding@resend.dev>';
 
@@ -50,7 +52,7 @@ function rowsBlock(rows) {
 const DEFAULT_FOOTER = "Tu n'as rien demandé ? Ignore simplement ce courriel.";
 
 // Mise en page aux couleurs de la marque (noir du logo, orange pyramide, blanc cassé).
-function layout({ title, paragraphs = [], codes = [], rows = [], outro = [], button = null, footer = DEFAULT_FOOTER }) {
+function layout({ title, paragraphs = [], codes = [], rows = [], outro = [], button = null, footer = DEFAULT_FOOTER, unsubscribe = null }) {
   const p = (text) => `<p style="margin:0 0 14px;font-size:16px;line-height:1.6;color:#d8d8d2;">${text}</p>`;
   return `<!doctype html>
 <html lang="fr">
@@ -70,7 +72,7 @@ function layout({ title, paragraphs = [], codes = [], rows = [], outro = [], but
           ${footer ? `<p style="margin:24px 0 0;font-size:13px;line-height:1.5;color:#6b6d70;">${escapeHtml(footer)}</p>` : ''}
         </td></tr>
       </table>
-      <p style="margin:16px 0 0;font-size:12px;color:#4a4b4e;">RPVD Success · Résumer les Principes, Vulgariser la Démarche</p>
+      <p style="margin:16px 0 0;font-size:12px;line-height:1.6;color:#4a4b4e;">${escapeHtml(senderLine())}${unsubscribe ? `<br><a href="${escapeHtml(unsubscribe.page)}" style="color:#6b6d70;">Ne plus recevoir les annonces du Bootcamp</a>` : ''}</p>
     </td></tr>
   </table>
 </body>
@@ -78,10 +80,11 @@ function layout({ title, paragraphs = [], codes = [], rows = [], outro = [], but
 }
 
 // Version texte brut (clients sans HTML).
-function plainText({ title, paragraphs = [], codes = [], rows = [], outro = [], button = null }) {
+function plainText({ title, paragraphs = [], codes = [], rows = [], outro = [], button = null, unsubscribe = null }) {
   const link = button ? ['', `${button.label} : ${button.url}`] : [];
   const details = rows.length ? ['', ...rows.map(([k, v]) => `${k} : ${v}`)] : [];
-  return [title, '', ...paragraphs, ...details, '', ...codes.map((c) => `  ${c}`), ...link, '', ...outro].join('\n').trim();
+  const legal = ['', '—', senderLine(), ...(unsubscribe ? [`Ne plus recevoir les annonces : ${unsubscribe.page}`] : [])];
+  return [title, '', ...paragraphs, ...details, '', ...codes.map((c) => `  ${c}`), ...link, '', ...outro, ...legal].join('\n').trim();
 }
 
 // Contenu localisé (contrat §3, quadri-langue) : titre/sujet + paragraphes + consignes.
@@ -223,10 +226,11 @@ function activationConfirmedEmail({ plan, credits }) {
 // Ton : direct, « tu », jamais de fausse urgence. Toute date/heure est déjà formatée en heure
 // du Québec par l'appelant (_lib/bootcamp.js → formatWhen).
 
-const BOOTCAMP_FOOTER = 'Bootcamp RPVD · questions : réponds simplement à ce courriel.';
+const BOOTCAMP_FOOTER = 'Bootcamp RPVD · une question ? Réponds simplement à ce courriel.';
 
 function mk(content, subject) {
-  return { subject, html: layout(content), text: plainText(content) };
+  const headers = unsubscribeHeaders(content.unsubscribe);
+  return { subject, html: layout(content), text: plainText(content), ...(headers ? { headers } : {}) };
 }
 
 // 1. Confirmation immédiate du vote.
@@ -246,7 +250,7 @@ function bootcampVoteEmail({ topic, level }) {
 }
 
 // 2. Sujet sélectionné : lien de réservation.
-function bootcampSelectedEmail({ topic, level, subject, when, price, deadline, url }) {
+function bootcampSelectedEmail({ topic, level, subject, when, price, deadline, url , unsubscribe }) {
   return mk(
     {
       title: 'Ton sujet a été SÉLECTIONNÉ 🎯',
@@ -267,13 +271,14 @@ function bootcampSelectedEmail({ topic, level, subject, when, price, deadline, u
         'Moins de 18 ans ? La réservation doit être faite par un parent ou un tuteur.',
       ],
       footer: BOOTCAMP_FOOTER,
+      unsubscribe,
     },
     `Ton sujet « ${topic} » a été sélectionné 🎯`,
   );
 }
 
 // 3. Sujet non retenu : les autres sessions restent ouvertes à tous.
-function bootcampNotSelectedEmail({ topic, level, sessions = [], url }) {
+function bootcampNotSelectedEmail({ topic, level, sessions = [], url , unsubscribe }) {
   const rows = sessions.map((s) => [s.when, `${s.topic} (${s.level})`]);
   return mk(
     {
@@ -285,13 +290,14 @@ function bootcampNotSelectedEmail({ topic, level, sessions = [], url }) {
       rows,
       button: url ? { label: 'Voir les sessions de dimanche', url } : null,
       footer: BOOTCAMP_FOOTER,
+      unsubscribe,
     },
     'Les sujets de dimanche sont choisis',
   );
 }
 
 // 4. Paiement confirmé : billet, règles de la classe, remboursement en un clic.
-function bootcampTicketEmail({ topic, level, subject, when, price, refundDeadline, refundUrl, reference }) {
+function bootcampTicketEmail({ topic, level, subject, when, price, refundDeadline, refundUrl, reference, termsUrl }) {
   return mk(
     {
       title: 'Ta place est réservée ✅',
@@ -308,6 +314,8 @@ function bootcampTicketEmail({ topic, level, subject, when, price, refundDeadlin
         '🔗 Ton lien Zoom PERSONNEL arrive par courriel 30 à 60 minutes avant le cours. Il ne fonctionne que sur un appareil à la fois : ne le partage pas.',
         'Règles de la classe : arrive 5 minutes avant, prépare une feuille et un crayon, pose tes questions dans le chat, aucun enregistrement ni capture de la session.',
         `Remboursement intégral sur simple demande jusqu'à ${refundDeadline}, avec le bouton « Gérer / annuler ma réservation ». Aucun remboursement le dimanche, jour du cours.`,
+        "Pendant le cours : caméra désactivée, micro coupé (activé seulement quand l'animateur te donne la parole). On ne te demande ni ton nom ni ton âge : tu apparais comme « Élève ».",
+        ...(termsUrl ? [`Ce courriel est ta copie du contrat. Conditions complètes : ${termsUrl}`] : []),
       ],
       button: refundUrl ? { label: 'Gérer / annuler ma réservation', url: refundUrl } : null,
       footer: BOOTCAMP_FOOTER,
@@ -368,7 +376,7 @@ function bootcampCancelledEmail({ topic, when, price }) {
 }
 
 // 8. Places libérées (dimanche 8 h, seulement si de vrais désistements ont eu lieu).
-function bootcampFreedSeatsEmail({ topic, when, seats, url }) {
+function bootcampFreedSeatsEmail({ topic, when, seats, url , unsubscribe }) {
   return mk(
     {
       title: `${seats} place${seats > 1 ? 's' : ''} libérée${seats > 1 ? 's' : ''} 🔓`,
@@ -378,13 +386,14 @@ function bootcampFreedSeatsEmail({ topic, when, seats, url }) {
       ],
       button: { label: 'Prendre une place', url },
       footer: BOOTCAMP_FOOTER,
+      unsubscribe,
     },
     `🔓 ${topic} : ${seats} place${seats > 1 ? 's' : ''} libérée${seats > 1 ? 's' : ''}`,
   );
 }
 
 // 9. Lendemain : merci + passerelle vers l'outil d'analyse.
-function bootcampFollowupEmail({ topic, appUrl, voteUrl }) {
+function bootcampFollowupEmail({ topic, appUrl, voteUrl , unsubscribe }) {
   return mk(
     {
       title: 'Bravo pour hier 💪',
@@ -394,13 +403,14 @@ function bootcampFollowupEmail({ topic, appUrl, voteUrl }) {
       button: { label: 'Analyser un exercice', url: appUrl },
       outro: [`Un autre examen arrive ? Vote pour le sujet de dimanche prochain : ${voteUrl}`],
       footer: BOOTCAMP_FOOTER,
+      unsubscribe,
     },
     'Garde la démarche avec toi',
   );
 }
 
 // Envoi via Resend. Renvoie { sent: boolean }, ne lance jamais.
-async function sendEmail({ to, subject, html, text }) {
+async function sendEmail({ to, subject, html, text, headers }) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.warn('[email] RESEND_API_KEY absente : courriel non envoyé.');
@@ -416,6 +426,7 @@ async function sendEmail({ to, subject, html, text }) {
         subject,
         html,
         text,
+        ...(headers ? { headers } : {}),
         ...(process.env.EMAIL_REPLY_TO ? { reply_to: process.env.EMAIL_REPLY_TO } : {}),
       }),
     });
@@ -449,7 +460,7 @@ async function sendBatch(messages) {
       const response = await fetch(`${RESEND_ENDPOINT}/batch`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(chunk.map((m) => ({ from, to: [m.to], subject: m.subject, html: m.html, text: m.text, ...replyTo }))),
+        body: JSON.stringify(chunk.map((m) => ({ from, to: [m.to], subject: m.subject, html: m.html, text: m.text, ...(m.headers ? { headers: m.headers } : {}), ...replyTo }))),
       });
       if (response.ok) {
         for (let j = 0; j < chunk.length; j += 1) results[i + j] = true;

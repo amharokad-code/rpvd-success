@@ -1,0 +1,12 @@
+{
+  "_note": "Identité légale du commerçant, affichée sur le site (pages légales, /reserver) et dans chaque courriel. Lu à la fois par le site (Vite) et par les Netlify Functions. postalAddress est OBLIGATOIRE (Loi sur la protection du consommateur, contrats à distance ; loi anti-pourriel LCAP) : adresse civique ou case postale.",
+  "brand": "RPVD Success",
+  "operator": "RPVD Success (E.M.A. Tutorat)",
+  "city": "Sherbrooke (Québec)",
+  "postalAddress": "",
+  "email": "support@rpvdsuccess.app",
+  "website": "rpvdsuccess.com",
+  "privacyOfficerTitle": "Responsable de la protection des renseignements personnels (cofondateur)",
+  "updated": "5 octobre 2026",
+  "updatedEn": "October 5, 2026"
+}

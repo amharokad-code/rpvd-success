@@ -4,6 +4,9 @@
 // lun-mer → la semaine en cours, jeu-dim → la semaine suivante (heure du Québec). Le dernier
 // vote remplace le précédent tant que le courriel de sélection n'est pas parti.
 // Confirmation par courriel en best-effort : un échec d'envoi ne casse jamais le vote.
+// Minimum de données (Loi 25) : courriel + choix du sujet, rien d'autre (ni nom, ni âge, ni IP).
+// Deux cases obligatoires : consentement aux courriels (LCAP) et « 14 ans ou plus, ou un parent
+// remplit le formulaire » (moins de 14 ans : le consentement revient au parent, Loi 25 art. 4.1).
 
 const { HttpError, preflight, parseBody, json, getIp, sha256, handleError } = require('./_lib/http');
 const { getServiceClient } = require('./_lib/supabase');
@@ -32,16 +35,17 @@ exports.handler = async (event) => {
     const subject = clean(body.subject, 40);
     const topic = clean(body.topic, 120);
     const topicOther = clean(body.topic_other, 200);
-    const exams = clean(body.exams, 300);
     const source = clean(body.source, 60) || null;
 
     if (!EMAIL_PATTERN.test(email)) throw new HttpError(400, 'BAD_REQUEST', 'Courriel invalide.');
+    if (body.consent !== true || body.age_ok !== true) {
+      throw new HttpError(400, 'BAD_REQUEST', 'Coche les deux cases pour envoyer ton vote.');
+    }
     if (!LEVELS.includes(level) || !SUBJECTS.includes(subject) || !topic) {
       throw new HttpError(400, 'BAD_REQUEST', 'Niveau, matière ou sujet invalide.');
     }
 
-    const ipHash = sha256(getIp(event));
-    await assertRateLimit(`vote:ip:${ipHash}`, 10, 3600);
+    await assertRateLimit(`vote:ip:${sha256(getIp(event))}`, 10, 3600);
 
     const db = getServiceClient();
     const key = voteWeekKey();
@@ -62,13 +66,14 @@ exports.handler = async (event) => {
       subject,
       topic,
       topic_other: topicOther || null,
-      exams: exams || null,
       source,
       week_key: key,
-      ip_hash: ipHash,
+      consent_at: new Date().toISOString(),
     };
     const { error } = await db.from('bootcamp_votes').upsert(row, { onConflict: 'email,week_key' });
     if (error) throw error;
+    // Revoter = nouveau consentement explicite : on retire l'éventuel désabonnement.
+    await db.from('bootcamp_unsubscribes').delete().eq('email', email);
 
     const shown = topicOther ? `${topic} : ${topicOther}` : topic;
     await sendEmail({ to: email, ...bootcampVoteEmail({ topic: shown, level }) });
