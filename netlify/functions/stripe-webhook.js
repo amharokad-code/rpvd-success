@@ -6,6 +6,8 @@
 //   - invoice.paid (billing_reason = subscription_cycle) : renouvellement automatique tous les
 //     3 mois, remet les crédits au plein montant du plan.
 //   - customer.subscription.deleted : l'abonnement est résilié, on détache juste l'ID côté compte.
+//   - checkout.session.completed (metadata.kind = 'bootcamp') : billet du Bootcamp payé
+//     (voir _lib/bootcamp-ops.js → confirmPaidCheckout).
 // Chaque handler est idempotent par stripeEvent.id (processed_stripe_events, contrat) — Stripe
 // réessaie parfois le même événement. Toute erreur inattendue → 500 pour que Stripe réessaie.
 
@@ -15,6 +17,7 @@ const { rpc, getServiceClient } = require('./_lib/supabase');
 const { sendEmail, subscriptionActivatedEmail, subscriptionRenewedEmail } = require('./_lib/email');
 const { SUBSCRIPTION_PLANS, SUBSCRIPTION_DURATION_DAYS } = require('./_lib/codes');
 const { sendPurchaseEvent } = require('./_lib/meta-capi');
+const { confirmPaidCheckout } = require('./_lib/bootcamp-ops');
 
 let stripeClient = null;
 function getStripe() {
@@ -153,7 +156,11 @@ exports.handler = async (event) => {
   try {
     const stripeEvent = verifyEvent(event);
 
-    if (stripeEvent.type === 'checkout.session.completed') {
+    const object = stripeEvent.data && stripeEvent.data.object;
+    if (stripeEvent.type === 'checkout.session.completed' && object && object.metadata && object.metadata.kind === 'bootcamp') {
+      // Billet du Bootcamp (paiement unique de 20 $) : confirmation, inscription Zoom, courriel.
+      await confirmPaidCheckout(getServiceClient(), object);
+    } else if (stripeEvent.type === 'checkout.session.completed') {
       await handleCheckoutCompleted(stripeEvent);
     } else if (stripeEvent.type === 'invoice.paid') {
       await handleInvoicePaid(stripeEvent);

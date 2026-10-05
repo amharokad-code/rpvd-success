@@ -7,10 +7,15 @@ import LegalContactPage from './pages/LegalContactPage'
 import BootcampPage from './pages/BootcampPage'
 import AccueilPage from './pages/AccueilPage'
 import BootcampAdminPage from './pages/BootcampAdminPage'
+import ReserverPage from './pages/ReserverPage'
+import MerciPage from './pages/MerciPage'
+import RembourserPage from './pages/RembourserPage'
 import './index.css'
 
 // Routage minimal (pas de react-router) :
 //   /          page principale Bootcamp (Académie RPVD)
+//   /vote      lien court des pubs → Bootcamp, formulaire de vote
+//   /reserver  ?s=<session> → Stripe Checkout ; /merci après paiement ; /rembourser ?t=<jeton>
 //   /accueil   présentation de la méthode (ancienne landing)
 //   /admin/bootcamp  décompte des votes + envoi des courriels (jeton requis)
 //   /app       l'outil d'analyse (connexion par lien magique, puis tableau de bord)
@@ -42,7 +47,10 @@ function pickRoute() {
     }
     return <BootcampPage />
   }
-  if (path === '/bootcamp') return <BootcampPage />
+  if (path === '/bootcamp' || path === '/vote') return <BootcampPage />
+  if (path === '/reserver') return <ReserverPage />
+  if (path === '/merci') return <MerciPage />
+  if (path === '/rembourser') return <RembourserPage />
   if (path === '/accueil') return <AccueilPage />
   if (path === '/admin/bootcamp') return <BootcampAdminPage />
   if (isLegalContactPath()) return <LegalContactPage />

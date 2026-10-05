@@ -69,7 +69,14 @@ function renderBody(text) {
         flushList()
         return
       }
-      if (line.startsWith('## ')) {
+      if (line.startsWith('### ')) {
+        flushList()
+        blocks.push(
+          <h3 key={blocks.length} className="mt-8 font-display text-base font-bold text-pyramid-orange">
+            {line.slice(4)}
+          </h3>,
+        )
+      } else if (line.startsWith('## ')) {
         flushList()
         blocks.push(
           <h2 key={blocks.length} className="mt-6 font-display text-lg font-bold text-slate-50 first:mt-0">

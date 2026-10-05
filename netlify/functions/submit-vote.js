@@ -1,25 +1,17 @@
 'use strict';
 // POST /.netlify/functions/submit-vote
-// Vote « Vote & Clutch » du formulaire /. Un vote par courriel et par semaine (le dernier
-// remplace le précédent tant qu'aucun courriel de sélection n'est parti). Envoie la
-// confirmation par courriel (best-effort : un échec d'envoi ne casse jamais le vote).
+// Vote « Vote & Clutch » (formulaire en cascade de /). Un vote par courriel et par semaine :
+// lun-mer → la semaine en cours, jeu-dim → la semaine suivante (heure du Québec). Le dernier
+// vote remplace le précédent tant que le courriel de sélection n'est pas parti.
+// Confirmation par courriel en best-effort : un échec d'envoi ne casse jamais le vote.
 
 const { HttpError, preflight, parseBody, json, getIp, sha256, handleError } = require('./_lib/http');
 const { getServiceClient } = require('./_lib/supabase');
 const { assertRateLimit } = require('./_lib/ratelimit');
 const { sendEmail, bootcampVoteEmail } = require('./_lib/email');
+const { LEVELS, SUBJECTS, voteWeekKey } = require('./_lib/bootcamp');
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const LEVELS = ['Sec 1', 'Sec 2', 'Sec 3', 'Sec 4', 'Sec 5'];
-const SUBJECTS = ['Mathématiques', 'Sciences', 'Physique', 'Chimie'];
-
-// Lundi (UTC) de la semaine courante, au format YYYY-MM-DD : clé de regroupement hebdomadaire.
-function weekKey(now = new Date()) {
-  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  const day = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() - (day - 1));
-  return d.toISOString().slice(0, 10);
-}
 
 function clean(value, max) {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
@@ -52,9 +44,9 @@ exports.handler = async (event) => {
     await assertRateLimit(`vote:ip:${ipHash}`, 10, 3600);
 
     const db = getServiceClient();
-    const key = weekKey();
+    const key = voteWeekKey();
 
-    // Un vote déjà notifié n'est plus modifiable (le tri de la semaine est fait).
+    // Un vote déjà notifié n'est plus modifiable (la sélection de la semaine est faite).
     const { data: existing, error: readError } = await db
       .from('bootcamp_votes')
       .select('id, notified_at')
@@ -81,7 +73,7 @@ exports.handler = async (event) => {
     const shown = topicOther ? `${topic} : ${topicOther}` : topic;
     await sendEmail({ to: email, ...bootcampVoteEmail({ topic: shown, level }) });
 
-    return json(200, { ok: true });
+    return json(200, { ok: true, week_key: key });
   } catch (err) {
     return handleError(err, 'submit-vote');
   }

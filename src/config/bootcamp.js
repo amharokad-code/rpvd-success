@@ -1,19 +1,9 @@
-// Configuration de l'Académie RPVD (Bootcamps Clutch). Seul fichier à éditer chaque semaine :
-// remplir `sessions` après la sélection du jeudi (liens Calendly/Stripe créés à la main),
-// puis redéployer. Une session sans `url` s'affiche « Bientôt » (aucun faux lien).
+// Constantes d'affichage du Bootcamp RPVD. La vérité (prix facturé, places, dates) vient du
+// serveur (netlify/functions/_lib/bootcamp.js) : ces valeurs servent uniquement aux textes.
 export const BOOTCAMP = {
-  currency: 'CAD',
-  earlyPrice: 12,
-  lastMinutePriceMin: 18,
-  lastMinutePriceMax: 20,
-  durationLabel: '2 h 15',
-  roomCap: 100, // plafond réel Zoom Pro
-  premiumPriceMin: 300,
-  premiumPriceMax: 450,
-  // Statut de la semaine : 'vote' (mar-mer) | 'sales' (jeu soir-sam) | 'live' (dimanche) | 'closed'
-  phase: 'vote',
-  sessions: [
-    // { title: 'Fractions SN4', level: 'Sec 4', time: 'Dimanche 14 h', url: 'https://calendly.com/...' },
-  ],
-  premiumUrl: '', // lien Calendly d'appel de qualification Premium (sinon mailto)
+  price: '20 $',
+  duration: '1 h 30',
+  capacity: 90, // billets vendus par salle (salle Zoom Pro de 100, marge de 10)
+  slots: ['13 h', '15 h', '17 h', '19 h'],
+  tutorAnchor: '40 $', // tutorat privé, à l'heure (ordre de grandeur, même ancrage que le paywall)
 }

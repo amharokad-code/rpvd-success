@@ -24,36 +24,53 @@ function escapeHtml(value) {
 
 // Bloc « code en gros » (monospace, lisible sur mobile).
 function codeBlock(code) {
-  return `<div style="margin:12px 0;padding:16px 20px;background:#0f172a;border:1px solid rgba(255,255,255,0.08);border-radius:16px;text-align:center;">
-  <span style="font-family:'Inconsolata',Menlo,Consolas,monospace;font-size:28px;font-weight:700;letter-spacing:4px;color:#fbbf24;">${escapeHtml(code)}</span>
+  return `<div style="margin:12px 0;padding:16px 20px;background:#0b0b0c;border:1px solid rgba(242,153,74,0.25);border-radius:16px;text-align:center;">
+  <span style="font-family:'Inconsolata',Menlo,Consolas,monospace;font-size:28px;font-weight:700;letter-spacing:4px;color:#f2994a;">${escapeHtml(code)}</span>
 </div>`;
 }
 
 // Bouton d'action (lien https uniquement, jamais d'URL arbitraire non validée).
 function buttonBlock({ label, url }) {
   if (!/^https:\/\//.test(url || '')) return '';
-  return `<p style="margin:20px 0;text-align:center;"><a href="${escapeHtml(url)}" style="display:inline-block;padding:14px 28px;background:#f59e0b;color:#0f172a;font-weight:800;font-size:16px;text-decoration:none;border-radius:14px;">${escapeHtml(label)}</a></p>`;
+  return `<p style="margin:24px 0;text-align:center;"><a href="${escapeHtml(url)}" style="display:inline-block;padding:15px 30px;background:#f2994a;background-image:linear-gradient(180deg,#f5ad6b,#e07b2e);color:#0b0b0c;font-weight:800;font-size:16px;text-decoration:none;border-radius:14px;">${escapeHtml(label)}</a></p>`;
 }
 
-// Mise en page sombre commune (fond slate-900, carte slate-800, titre amber).
-function layout({ title, paragraphs, codes = [], outro = [], button = null }) {
-  const p = (text) => `<p style="margin:0 0 14px;font-size:16px;line-height:1.6;color:#e2e8f0;">${text}</p>`;
+// Fiche « clé : valeur » (détails d'une session, d'un billet…).
+function rowsBlock(rows) {
+  if (!rows || rows.length === 0) return '';
+  const tr = rows
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:9px 16px 9px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:14px;color:#8b8d91;white-space:nowrap;">${escapeHtml(k)}</td><td style="padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:15px;color:#f5f5f0;font-weight:600;text-align:right;">${escapeHtml(v)}</td></tr>`,
+    )
+    .join('');
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:6px 0 20px;background:#0b0b0c;border:1px solid rgba(242,153,74,0.18);border-radius:16px;padding:6px 18px;">${tr}</table>`;
+}
+
+const DEFAULT_FOOTER = "Tu n'as rien demandé ? Ignore simplement ce courriel.";
+
+// Mise en page aux couleurs de la marque (noir du logo, orange pyramide, blanc cassé).
+function layout({ title, paragraphs = [], codes = [], rows = [], outro = [], button = null, footer = DEFAULT_FOOTER }) {
+  const p = (text) => `<p style="margin:0 0 14px;font-size:16px;line-height:1.6;color:#d8d8d2;">${text}</p>`;
   return `<!doctype html>
 <html lang="fr">
-<body style="margin:0;padding:0;background:#0f172a;font-family:Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#0f172a;padding:32px 16px;">
+<body style="margin:0;padding:0;background:#000000;font-family:Inter,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#000000;padding:32px 16px;">
     <tr><td align="center">
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#1e293b;border:1px solid rgba(255,255,255,0.06);border-radius:24px;padding:32px 28px;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:540px;background:#111113;border:1px solid rgba(242,153,74,0.16);border-radius:24px;padding:32px 28px;">
         <tr><td>
-          <p style="margin:0 0 6px;font-size:14px;font-weight:700;letter-spacing:1px;color:#f59e0b;">RPVD Success</p>
-          <h1 style="margin:0 0 20px;font-size:26px;line-height:1.25;font-weight:800;color:#f8fafc;">${escapeHtml(title)}</h1>
+          <p style="margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:3px;color:#f2994a;">RPVD SUCCESS</p>
+          <div style="height:3px;width:44px;background:#f2994a;border-radius:3px;margin:0 0 18px;"></div>
+          <h1 style="margin:0 0 20px;font-size:26px;line-height:1.25;font-weight:800;color:#f5f5f0;">${escapeHtml(title)}</h1>
           ${paragraphs.map((text) => p(escapeHtml(text))).join('\n')}
+          ${rowsBlock(rows)}
           ${codes.map(codeBlock).join('\n')}
-          ${outro.map((text) => p(escapeHtml(text))).join('\n')}
           ${button ? buttonBlock(button) : ''}
-          <p style="margin:24px 0 0;font-size:13px;line-height:1.5;color:#94a3b8;">Tu n'as rien demandé ? Ignore simplement ce courriel.</p>
+          ${outro.map((text) => p(escapeHtml(text))).join('\n')}
+          ${footer ? `<p style="margin:24px 0 0;font-size:13px;line-height:1.5;color:#6b6d70;">${escapeHtml(footer)}</p>` : ''}
         </td></tr>
       </table>
+      <p style="margin:16px 0 0;font-size:12px;color:#4a4b4e;">RPVD Success · Résumer les Principes, Vulgariser la Démarche</p>
     </td></tr>
   </table>
 </body>
@@ -61,9 +78,10 @@ function layout({ title, paragraphs, codes = [], outro = [], button = null }) {
 }
 
 // Version texte brut (clients sans HTML).
-function plainText({ title, paragraphs, codes = [], outro = [], button = null }) {
+function plainText({ title, paragraphs = [], codes = [], rows = [], outro = [], button = null }) {
   const link = button ? ['', `${button.label} : ${button.url}`] : [];
-  return [title, '', ...paragraphs, '', ...codes.map((c) => `  ${c}`), '', ...outro, ...link].join('\n').trim();
+  const details = rows.length ? ['', ...rows.map(([k, v]) => `${k} : ${v}`)] : [];
+  return [title, '', ...paragraphs, ...details, '', ...codes.map((c) => `  ${c}`), ...link, '', ...outro].join('\n').trim();
 }
 
 // Contenu localisé (contrat §3, quadri-langue) : titre/sujet + paragraphes + consignes.
@@ -201,57 +219,183 @@ function activationConfirmedEmail({ plan, credits }) {
   return { subject: `Code activé : ${credits} crédits ajoutés ✅`, html: layout(content), text: plainText(content) };
 }
 
-// --- Academie RPVD : courriels du bootcamp -------------------------------------------------
+// --- Académie RPVD : courriels du Bootcamp ------------------------------------------------
+// Ton : direct, « tu », jamais de fausse urgence. Toute date/heure est déjà formatée en heure
+// du Québec par l'appelant (_lib/bootcamp.js → formatWhen).
+
+const BOOTCAMP_FOOTER = 'Bootcamp RPVD · questions : réponds simplement à ce courriel.';
 
 function mk(content, subject) {
   return { subject, html: layout(content), text: plainText(content) };
 }
 
-// Confirmation immediate du vote.
+// 1. Confirmation immédiate du vote.
 function bootcampVoteEmail({ topic, level }) {
   return mk(
     {
       title: 'Vote reçu ✅',
       paragraphs: [
-        `Ton vote est enregistré : ${topic} (${level}).`,
-        "Jeudi matin, on retient les sujets les plus demandés. Si le tien est choisi, tu reçois un courriel avec le lien de réservation en priorité, au tarif anticipé.",
+        `Ton vote est enregistré : « ${topic} » (${level}).`,
+        'Jeudi à 17 h, on retient les 4 sujets les plus demandés au Québec. Si le tien en fait partie, tu reçois un courriel avec ta place à réserver pour dimanche.',
       ],
-      outro: ['Garde un œil sur ta boîte de réception (et les courriels indésirables).'],
+      outro: ['Garde un œil sur ta boîte de réception (et sur les courriels indésirables).'],
+      footer: BOOTCAMP_FOOTER,
     },
-    'Vote reçu : on te réécrit jeudi ✅',
+    'Vote reçu : réponse jeudi 17 h ✅',
   );
 }
 
-// Sujet retenu : lien de reservation.
-function bootcampSelectedEmail({ topic, level, when, url, price }) {
+// 2. Sujet sélectionné : lien de réservation.
+function bootcampSelectedEmail({ topic, level, subject, when, price, deadline, url }) {
   return mk(
     {
-      title: 'Ton sujet est retenu 🎯',
+      title: 'Ton sujet a été SÉLECTIONNÉ 🎯',
       paragraphs: [
-        `Bonne nouvelle : « ${topic} » (${level}) fait partie des sessions de cette semaine.`,
-        `Blitz en direct de 2 h 15 : ${when}. Tarif anticipé : ${price}. Les places sont limitées par la salle Zoom.`,
-        'Réserve ta place avec le bouton ci-dessous : le lien Zoom est dans la confirmation.',
+        `Félicitations : « ${topic} » fait partie des 4 sujets retenus ce dimanche.`,
+        `Réserve ta place avant ${deadline}. Après, les ventes ferment.`,
       ],
-      outro: ['Si tu as moins de 18 ans, un parent ou tuteur doit faire la réservation.'],
+      rows: [
+        ['Sujet', topic],
+        ['Niveau', `${level} · ${subject}`],
+        ['Quand', when],
+        ['Durée', '1 h 30 en direct sur Zoom'],
+        ['Prix', `${price} tout inclus`],
+      ],
       button: { label: 'Réserver ma place', url },
+      outro: [
+        `Remboursement intégral sur simple demande jusqu'à ${deadline}.`,
+        'Moins de 18 ans ? La réservation doit être faite par un parent ou un tuteur.',
+      ],
+      footer: BOOTCAMP_FOOTER,
     },
-    `Ton sujet est retenu : ${topic} 🎯`,
+    `Ton sujet « ${topic} » a été sélectionné 🎯`,
   );
 }
 
-// Sujet non retenu cette semaine.
-function bootcampNotSelectedEmail({ topic, level, url }) {
+// 3. Sujet non retenu : les autres sessions restent ouvertes à tous.
+function bootcampNotSelectedEmail({ topic, level, sessions = [], url }) {
+  const rows = sessions.map((s) => [s.when, `${s.topic} (${s.level})`]);
   return mk(
     {
-      title: 'Pas cette semaine, mais…',
+      title: 'Pas ce dimanche pour ton sujet',
       paragraphs: [
-        `Ton sujet « ${topic} » (${level}) n'a pas été retenu cette semaine : on prend les plus demandés.`,
-        "Ton vote compte pour la suite. En attendant, tu peux t'entraîner sur n'importe quel exercice avec le site RPVD Success.",
+        `« ${topic} » (${level}) n'a pas fait partie des 4 sujets les plus votés cette semaine.`,
+        rows.length ? 'Les sessions retenues sont ouvertes à tous, si l\'une d\'elles t\'aide aussi :' : 'Ton vote compte : revote lundi pour la semaine prochaine.',
       ],
-      outro: [],
-      button: url ? { label: "Essayer le site", url } : null,
+      rows,
+      button: url ? { label: 'Voir les sessions de dimanche', url } : null,
+      footer: BOOTCAMP_FOOTER,
     },
-    'Cette semaine, ce sera pour un autre sujet',
+    'Les sujets de dimanche sont choisis',
+  );
+}
+
+// 4. Paiement confirmé : billet, règles de la classe, remboursement en un clic.
+function bootcampTicketEmail({ topic, level, subject, when, price, refundDeadline, refundUrl, reference }) {
+  return mk(
+    {
+      title: 'Ta place est réservée ✅',
+      paragraphs: [`Paiement reçu. Ton billet pour le Bootcamp RPVD est confirmé.`],
+      rows: [
+        ['Sujet', topic],
+        ['Niveau', `${level} · ${subject}`],
+        ['Quand', when],
+        ['Durée', '1 h 30 (1 h de démarche + 30 min de questions)'],
+        ['Payé', `${price} tout inclus`],
+        ...(reference ? [['Référence', reference]] : []),
+      ],
+      outro: [
+        '🔗 Ton lien Zoom PERSONNEL arrive par courriel 30 à 60 minutes avant le cours. Il ne fonctionne que sur un appareil à la fois : ne le partage pas.',
+        'Règles de la classe : arrive 5 minutes avant, prépare une feuille et un crayon, pose tes questions dans le chat, aucun enregistrement ni capture de la session.',
+        `Remboursement intégral sur simple demande jusqu'à ${refundDeadline}, avec le bouton « Gérer / annuler ma réservation ». Aucun remboursement le dimanche, jour du cours.`,
+      ],
+      button: refundUrl ? { label: 'Gérer / annuler ma réservation', url: refundUrl } : null,
+      footer: BOOTCAMP_FOOTER,
+    },
+    `Réservé : ${topic}, ${when} ✅`,
+  );
+}
+
+// 5. Lien Zoom personnel, 30-60 min avant.
+function bootcampZoomLinkEmail({ topic, when, joinUrl, personal }) {
+  return mk(
+    {
+      title: 'Ton cours commence bientôt 🔴',
+      paragraphs: [
+        `« ${topic} » commence ${when}. Voici ton lien d'accès${personal ? ' personnel' : ''}.`,
+      ],
+      button: { label: 'Rejoindre le cours sur Zoom', url: joinUrl },
+      outro: [
+        personal
+          ? 'Ce lien est à ton nom et ne fonctionne que sur un seul appareil à la fois. Ne le partage pas.'
+          : 'Garde ce lien pour toi : il est réservé aux élèves inscrits.',
+        'Feuille, crayon, et tes questions prêtes pour le chat. À tout de suite.',
+      ],
+      footer: BOOTCAMP_FOOTER,
+    },
+    `🔴 ${topic} : ton lien Zoom`,
+  );
+}
+
+// 6. Remboursement confirmé.
+function bootcampRefundEmail({ topic, when, price }) {
+  return mk(
+    {
+      title: 'Remboursement confirmé',
+      paragraphs: [
+        `Ta réservation pour « ${topic} » (${when}) est annulée et ${price} te sont remboursés.`,
+        'Le montant apparaît sur ta carte d\'ici 5 à 10 jours ouvrables, selon ta banque.',
+      ],
+      footer: BOOTCAMP_FOOTER,
+    },
+    'Remboursement confirmé',
+  );
+}
+
+// 7. Session annulée par RPVD : remboursement automatique.
+function bootcampCancelledEmail({ topic, when, price }) {
+  return mk(
+    {
+      title: 'Session annulée, tu es remboursé',
+      paragraphs: [
+        `Désolé : la session « ${topic} » prévue ${when} est annulée.`,
+        `Tu es remboursé intégralement (${price}). Le montant apparaît sur ta carte d'ici 5 à 10 jours ouvrables.`,
+      ],
+      footer: BOOTCAMP_FOOTER,
+    },
+    'Session annulée : remboursement intégral',
+  );
+}
+
+// 8. Places libérées (dimanche 8 h, seulement si de vrais désistements ont eu lieu).
+function bootcampFreedSeatsEmail({ topic, when, seats, url }) {
+  return mk(
+    {
+      title: `${seats} place${seats > 1 ? 's' : ''} libérée${seats > 1 ? 's' : ''} 🔓`,
+      paragraphs: [
+        `Suite à des désistements, ${seats} place${seats > 1 ? 's se sont libérées' : ' s\'est libérée'} pour « ${topic} » (${when}).`,
+        'Premier arrivé, premier servi. Les places réservées aujourd\'hui ne sont pas remboursables.',
+      ],
+      button: { label: 'Prendre une place', url },
+      footer: BOOTCAMP_FOOTER,
+    },
+    `🔓 ${topic} : ${seats} place${seats > 1 ? 's' : ''} libérée${seats > 1 ? 's' : ''}`,
+  );
+}
+
+// 9. Lendemain : merci + passerelle vers l'outil d'analyse.
+function bootcampFollowupEmail({ topic, appUrl, voteUrl }) {
+  return mk(
+    {
+      title: 'Bravo pour hier 💪',
+      paragraphs: [
+        `Tu as maintenant la démarche pour « ${topic} ». Pour la refaire sur n'importe quel exercice, à n'importe quelle heure : prends-le en photo, RPVD Success te donne le pattern en 3 niveaux.`,
+      ],
+      button: { label: 'Analyser un exercice', url: appUrl },
+      outro: [`Un autre examen arrive ? Vote pour le sujet de dimanche prochain : ${voteUrl}`],
+      footer: BOOTCAMP_FOOTER,
+    },
+    'Garde la démarche avec toi',
   );
 }
 
@@ -272,6 +416,7 @@ async function sendEmail({ to, subject, html, text }) {
         subject,
         html,
         text,
+        ...(process.env.EMAIL_REPLY_TO ? { reply_to: process.env.EMAIL_REPLY_TO } : {}),
       }),
     });
     if (!response.ok) {
@@ -286,6 +431,40 @@ async function sendEmail({ to, subject, html, text }) {
   }
 }
 
+// Envoi groupé via l'API batch de Resend (100 courriels par requête) : indispensable pour
+// notifier des centaines de votants sans dépasser la durée maximale d'une Netlify Function.
+// Renvoie un tableau de booléens (un par message, true = accepté par Resend). Ne lance jamais.
+async function sendBatch(messages) {
+  const results = new Array(messages.length).fill(false);
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn('[email] RESEND_API_KEY absente : envoi groupé ignoré.');
+    return results;
+  }
+  const from = process.env.EMAIL_FROM || DEFAULT_FROM;
+  const replyTo = process.env.EMAIL_REPLY_TO ? { reply_to: process.env.EMAIL_REPLY_TO } : {};
+  for (let i = 0; i < messages.length; i += 100) {
+    const chunk = messages.slice(i, i + 100);
+    try {
+      const response = await fetch(`${RESEND_ENDPOINT}/batch`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(chunk.map((m) => ({ from, to: [m.to], subject: m.subject, html: m.html, text: m.text, ...replyTo }))),
+      });
+      if (response.ok) {
+        for (let j = 0; j < chunk.length; j += 1) results[i + j] = true;
+      } else {
+        const detail = await response.text().catch(() => '');
+        console.error(`[email] Resend batch HTTP ${response.status}: ${detail.slice(0, 300)}`);
+      }
+    } catch (err) {
+      console.error('[email] Envoi groupé impossible :', err && err.message ? err.message : err);
+    }
+    if (i + 100 < messages.length) await new Promise((r) => setTimeout(r, 600)); // limite de débit Resend
+  }
+  return results;
+}
+
 module.exports = {
   sendEmail,
   trialCodesEmail,
@@ -294,8 +473,15 @@ module.exports = {
   subscriptionActivatedEmail,
   subscriptionRenewedEmail,
   activationConfirmedEmail,
+  sendBatch,
   bootcampVoteEmail,
   bootcampSelectedEmail,
   bootcampNotSelectedEmail,
+  bootcampTicketEmail,
+  bootcampZoomLinkEmail,
+  bootcampRefundEmail,
+  bootcampCancelledEmail,
+  bootcampFreedSeatsEmail,
+  bootcampFollowupEmail,
   escapeHtml,
 };

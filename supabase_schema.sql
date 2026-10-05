@@ -1495,3 +1495,65 @@ create index if not exists bootcamp_votes_week_idx
 
 alter table public.bootcamp_votes enable row level security;
 -- Aucune policy : acces service_role uniquement.
+
+
+-- =============================================================================
+-- Academie RPVD v2 : sessions du dimanche, billets (Stripe 20 $), reglages.
+-- Cycle : votes lun-mer → selection jeudi 17 h → ventes jusqu'au samedi 23 h 59 →
+-- dimanche 8 h reouverture des seules places liberees → lien Zoom personnel T-60 min.
+-- Acces service_role uniquement (Netlify Functions), RLS sans policy.
+-- =============================================================================
+create table if not exists public.bootcamp_settings (
+  id          int primary key default 1 check (id = 1),
+  auto_select boolean not null default true,
+  capacity    int not null default 90 check (capacity between 1 and 100),
+  updated_at  timestamptz not null default now()
+);
+insert into public.bootcamp_settings (id) values (1) on conflict (id) do nothing;
+alter table public.bootcamp_settings enable row level security;
+
+create table if not exists public.bootcamp_sessions (
+  id                   uuid primary key default gen_random_uuid(),
+  week_key             date not null,
+  slot                 text not null,
+  starts_at            timestamptz not null,
+  level                text not null,
+  subject              text not null,
+  topic                text not null,
+  capacity             int not null default 90 check (capacity between 1 and 100),
+  price_cents          int not null default 2000,
+  status               text not null default 'open' check (status in ('open', 'cancelled', 'done')),
+  votes_count          int not null default 0,
+  zoom_meeting_id      text,
+  zoom_join_url        text,
+  manual_join_url      text,
+  freed_notice_sent_at timestamptz,
+  created_at           timestamptz not null default now(),
+  unique (week_key, slot)
+);
+create index if not exists bootcamp_sessions_week_idx on public.bootcamp_sessions (week_key, starts_at);
+alter table public.bootcamp_sessions enable row level security;
+
+create table if not exists public.bootcamp_tickets (
+  id                    uuid primary key default gen_random_uuid(),
+  session_id            uuid not null references public.bootcamp_sessions(id) on delete cascade,
+  status                text not null default 'pending' check (status in ('pending', 'paid', 'refunded', 'expired')),
+  email                 text,
+  buyer_name            text,
+  amount_cents          int,
+  stripe_checkout_id    text unique,
+  stripe_payment_intent text,
+  refund_token          text not null unique,
+  zoom_registrant_id    text,
+  zoom_join_url         text,
+  source                text,
+  paid_at               timestamptz,
+  refunded_at           timestamptz,
+  link_sent_at          timestamptz,
+  followup_sent_at      timestamptz,
+  created_at            timestamptz not null default now()
+);
+create index if not exists bootcamp_tickets_session_idx on public.bootcamp_tickets (session_id, status);
+alter table public.bootcamp_tickets enable row level security;
+
+alter table public.bootcamp_votes add column if not exists session_id uuid references public.bootcamp_sessions(id) on delete set null;

@@ -1,32 +1,36 @@
-# Posts sociaux (Facebook / Instagram / TikTok) — à publier tels quels
+# Posts sociaux (Instagram, TikTok, Facebook) — prêts à publier
 
-Règle : prix et places réels, pas de fausse urgence. Lien partout : `rpvdsuccess.netlify.app/bootcamp`.
+Lien partout : **rpvdsuccess.com/vote** (votes) ou **rpvdsuccess.com** (sessions). En story Instagram/Facebook, utilise l'autocollant « Lien » : c'est le seul lien cliquable directement sur une publication organique. En pub Meta, mets le lien dans le bouton d'action (« S'inscrire »). Ajoute `?src=tiktok`, `?src=insta`, `?src=pub` au lien pour savoir d'où viennent les votes (visible dans l'admin et la base).
 
-## Mardi — Vote
+Règle : chiffres réels seulement (places, date limite, places libérées).
+
+## Lundi — ouverture des votes
 > Examen cette semaine ? 🎯
-> Dis-nous le chapitre qui te bloque. Dimanche, on le détruit en direct : la démarche, étape par étape, zéro théorie.
-> Vote en 30 secondes 👉 lien en bio.
-> #SN4 #examens #secondaire #Quebec
+> Dis-nous le sujet qui te bloque. Dimanche, on le détruit en direct : la démarche, étape par étape. Zéro blabla.
+> Vote en 30 secondes 👉 rpvdsuccess.com/vote
+> #secondaire #examens #maths #chimie #physique #francais #Quebec
 
-## Mercredi — Relance (story)
-> Dernier jour pour voter. Les 4-5 chapitres les plus demandés seront retenus demain matin.
+## Mercredi — dernier jour de vote (story)
+> Dernier jour pour voter. Demain 17 h, les 4 sujets les plus demandés au Québec sont sélectionnés.
 
-## Jeudi soir — Ouverture
-> Les sessions de dimanche sont ouvertes.
-> 4 chapitres, 2 h 15 en direct chacun. 12 $ en réservation anticipée.
-> La salle est limitée à 100 personnes (limite Zoom) — réserve ton chapitre 👉 lien en bio.
+## Jeudi 17 h — annonce
+> 🔥 Les 4 sujets de dimanche sont tombés :
+> 13 h · {sujet 1} · 15 h · {sujet 2} · 17 h · {sujet 3} · 19 h · {sujet 4}
+> 1 h 30 en direct, 20 $ tout inclus, 90 places par salle. Réservations jusqu'à samedi 23 h 59 👉 rpvdsuccess.com
 
-## Samedi — Dernière chance (prix honnête)
-> Les billets anticipés (12 $) sont terminés ; il reste des places à 18-20 $ jusqu'à dimanche.
-> *(Publier uniquement si le prix a réellement changé.)*
+## Vendredi / samedi — rappel (chiffres de l'admin)
+> {sujet} : il reste {N} places. Ventes fermées samedi 23 h 59. 👉 rpvdsuccess.com
+> *(Copie le texte prêt dans l'admin : bouton « Copier un post promo » sur la session.)*
 
-## Dimanche — Live
-> C'est maintenant : {sujet} à {heure}. On démarre dans 15 min.
+## Dimanche 8 h — places libérées (SEULEMENT si l'admin en affiche)
+> Copie le texte depuis l'admin : bouton « Copier le post « N place(s) libérée(s) » ». Le chiffre est calculé à partir des vrais désistements. S'il n'y a pas de bouton, il n'y a pas de place libérée : pas de post.
 
-## Lundi — Pont PWA
-> Tu as vu la démarche hier. Maintenant, applique-la sur TOUS tes devoirs : prends une photo, l'app te donne le pattern en 3 niveaux. 👉 rpvdsuccess.netlify.app/app?src=bootcamp
+## Dimanche — en direct
+> 🔴 C'est maintenant : {sujet} à {heure}. Ton lien Zoom personnel est dans tes courriels.
 
-## Scripts TikTok/Reels (20 s)
-1. « Tu rates tes examens de maths non pas par manque de théorie, mais par manque de DÉMARCHE. »
-2. Montrer un exercice-piège, nommer les 3 étapes à l'écran.
-3. « Dimanche, 2 h 15, on fait ça en direct. Lien en bio. »
+## Scripts vidéo (20-30 s)
+1. **Accroche** : « Tu rates tes examens de maths, pas par manque de théorie : par manque de DÉMARCHE. »
+2. **Preuve** : un exercice-piège à l'écran, les 3 étapes qui apparaissent une par une.
+3. **Appel** : « Dimanche, 1 h 30 en direct, on fait ça sur TON sujet. Vote : lien en bio. »
+
+Variante français : « Le participe passé, c'est un arbre de décision. 3 questions, et tu ne te trompes plus jamais. » → montrer l'arbre.

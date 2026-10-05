@@ -1,31 +1,17 @@
-# Courriels (à envoyer via Resend ou en copier-coller)
+# Courriels automatiques (aucun envoi manuel)
 
-Ton : direct, chaleureux, « tu ». Aucun pronom genré pour l'élève.
+Tous partent seuls (Resend), aux couleurs de la marque, depuis `netlify/functions/_lib/email.js`. Il suffit que Resend soit configuré (voir `02-ZOOM-RESEND-STRIPE.md`).
 
-## E1 — Ouverture des sessions (jeudi soir, aux votants)
-**Objet** : Les sessions de dimanche sont ouvertes
-> Salut,
-> Tu as voté, voici les sessions retenues pour dimanche :
-> {liste : sujet · niveau · heure · lien}
-> Chaque session dure 2 h 15 en direct sur Zoom. Prix : 12 $ en réservation anticipée, 18-20 $ à la dernière minute. La salle est limitée à 100 personnes.
-> — L'équipe RPVD Success
+| # | Courriel | Déclencheur | Contenu clé |
+|---|---|---|---|
+| 1 | Vote reçu ✅ | Envoi du formulaire | Sujet voté, annonce jeudi 17 h |
+| 2 | Ton sujet a été SÉLECTIONNÉ 🎯 | Sélection (jeudi 17 h ou admin) | Fiche de la session, date limite samedi 23 h 59, bouton « Réserver ma place » |
+| 3 | Pas ce dimanche pour ton sujet | Sélection | Les 4 sessions retenues, ouvertes à tous |
+| 4 | Ta place est réservée ✅ | Paiement Stripe confirmé | Fiche, référence, règles de la classe, remboursement jusqu'à samedi, bouton « Gérer / annuler » |
+| 5 | 🔴 Ton lien Zoom | T-60 min | Bouton « Rejoindre le cours », lien personnel (un appareil) |
+| 6 | Remboursement confirmé | Annulation par l'élève | Montant, délai bancaire 5-10 jours |
+| 7 | Session annulée, tu es remboursé | Annulation par l'admin | Remboursement intégral automatique |
+| 8 | 🔓 N places libérées | Dimanche 8 h, seulement si de vrais désistements | Bouton « Prendre une place », non remboursable |
+| 9 | Garde la démarche avec toi | Lundi 9 h | Passerelle vers l'outil d'analyse + revoter |
 
-## E2 — Rappel J-1 (samedi)
-**Objet** : Demain {heure} : {sujet}
-> Rappel : ta session est demain à {heure}. Lien Zoom : {lien}.
-> Prépare une feuille, un crayon et un exercice qui te bloque.
-> Connecte-toi 5 minutes avant.
-
-## E3 — Post-session (lundi matin)
-**Objet** : Ta démarche pour {sujet} + l'app
-> Merci d'avoir été là. Résumé de la démarche vue hier : {3-4 étapes}.
-> Pour la refaire sur tes propres devoirs, essaie l'app : rpvdsuccess.netlify.app/app?src=bootcamp
-> Basic 12 $ (50 crédits) ou Pro 20 $ (120 crédits), aux 3 mois, résiliable en tout temps depuis Réglages.
-
-## E4 — Upsell Premium (lundi soir, seulement aux participants)
-**Objet** : Un examen important arrive ?
-> Si un examen te stresse vraiment, le Pack Premium (micro-groupe de 4-5, accès à l'app inclus, micro-coaching 1-on-1 de 5 à 15 min avant tes examens) est fait pour toi. Garantie « Démarche maîtrisée » : si une démarche n'est pas assimilée, on te reprend en individuel, sans frais.
-> Réserve un appel de 10 min : {lien}
-
-## E5 — Si le bootcamp est annulé/reporté
-> Ta session {sujet} est reportée à {date}. Ta réservation est conservée ; si cette date ne te convient pas, réponds à ce courriel pour un remboursement complet.
+Pour modifier un texte : la fonction correspondante dans `email.js` (`bootcampSelectedEmail`, `bootcampTicketEmail`, etc.), puis pousser sur `main`.

@@ -167,12 +167,32 @@ Dernière mise à jour : ${UPDATED}
 - Les abonnements Basic et Pro sont facturés d'avance pour une période de 3 mois.
 - Tu peux annuler à tout moment ; l'annulation prend effet à la fin de la période déjà payée (pas de remboursement au prorata pour la période en cours).
 - En cas d'erreur de facturation ou de problème technique avéré empêchant l'usage du service, écris-nous à ${SUPPORT_EMAIL} — nous traitons ces demandes au cas par cas.
-- Un compte suspendu pour partage non autorisé (contrat, section « Compte et partage ») n'est pas remboursé.`,
+- Un compte suspendu pour partage non autorisé (contrat, section « Compte et partage ») n'est pas remboursé.
+
+### Bootcamp RPVD (sessions du dimanche en direct)
+Section ajoutée le 5 octobre 2026.
+
+- Prix : 20,00 $ CAD par billet, tout inclus. Le montant affiché est le montant payé.
+- Remboursement intégral sur simple demande jusqu'au samedi 23 h 59 (heure du Québec) précédant la session, en un clic avec le bouton « Gérer / annuler ma réservation » du courriel de confirmation.
+- Aucun remboursement le dimanche, jour du cours, y compris pour les places libérées remises en vente ce jour-là.
+- Si RPVD annule une session, tous les billets sont remboursés intégralement et automatiquement.
+- Le lien Zoom est personnel, envoyé 30 à 60 minutes avant le cours, et ne fonctionne que sur un appareil à la fois. Un lien partagé n'ouvre pas droit à un remboursement.
+- Les élèves de moins de 18 ans doivent passer par un parent ou un tuteur pour réserver et payer.`,
   en: `## Refund Policy
 Last updated: ${UPDATED_EN}
 
 - Basic and Pro subscriptions are billed in advance for a 3-month period.
 - You can cancel at any time; cancellation takes effect at the end of the already-paid period (no pro-rated refund for the current period).
 - In case of a billing error or a confirmed technical issue preventing use of the service, write to us at ${SUPPORT_EMAIL} — we handle these on a case-by-case basis.
-- An account suspended for unauthorized sharing (see Terms, "Account and Sharing") is not refunded.`,
+- An account suspended for unauthorized sharing (see Terms, "Account and Sharing") is not refunded.
+
+### RPVD Bootcamp (live Sunday sessions)
+Section added October 5, 2026.
+
+- Price: $20.00 CAD per ticket, all-in. The displayed amount is the amount charged.
+- Full refund on request until Saturday 11:59 p.m. (Quebec time) before the session, in one click from the "Manage / cancel my booking" button in the confirmation email.
+- No refunds on Sunday, the day of the class, including for released seats resold that day.
+- If RPVD cancels a session, every ticket is refunded in full automatically.
+- The Zoom link is personal, sent 30 to 60 minutes before class, and works on one device at a time. A shared link does not entitle anyone to a refund.
+- Students under 18 must have a parent or guardian book and pay.`,
 }

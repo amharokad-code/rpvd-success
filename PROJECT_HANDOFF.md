@@ -1,8 +1,19 @@
 # RPVD Success — État du projet (résumé de transfert)
 
-Dernière mise à jour : 2026-09-25
+Dernière mise à jour : 2026-10-05
 
-## -1. ⚠️ SESSION 2026-09-25 (dernier changement, prioritaire sur tout ce qui suit)
+## -2. ⚠️ BOOTCAMP RPVD v2 (2026-10-05, prioritaire sur tout ce qui suit)
+
+La page principale (`/`) est maintenant le **Bootcamp RPVD** : 1 h 30 en direct sur Zoom le dimanche (13/15/17/19 h), 20,00 $ CAD tout inclus, Sec 1-5 (maths CST/TS/SN, ST/STE Sec 4, chimie/physique Sec 5, français). Doc d'exploitation complète : `docs/academie/01-SYSTEME-ET-CHECKLIST.md`.
+
+- **Pages** : `/` (sessions en temps réel + vote en cascade), `/vote` (lien court), `/reserver?s=`, `/merci`, `/rembourser?t=`, `/admin/bootcamp` (jeton `BOOTCAMP_ADMIN_TOKEN`), `/accueil` (ancienne landing), `/app` (outil d'analyse).
+- **Serveur** : `_lib/bootcamp.js` (heure du Québec, cycle de la semaine, places, sélection), `_lib/bootcamp-ops.js` (paiement confirmé, Zoom, liens, places libérées, suivi, annulation), `_lib/zoom.js` (Server-to-Server OAuth), `_lib/stripe-client.js`. Fonctions : `submit-vote`, `bootcamp-public`, `bootcamp-checkout`, `bootcamp-refund`, `bootcamp-admin`, `bootcamp-cron` (planifiée toutes les 10 min dans `netlify.toml`). Le webhook Stripe existant traite `metadata.kind = 'bootcamp'`.
+- **Base** : `bootcamp_settings`, `bootcamp_sessions`, `bootcamp_tickets`, colonne `bootcamp_votes.session_id` (appliqué dans Supabase le 2026-10-05).
+- **Règles métier** : ventes jusqu'au samedi 23 h 59 ; dimanche 8 h seules les places libérées par de vrais remboursements rouvrent (non remboursables) ; remboursement libre-service jusqu'au samedi 23 h 59 ; lien Zoom personnel T-60 min ; suivi lundi 9 h ; sélection auto jeudi 17 h (désactivable dans l'admin).
+- **Reste à brancher (comptes/secrets de l'utilisateur)** : `RESEND_API_KEY`, `EMAIL_FROM` (domaine vérifié), `EMAIL_REPLY_TO`, `ZOOM_ACCOUNT_ID` / `ZOOM_CLIENT_ID` / `ZOOM_CLIENT_SECRET`. Sans Zoom : lien manuel par session dans l'admin. Achat test réel de 20 $ + remboursement à faire une fois.
+- Test d'intégration réel passé contre la base (semaine fictive 2030, nettoyée) : décompte, sélection, créneaux, heure du Québec, essai à blanc, places vendredi/dimanche, délai de remboursement, webhook idempotent, liens, cron « places libérées », fin de session.
+
+## -1. SESSION 2026-09-25
 
 - **Nettoyage Stripe** : 2 destinations de webhook obsolètes supprimées en mode test (`incandescent-hamster-05d62b.netlify.app` et `rpvd-success-v2.netlify.app`, tous deux des comptes Netlify bloqués). Il ne reste qu'une seule destination active : `rpvdsuccess.netlify.app`. Vérifier aussi le mode **live** si jamais des doublons y traînent (pas vérifié cette session).
 - **7 features livrées** (commits `e8e2332` puis `83b659d`, poussés sur `main`, déployés) :
