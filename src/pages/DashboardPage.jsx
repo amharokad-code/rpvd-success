@@ -10,6 +10,7 @@ import LibraryModal from '../components/LibraryModal'
 import PaywallModal from '../components/PaywallModal'
 import CreditsBadge from '../components/CreditsBadge'
 import StreakFlame from '../components/StreakFlame'
+import StreakHeader from '../components/StreakHeader'
 import Logo from '../components/Logo'
 import NotationBlock from '../components/NotationBlock'
 import SocialFollowPrompt from '../components/SocialFollowPrompt'
@@ -220,6 +221,16 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
           </div>
         </div>
       </header>
+
+      <StreakHeader
+        days={profile?.streak_days ?? 0}
+        lastAnalysisDate={profile?.last_analysis_date ?? null}
+        copy={
+          region === 'us' || region === 'uk'
+            ? { active: "You're on track today.", atRisk: (d) => `${d}-day streak — scan one exercise today to keep it.` }
+            : { active: "Tu es à jour aujourd'hui.", atRisk: (d) => `Série de ${d} jours — fais un exercice aujourd'hui pour la garder.` }
+        }
+      />
 
       {phase === 'upload' && (
         <div className="flex flex-col gap-4 motion-safe:animate-bop">
