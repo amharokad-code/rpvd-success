@@ -97,7 +97,12 @@ async function run(now = new Date(), { retention = true } = {}) {
     .update({ email: null, zoom_join_url: null, zoom_registrant_id: null }, { count: 'exact' })
     .lt('created_at', cutoff.toISOString())
     .not('email', 'is', null);
-  if (purgedVotes || anonymized) log.retention = { purgedVotes, anonymized };
+  // Compteurs anti-abus (empreinte hachée de l'IP) : effacés après 7 jours (fenêtres ≤ 1 jour).
+  const { count: purgedLimits } = await db
+    .from('rate_limits')
+    .delete({ count: 'exact' })
+    .lt('window_start', new Date(Date.now() - 7 * 86400000).toISOString());
+  if (purgedVotes || anonymized || purgedLimits) log.retention = { purgedVotes, anonymized, purgedLimits };
 
   return log;
 }

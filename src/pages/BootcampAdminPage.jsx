@@ -24,9 +24,10 @@ function Health({ health }) {
     ['stripe', 'Paiements (Stripe)', 'Clé ou secret webhook Stripe manquant.'],
     ['zoom', 'Zoom automatique', 'ZOOM_* manquants : colle un lien Zoom manuel sur chaque session.'],
     ['reply_to', 'Adresse de réponse', 'EMAIL_REPLY_TO manquant : les élèves ne peuvent pas répondre aux courriels.'],
+    ['postal_address', 'Adresse postale légale', 'postalAddress vide dans src/legal/business.json (obligatoire : ventes en ligne et courriels d’annonce).'],
   ]
   return (
-    <div className="grid gap-2 sm:grid-cols-5">
+    <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
       {items.map(([k, label, fix]) => (
         <div key={k} title={health[k] ? 'OK' : fix} className={`rounded-2xl border px-3 py-2 text-xs ${health[k] ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200' : 'border-rose-500/30 bg-rose-500/10 text-rose-200'}`}>
           <p className="font-bold">{health[k] ? '✓' : '✕'} {label}</p>

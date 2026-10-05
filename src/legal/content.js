@@ -4,8 +4,8 @@
 
 import BUSINESS from './business.json'
 
-const UPDATED = '24 septembre 2026'
-const UPDATED_EN = 'September 24, 2026'
+const UPDATED = '5 octobre 2026'
+const UPDATED_EN = 'October 5, 2026'
 const SUPPORT_EMAIL = BUSINESS.email
 
 const WHERE = BUSINESS.postalAddress || BUSINESS.city
@@ -35,7 +35,7 @@ RPVD Success (« RPVD », « nous ») est exploité par ${BUSINESS.operator}, ${
 - Billet : ton courriel, le montant, l'état du billet et les références de paiement Stripe. Pour confirmer ta place, t'envoyer ton lien Zoom, te rembourser si tu le demandes et tenir notre comptabilité.
 - Paiement : il se fait chez Stripe. Nous ne voyons jamais le numéro de carte. Stripe peut demander le nom du titulaire de la carte pour traiter le paiement ; nous ne le conservons pas.
 - Cours sur Zoom : ton courriel est transmis à Zoom uniquement pour créer ton lien personnel. Tu apparais comme « Élève » suivi d'un code. Caméra désactivée, micro coupé (ouvert seulement quand l'animateur te donne la parole), aucun enregistrement du cours par RPVD, messages privés entre élèves désactivés.
-- Sécurité : une empreinte irréversible (hachage) de l'adresse IP sert quelques minutes à bloquer les abus (trop de requêtes). Elle n'est jamais associée à ton vote ni à ton billet.
+- Sécurité : une empreinte irréversible (hachage) de l'adresse IP sert à bloquer les abus (trop de requêtes en une heure). Elle n'est jamais associée à ton vote ni à ton billet et elle est effacée au plus tard 7 jours après.
 
 ## Outil d'analyse (/app) : ce qu'on collecte et pourquoi
 - Ton courriel, au moment où tu te connectes (lien magique, aucun mot de passe) ou payes.
@@ -124,7 +124,7 @@ RPVD Success ("RPVD", "we") is operated by ${BUSINESS.operator}, ${BUSINESS.city
 - Ticket: your email, amount, ticket status and Stripe payment references. To confirm your seat, send your Zoom link, refund you on request and keep our accounts.
 - Payment: handled by Stripe. We never see the card number. Stripe may ask for the cardholder's name to process the payment; we do not keep it.
 - Zoom classes: your email is sent to Zoom only to create your personal link. You appear as "Élève" (student) plus a code. Camera off, microphone muted (opened only when the instructor gives you the floor), no recording by RPVD, private messages between students disabled.
-- Security: an irreversible fingerprint (hash) of the IP address is used for a few minutes to block abuse. It is never linked to your vote or ticket.
+- Security: an irreversible fingerprint (hash) of the IP address is used to block abuse (too many requests within an hour). It is never linked to your vote or ticket and is erased within 7 days.
 
 ## Analysis tool (/app): what we collect and why
 - Your email, when you sign in (magic link, no password) or pay.

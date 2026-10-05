@@ -52,7 +52,7 @@ Au Québec, la publicité commerciale destinée aux moins de 13 ans est interdit
 ## Ce qui reste à faire, en résumé (toi seulement)
 
 1. Adresse postale dans `src/legal/business.json`.
-2. Vérifier que `support@rpvdsuccess.app` reçoit vraiment les courriels (c'est l'adresse officielle affichée partout). Sinon, remplace `email` dans le même fichier.
+2. L'adresse officielle affichée partout est `rpvdsuccess@gmail.com` (l'ancienne `support@rpvdsuccess.app` n'existait pas : le domaine `.app` n'est pas enregistré). Vérifie que tu lis cette boîte, sinon change `email` dans le même fichier.
 3. Réglages Zoom du compte : `02-ZOOM-PROTECTION-ELEVES.md` (10 minutes, une fois).
 4. Signer `03-EFVP-FOURNISSEURS.md`, garder `04-REGISTRE-INCIDENTS.md`.
 5. Cibler les pubs 13 ans et plus + parents.
