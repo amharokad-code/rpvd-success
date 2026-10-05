@@ -59,6 +59,23 @@ async function reportPurchase({ email, amountCents, currency, eventId }) {
   }
 }
 
+async function reportBootcampPurchase(checkout) {
+  try {
+    await sendPurchaseEvent({
+      email: (checkout.customer_details && checkout.customer_details.email) || checkout.customer_email || null,
+      value: (checkout.amount_total ?? 0) / 100,
+      currency: (checkout.currency || 'cad').toUpperCase(),
+      eventId: `bootcamp-${checkout.metadata.ticket_id}`,
+      fbp: checkout.metadata.fbp,
+      fbc: checkout.metadata.fbc,
+      sourceUrl: `${process.env.URL || 'https://rpvdsuccess.com'}/reserver`,
+      contentName: 'Bootcamp RPVD',
+    });
+  } catch (err) {
+    console.error('[stripe-webhook] reportBootcampPurchase a levé :', err && err.message);
+  }
+}
+
 async function handleCheckoutCompleted(stripeEvent) {
   const session = stripeEvent.data.object;
   if (session.mode !== 'subscription' || session.payment_status !== 'paid') return;
@@ -159,7 +176,12 @@ exports.handler = async (event) => {
     const object = stripeEvent.data && stripeEvent.data.object;
     if (stripeEvent.type === 'checkout.session.completed' && object && object.metadata && object.metadata.kind === 'bootcamp') {
       // Billet du Bootcamp (paiement unique de 20 $) : confirmation, inscription Zoom, courriel.
-      await confirmPaidCheckout(getServiceClient(), object);
+      const confirmed = await confirmPaidCheckout(getServiceClient(), object);
+      // Meta Conversions API : seulement si l'acheteur a accepté les cookies marketing (metadata.mc)
+      // et une seule fois (confirmPaidCheckout est idempotent : `ok` absent si déjà traité).
+      if (confirmed && confirmed.ok && object.metadata.mc === '1') {
+        await reportBootcampPurchase(object);
+      }
     } else if (stripeEvent.type === 'checkout.session.completed') {
       await handleCheckoutCompleted(stripeEvent);
     } else if (stripeEvent.type === 'invoice.paid') {

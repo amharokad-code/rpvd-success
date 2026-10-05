@@ -13,7 +13,9 @@ function sha256(value) {
 
 // Best-effort : un échec d'envoi à Meta ne doit jamais faire échouer le webhook Stripe
 // (le code d'activation est déjà créé et envoyé, c'est ce qui compte pour le client).
-async function sendPurchaseEvent({ email, value, currency, eventId }) {
+// Champs optionnels pour la qualité de correspondance : fbp/fbc (cookies du pixel, ne sont présents
+// que si le visiteur a accepté les cookies marketing), sourceUrl, contentName.
+async function sendPurchaseEvent({ email, value, currency, eventId, fbp, fbc, sourceUrl, contentName }) {
   const pixelId = process.env.META_PIXEL_ID;
   const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
   if (!pixelId || !accessToken) {
@@ -28,12 +30,16 @@ async function sendPurchaseEvent({ email, value, currency, eventId }) {
         event_time: Math.floor(Date.now() / 1000),
         event_id: eventId,
         action_source: 'website',
+        ...(sourceUrl ? { event_source_url: sourceUrl } : {}),
         user_data: {
           em: email ? [sha256(email)] : undefined,
+          fbp: fbp || undefined,
+          fbc: fbc || undefined,
         },
         custom_data: {
           value,
           currency,
+          ...(contentName ? { content_name: contentName, content_type: 'product' } : {}),
         },
       },
     ],

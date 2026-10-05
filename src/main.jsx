@@ -11,6 +11,7 @@ import ReserverPage from './pages/ReserverPage'
 import MerciPage from './pages/MerciPage'
 import RembourserPage from './pages/RembourserPage'
 import DesabonnerPage from './pages/DesabonnerPage'
+import { loadMetaPixel } from './utils/meta-pixel'
 import './index.css'
 
 // Routage minimal (pas de react-router) :
@@ -60,6 +61,9 @@ function pickRoute() {
   if (legalDoc) return <LegalPage doc={legalDoc} />
   return <App />
 }
+
+// Consentement marketing déjà donné lors d'une visite précédente : le pixel se recharge (sinon rien).
+loadMetaPixel()
 
 const rootElement = typeof document !== 'undefined' ? document.getElementById('root') : null
 if (rootElement) {

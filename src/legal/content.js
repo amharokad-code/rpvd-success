@@ -71,7 +71,7 @@ Certains fournisseurs hébergent des renseignements à l'extérieur du Québec, 
 - Zoom : cours en direct (courriel et nom affiché « Élève » seulement)
 - Google Gemini : analyse des photos d'exercices (outil d'analyse seulement)
 - Google Analytics : statistiques de visite, seulement si tu cliques « Tout accepter » dans le bandeau de cookies.
-- Meta (API Conversions) : confirmation d'achat d'un abonnement à l'outil d'analyse, voir la Politique de cookies. Aucune donnée du Bootcamp n'est transmise à Meta.
+- Meta (Pixel et API Conversions) : confirmation d'achat d'un abonnement à l'outil d'analyse, voir la Politique de cookies. Pour le Bootcamp, seulement si tu cliques « Tout accepter » dans le bandeau de cookies : visite de la page, vote et réservation, avec ton courriel chiffré (haché) et le montant du billet, pour mesurer nos publicités. Jamais ton nom, ton âge ni le contenu de tes votes. Si tu refuses les cookies marketing, aucune donnée du Bootcamp n'est transmise à Meta.
 
 ## Sécurité
 - Connexion chiffrée (HTTPS) partout.
@@ -160,7 +160,7 @@ Some providers host information outside Quebec, notably in the United States. Be
 - Zoom: live classes (email and display name "Élève" only)
 - Google Gemini: exercise photo analysis (analysis tool only)
 - Google Analytics: visit statistics, only if you click "Accept all" in the cookie banner.
-- Meta (Conversions API): purchase confirmation for an analysis tool subscription, see the Cookie Policy. No Bootcamp data is sent to Meta.
+- Meta (Pixel and Conversions API): purchase confirmation for an analysis tool subscription, see the Cookie Policy. For the Bootcamp, only if you click "Accept all" in the cookie banner: page visit, vote and booking, with your hashed email and the ticket amount, to measure our ads. Never your name, your age or the content of your votes. If you decline marketing cookies, no Bootcamp data is sent to Meta.
 
 ## Security
 - Encrypted connection (HTTPS) everywhere.

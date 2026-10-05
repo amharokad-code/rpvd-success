@@ -10,6 +10,7 @@ import LibraryModal from '../components/LibraryModal'
 import PaywallModal from '../components/PaywallModal'
 import CreditsBadge from '../components/CreditsBadge'
 import StreakFlame from '../components/StreakFlame'
+import StreakHeader from '../components/StreakHeader'
 import Logo from '../components/Logo'
 import NotationBlock from '../components/NotationBlock'
 import SocialFollowPrompt from '../components/SocialFollowPrompt'
@@ -220,6 +221,10 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
           </div>
         </div>
       </header>
+
+      {phase === 'upload' && (
+        <StreakHeader days={profile?.streak_days ?? 0} lastAnalysisDate={profile?.last_analysis_date ?? null} />
+      )}
 
       {phase === 'upload' && (
         <div className="flex flex-col gap-4 motion-safe:animate-bop">

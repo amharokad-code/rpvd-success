@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { BOOTCAMP as B } from '../config/bootcamp'
 import { trackEvent } from '../utils/track'
+import { metaBrowserIds, pixelTrack } from '../utils/meta-pixel'
 import { bootcampCall, queryParam } from '../lib/bootcampApi'
 import { CARD, CTA, CTA_GHOST, INPUT, LegalLinks, Notice, PageShell, SeatMeter, Spinner } from '../components/bootcamp/BootcampUI'
 import BUSINESS from '../legal/business.json'
@@ -45,12 +46,14 @@ export default function ReserverPage() {
     setError(null)
     try {
       trackEvent('checkout_started', { path: '/reserver', plan: 'bootcamp' })
+      pixelTrack('InitiateCheckout', { value: 20, currency: 'CAD', content_name: 'Bootcamp RPVD' })
       const { url } = await bootcampCall('bootcamp-checkout', {
         session_id: id,
         email: email.trim(),
         accept_policy: policy,
         adult_or_guardian: adult,
         source: queryParam('src') || '',
+        ...metaBrowserIds(),
       })
       window.location.href = url
     } catch (e) {

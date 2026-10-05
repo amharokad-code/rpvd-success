@@ -1,5 +1,7 @@
 // Consentement cookies (contrat conformité §4) — stockage local uniquement, aucun compte tiers.
 // Prépare le terrain pour Meta Pixel : rien de « marketing » ne doit se charger sans ce consentement.
+import { loadMetaPixel } from './meta-pixel'
+
 const STORAGE_KEY = 'rpvd_cookie_consent'
 
 function safeStorage() {
@@ -26,6 +28,7 @@ export function writeConsent(marketing) {
     if (storage) storage.setItem(STORAGE_KEY, JSON.stringify({ necessary: true, marketing: Boolean(marketing), ts: Date.now() }))
     // Google Analytics n'est chargé qu'à l'acceptation (voir index.html → window.rpvdLoadAnalytics).
     if (marketing && typeof window.rpvdLoadAnalytics === 'function') window.rpvdLoadAnalytics()
+    if (marketing) loadMetaPixel()
   } catch {
     // best-effort
   }
