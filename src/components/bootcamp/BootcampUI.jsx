@@ -2,6 +2,7 @@
 // fond noir du logo, orange pyramide, verre sombre, apparitions douces au défilement.
 import { motion, useReducedMotion } from 'framer-motion'
 import SiteNav from '../SiteNav'
+import CookieConsentBanner from '../CookieConsentBanner'
 
 export const CTA =
   'squishy focus-ring inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-[#f5ad6b] to-[#e07b2e] px-7 font-bold text-[#0b0b0c] shadow-[0_0_40px_-8px_rgba(242,153,74,0.75)] transition hover:brightness-110 disabled:opacity-60'
@@ -56,6 +57,7 @@ export function PageShell({ current = 'bootcamp', children, width = 'max-w-3xl' 
       />
       <SiteNav current={current} className="left-1/2 -translate-x-1/2" />
       <div className={`relative mx-auto ${width} px-4 pb-32 pt-24 sm:px-6`}>{children}</div>
+      <CookieConsentBanner />
     </div>
   )
 }

@@ -24,6 +24,8 @@ export function writeConsent(marketing) {
   try {
     const storage = safeStorage()
     if (storage) storage.setItem(STORAGE_KEY, JSON.stringify({ necessary: true, marketing: Boolean(marketing), ts: Date.now() }))
+    // Google Analytics n'est chargé qu'à l'acceptation (voir index.html → window.rpvdLoadAnalytics).
+    if (marketing && typeof window.rpvdLoadAnalytics === 'function') window.rpvdLoadAnalytics()
   } catch {
     // best-effort
   }

@@ -43,14 +43,29 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700;800&family=Inter:wght@400;500;600;700&family=Fira+Code:wght@500;700&display=swap"
     />
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5B2CZETWYS"></script>
+    <!-- Google Analytics (gtag.js) : chargé SEULEMENT après « Tout accepter » dans le bandeau de
+         cookies (Loi 25, art. 8.1 : tout traceur est désactivé par défaut). Le choix est lu dans
+         localStorage (rpvd_cookie_consent, voir src/utils/consent.js) ; sans consentement, aucun
+         script Google n'est téléchargé. -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-5B2CZETWYS');
+      gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
+      window.rpvdLoadAnalytics = function () {
+        if (window.__rpvdGaLoaded) return;
+        window.__rpvdGaLoaded = true;
+        gtag('consent', 'update', { analytics_storage: 'granted', ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-5B2CZETWYS';
+        document.head.appendChild(s);
+        gtag('js', new Date());
+        gtag('config', 'G-5B2CZETWYS');
+      };
+      try {
+        var c = JSON.parse(localStorage.getItem('rpvd_cookie_consent') || 'null');
+        if (c && c.marketing) window.rpvdLoadAnalytics();
+      } catch (e) {}
     </script>
   </head>
   <body>

@@ -70,6 +70,7 @@ Certains fournisseurs hébergent des renseignements à l'extérieur du Québec, 
 - Resend : envoi des courriels
 - Zoom : cours en direct (courriel et nom affiché « Élève » seulement)
 - Google Gemini : analyse des photos d'exercices (outil d'analyse seulement)
+- Google Analytics : statistiques de visite, seulement si tu cliques « Tout accepter » dans le bandeau de cookies.
 - Meta (API Conversions) : confirmation d'achat d'un abonnement à l'outil d'analyse, voir la Politique de cookies. Aucune donnée du Bootcamp n'est transmise à Meta.
 
 ## Sécurité
@@ -158,6 +159,7 @@ Some providers host information outside Quebec, notably in the United States. Be
 - Resend: email delivery
 - Zoom: live classes (email and display name "Élève" only)
 - Google Gemini: exercise photo analysis (analysis tool only)
+- Google Analytics: visit statistics, only if you click "Accept all" in the cookie banner.
 - Meta (Conversions API): purchase confirmation for an analysis tool subscription, see the Cookie Policy. No Bootcamp data is sent to Meta.
 
 ## Security
@@ -319,8 +321,8 @@ export const COOKIE_POLICY = {
 Dernière mise à jour : ${UPDATED}
 
 RPVD utilise un minimum de cookies/stockage local :
-- **Nécessaires** : session de connexion (Supabase), préférence de région/langue, empreinte d'appareil anti-partage. Toujours actifs — le site ne fonctionne pas sans eux.
-- **Marketing** (désactivé par défaut) : uniquement si tu acceptes la catégorie « Marketing » dans le bandeau de consentement, pour mesurer l'efficacité de nos publicités. Refuser est aussi simple qu'accepter.
+- Nécessaires : session de connexion (Supabase), préférence de région/langue, empreinte d'appareil anti-partage. Toujours actifs — le site ne fonctionne pas sans eux.
+- Mesure d'audience et marketing (désactivés par défaut) : Google Analytics (statistiques de visite) et la mesure de nos publicités, chargés SEULEMENT si tu cliques « Tout accepter ». Sans ton accord, aucun script Google n'est téléchargé. Refuser est aussi simple qu'accepter.
 
 Nous utilisons aussi un suivi côté serveur (Meta Conversions API) sur les confirmations d'achat, qui ne dépend pas d'un cookie navigateur — il s'agit d'une donnée transactionnelle liée à ton achat, légale indépendamment de ton choix de cookies.
 
@@ -329,8 +331,8 @@ Tu peux changer ton choix à tout moment en vidant le stockage local de ton navi
 Last updated: ${UPDATED_EN}
 
 RPVD uses a minimal set of cookies/local storage:
-- **Necessary**: login session (Supabase), region/language preference, anti-sharing device fingerprint. Always active — the site does not work without them.
-- **Marketing** (off by default): only if you accept the "Marketing" category in the consent banner, to measure ad performance. Declining is as easy as accepting.
+- Necessary: login session (Supabase), region/language preference, anti-sharing device fingerprint. Always active — the site does not work without them.
+- Analytics and marketing (off by default): Google Analytics (visit statistics) and ad measurement, loaded ONLY if you click "Accept all". Without your consent, no Google script is downloaded. Declining is as easy as accepting.
 
 We also use server-side tracking (Meta Conversions API) on purchase confirmations, which does not depend on a browser cookie — it is transactional data tied to your purchase, lawful independently of your cookie choice.
 
