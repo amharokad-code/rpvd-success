@@ -11,6 +11,8 @@ const { getStripe } = require('./_lib/stripe-client');
 const B = require('./_lib/bootcamp');
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Valeurs des cookies Meta (_fbp / _fbc) : ex. fb.1.1696000000000.1234567890
+const FB_COOKIE = /^fb\.[0-9]\.[0-9]{10,13}\.[A-Za-z0-9_-]{1,200}$/;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 exports.handler = async (event) => {
@@ -61,6 +63,13 @@ exports.handler = async (event) => {
     const base = B.siteUrl();
     const when = B.formatWhen(session.starts_at);
     const metadata = { kind: 'bootcamp', session_id: session.id, ticket_id: ticketId };
+    // Mesure publicitaire : uniquement si le visiteur a accepté les cookies marketing (case du
+    // bandeau). Sans ce `mc`, le webhook n'envoie RIEN à Meta.
+    if (body.marketing_consent === true) {
+      metadata.mc = '1';
+      if (FB_COOKIE.test(String(body.fbp || ''))) metadata.fbp = String(body.fbp);
+      if (FB_COOKIE.test(String(body.fbc || ''))) metadata.fbc = String(body.fbc);
+    }
     let checkout;
     try {
       checkout = await getStripe().checkout.sessions.create({
