@@ -129,7 +129,7 @@ Implémentées et testées en direct contre l'API Gemini réelle (schémas valid
 
 ## 8. Ce qui reste en suspens
 
-- **`StreakHeader.jsx` et `LegalFooter.jsx` non intégrés** (voir §-1) : les composants existent et compilent mais ne sont affichés nulle part encore. Décider où les placer dans `DashboardPage.jsx`/l'app avant de les considérer "livrés" côté utilisateur final.
+- ~~`StreakHeader`/`LegalFooter` non intégrés~~ : intégrés (StreakHeader sous l'en-tête du dashboard à la place de `StreakFlame`, LegalFooter en pied de page de `App.jsx`).
 - **Webhook Stripe mode live** : le nettoyage des doublons obsolètes n'a été fait qu'en mode test (§-1) — vérifier le mode live pour les mêmes doublons potentiels.
 
 - **`RESEND_API_KEY` / `EMAIL_FROM`** : à configurer en priorité, sinon aucun courriel ne part (blocage business réel, pas juste cosmétique).

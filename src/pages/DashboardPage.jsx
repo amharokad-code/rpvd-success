@@ -9,7 +9,7 @@ import AnalysisEngine from '../components/AnalysisEngine'
 import LibraryModal from '../components/LibraryModal'
 import PaywallModal from '../components/PaywallModal'
 import CreditsBadge from '../components/CreditsBadge'
-import StreakFlame from '../components/StreakFlame'
+import StreakHeader from '../components/StreakHeader'
 import Logo from '../components/Logo'
 import NotationBlock from '../components/NotationBlock'
 import SocialFollowPrompt from '../components/SocialFollowPrompt'
@@ -215,10 +215,10 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="leading-relaxed text-slate-400">{t.tagline}</p>
           <div className="flex items-center gap-2">
-            <StreakFlame days={profile?.streak_days ?? 0} />
             <CreditsBadge credits={credits} onClick={openPaywall} />
           </div>
         </div>
+        <StreakHeader days={profile?.streak_days ?? 0} lastAnalysisDate={profile?.last_analysis_date ?? null} />
       </header>
 
       {phase === 'upload' && (

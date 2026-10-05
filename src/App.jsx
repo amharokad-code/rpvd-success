@@ -21,7 +21,7 @@ import SettingsPage from './pages/SettingsPage'
 import ActivatePage from './pages/ActivatePage'
 import LoginPage from './pages/LoginPage'
 import ExamPrep from './components/ExamPrep'
-import Footer from './components/Footer'
+import LegalFooter from './components/LegalFooter'
 import CookieConsentBanner from './components/CookieConsentBanner'
 import LanguageSwitch from './components/LanguageSwitch'
 import { isProPlan } from './lib/plan'
@@ -321,7 +321,7 @@ function AppShell() {
           </div>
         )}
 
-        <Footer className="mt-10 pb-24 sm:pb-4" />
+        <LegalFooter className="mt-10 pb-24 sm:pb-4" />
       </main>
       <CookieConsentBanner />
     </div>
