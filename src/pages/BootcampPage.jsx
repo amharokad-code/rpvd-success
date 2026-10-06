@@ -60,7 +60,7 @@ function SessionCard({ s, index }) {
   }
   return (
     <Reveal delay={index * 0.06}>
-      <li className={`${CARD} group relative overflow-hidden p-5 transition hover:border-pyramid-orange/50 sm:p-6`}>
+      <li className={`${CARD} group relative overflow-hidden p-5 transition hover:-translate-y-0.5 hover:border-pyramid-orange/60 sm:p-6 ${canBuy ? 'cursor-pointer' : ''}`}>
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
           <div className="flex shrink-0 items-baseline gap-2 sm:w-24 sm:flex-col sm:gap-0">
             <span className="font-display text-4xl font-bold text-pyramid-orange">{s.slot.replace(':00', ' h')}</span>
@@ -80,7 +80,7 @@ function SessionCard({ s, index }) {
             <a
               href={`/reserver?s=${s.id}`}
               onClick={() => trackEvent('cta_click', { path: '/#session' })}
-              className={`${CTA} shrink-0 sm:min-w-[170px]`}
+              className={`${CTA} shrink-0 text-lg after:absolute after:inset-0 after:content-[''] sm:min-w-[190px]`}
             >
               Réserver · {B.price}
             </a>
@@ -235,7 +235,16 @@ export default function BootcampPage() {
 
   const buyable = (sessions || []).filter((s) => (s.state === 'open' || s.state === 'last_call') && s.seats_left > 0)
   const nextSelection = cycle ? new Date(cycle.next_selection_at).toLocaleDateString('fr-CA', { timeZone: 'America/Toronto', weekday: 'long', day: 'numeric', month: 'long' }) : 'jeudi'
-  const primary = buyable.length > 0 ? { href: '#sessions', label: `Réserver ma place · ${B.price}` } : { href: '#vote', label: 'Voter pour mon sujet' }
+  const single = buyable.length === 1 ? buyable[0] : null
+  const primary = single
+    ? { href: `/reserver?s=${single.id}`, label: `Réserver ma place · ${B.price}` }
+    : buyable.length > 0
+      ? { href: '#sessions', label: `Choisir mon sujet · ${B.price}` }
+      : { href: '#vote', label: 'Voter pour mon sujet' }
+  // Réassurance honnête (faits réels de la politique) : levée des freins juste sous le bouton.
+  const reassure = buyable.length > 0
+    ? `Remboursable jusqu'à ${cycle ? cycle.sales_deadline : 'samedi 23 h 59'} · ton courriel seulement · paiement sécurisé Stripe`
+    : null
 
   return (
     <PageShell current="bootcamp" width="max-w-4xl">
@@ -280,6 +289,8 @@ export default function BootcampPage() {
             {buyable.length > 0 ? 'Voter pour la semaine prochaine' : 'Comment ça marche'}
           </a>
         </motion.div>
+
+        {reassure && <p className="mx-auto mt-4 max-w-md text-xs leading-relaxed text-slate-400">🔒 {reassure}</p>}
 
         <motion.ul initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-2 sm:grid-cols-4">
           {[
@@ -377,6 +388,18 @@ export default function BootcampPage() {
         </div>
       </Section>
 
+      {buyable.length > 0 && (
+        <Reveal>
+          <div className="mt-14 rounded-3xl border border-pyramid-orange/40 bg-gradient-to-b from-pyramid-orange/10 to-transparent p-6 text-center sm:p-8">
+            <p className="font-display text-2xl font-bold text-slate-50">Prêt pour l'examen ?</p>
+            <p className="mt-1 text-sm text-slate-300">{B.duration} en direct, {B.price} tout inclus. Remboursable jusqu'à {cycle ? cycle.sales_deadline : 'samedi 23 h 59'}.</p>
+            <a href={primary.href} onClick={() => trackEvent('cta_click', { path: '/#mid' })} className={`${CTA} mt-5 text-lg`}>
+              {primary.label}
+            </a>
+          </div>
+        </Reveal>
+      )}
+
       {/* MATIÈRES */}
       <Section eyebrow="CE QU'ON COUVRE" title="Seulement ce qui se décompose en démarche." intro="Pas d'histoire, de géographie ni d'éthique : pas de « par cœur » ici. Des étapes, des algorithmes, des pièges.">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -450,6 +473,7 @@ export default function BootcampPage() {
         <a href={primary.href} onClick={() => trackEvent('cta_click', { path: '/#sticky' })} className={`${CTA} w-full`}>
           {primary.label}
         </a>
+        {reassure && <p className="mt-1.5 text-center text-[11px] text-slate-400">Remboursable jusqu'au samedi 23 h 59 · courriel seulement</p>}
       </div>
     </PageShell>
   )

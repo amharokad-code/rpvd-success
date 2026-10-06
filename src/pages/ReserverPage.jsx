@@ -112,7 +112,7 @@ export default function ReserverPage() {
             <Row label="Durée" value="1 h 30 en direct en ligne (1 h de démarche + 30 min de questions)" />
             <Row label="Prix" value={`${B.price} tout inclus`} />
             <Row label="Remboursement" value={`Intégral jusqu'au ${session.refund_deadline}`} />
-            <Row label="Lien du cours" value="Personnel, envoyé 30 à 60 min avant le cours" />
+            <Row label="Lien du cours" value="Envoyé par courriel 30 à 60 min avant le cours" />
             {canBuy && (
               <div className="pt-4">
                 <SeatMeter left={session.seats_left} capacity={session.capacity} />
