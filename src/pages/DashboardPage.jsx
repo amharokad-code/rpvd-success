@@ -222,6 +222,16 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
         </div>
       </header>
 
+      <StreakHeader
+        days={profile?.streak_days ?? 0}
+        lastAnalysisDate={profile?.last_analysis_date ?? null}
+        copy={
+          region === 'us' || region === 'uk'
+            ? { active: "You're on track today.", atRisk: (d) => `${d}-day streak — scan one exercise today to keep it.` }
+            : { active: "Tu es à jour aujourd'hui.", atRisk: (d) => `Série de ${d} jours — fais un exercice aujourd'hui pour la garder.` }
+        }
+      />
+
       {phase === 'upload' && (
         <StreakHeader days={profile?.streak_days ?? 0} lastAnalysisDate={profile?.last_analysis_date ?? null} />
       )}
