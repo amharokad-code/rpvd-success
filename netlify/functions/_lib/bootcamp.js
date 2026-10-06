@@ -18,6 +18,7 @@ const zoom = require('./zoom');
 const TZ = 'America/Toronto';
 const PRICE_CENTS = 2000;
 const CURRENCY = 'cad';
+const STRIPE_PRICE_ID = 'price_1UNbSpAJoPaz3Yer60F2dJua'; // Bootcamp RPVD 20 $ CAD (produit prod_VOOF2XODl3mMGu)
 const DEFAULT_CAPACITY = 90; // salle Zoom Pro = 100, marge de 10 pour l'équipe et les imprévus
 const DURATION_MIN = 90;
 const SLOTS = ['13:00', '15:00', '17:00', '19:00'];
@@ -359,6 +360,7 @@ module.exports = {
   TZ,
   PRICE_CENTS,
   CURRENCY,
+  STRIPE_PRICE_ID,
   DEFAULT_CAPACITY,
   DURATION_MIN,
   SLOTS,

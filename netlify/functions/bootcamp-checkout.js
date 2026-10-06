@@ -87,22 +87,21 @@ exports.handler = async (event) => {
     const baseMetadata = { kind: 'bootcamp', session_id: session.id, ticket_id: ticketId };
     let checkout;
     try {
-      checkout = await getStripe().checkout.sessions.create({
+      const dynamicItem = {
+        quantity: 1,
+        price_data: {
+          currency: B.CURRENCY,
+          unit_amount: session.price_cents,
+          product_data: {
+            name: `Bootcamp RPVD — ${session.topic}`,
+            description: `${session.level} · ${session.subject} · ${when} · 1 h 30 en direct en ligne`,
+          },
+        },
+      };
+      const createCheckout = (lineItem) => getStripe().checkout.sessions.create({
         mode: 'payment',
         locale: 'fr-CA',
-        line_items: [
-          {
-            quantity: 1,
-            price_data: {
-              currency: B.CURRENCY,
-              unit_amount: session.price_cents,
-              product_data: {
-                name: `Bootcamp RPVD — ${session.topic}`,
-                description: `${session.level} · ${session.subject} · ${when} · 1 h 30 en direct en ligne`,
-              },
-            },
-          },
-        ],
+        line_items: [lineItem],
         ...(email ? { customer_email: email } : {}),
         metadata,
         payment_intent_data: { metadata: baseMetadata, description: `Bootcamp RPVD — ${session.topic} (${when})` },
@@ -113,6 +112,23 @@ exports.handler = async (event) => {
         // code de taxe sur un produit créé à la volée).
         managed_payments: { enabled: false },
       });
+      // Price ID Stripe du Bootcamp (20 $ CAD, taxes incluses) quand le prix de la session est le prix
+      // standard. Repli sur un prix créé à la volée si le Price ID n'existe pas dans ce mode Stripe
+      // (test vs live) ou si la session a un prix différent.
+      if (session.price_cents === B.PRICE_CENTS && B.STRIPE_PRICE_ID) {
+        try {
+          checkout = await createCheckout({ price: B.STRIPE_PRICE_ID, quantity: 1 });
+        } catch (priceErr) {
+          if (priceErr && priceErr.code === 'resource_missing') {
+            console.warn('[bootcamp-checkout] Price ID introuvable dans ce mode Stripe, repli price_data.');
+            checkout = await createCheckout(dynamicItem);
+          } else {
+            throw priceErr;
+          }
+        }
+      } else {
+        checkout = await createCheckout(dynamicItem);
+      }
     } catch (err) {
       await db.from('bootcamp_tickets').update({ status: 'expired' }).eq('id', ticketId);
       throw err;
