@@ -11,7 +11,12 @@ import ReserverPage from './pages/ReserverPage'
 import MerciPage from './pages/MerciPage'
 import RembourserPage from './pages/RembourserPage'
 import DesabonnerPage from './pages/DesabonnerPage'
+import { initAds } from './utils/ads'
 import './index.css'
+
+// Mesure publicitaire : capture des paramètres de campagne (sessionStorage) et pixels Meta/Snap,
+// chargés SEULEMENT si le consentement marketing est donné (voir src/utils/ads.js).
+initAds()
 
 // Routage minimal (pas de react-router) :
 //   /          page principale Bootcamp (Académie RPVD)

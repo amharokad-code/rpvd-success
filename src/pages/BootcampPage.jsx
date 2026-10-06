@@ -7,7 +7,8 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { BOOTCAMP as B } from '../config/bootcamp'
 import { LEVELS, OTHER_TOPIC, SUBJECT_SHOWCASE, subjectsFor, topicsFor } from '../config/curriculum'
 import { trackEvent } from '../utils/track'
-import { bootcampCall, queryParam } from '../lib/bootcampApi'
+import { bootcampCall } from '../lib/bootcampApi'
+import { trackAd, getAttributionLabels } from '../utils/ads'
 import { CARD, CTA, CTA_GHOST, INPUT, LegalLinks, Notice, PageShell, Reveal, SeatMeter, Section, Spinner } from '../components/bootcamp/BootcampUI'
 
 const PAINS = [
@@ -111,9 +112,11 @@ function VoteForm() {
     setBusy(true)
     setError(null)
     try {
-      const source = queryParam('src') || queryParam('utm_source') || ''
-      await bootcampCall('submit-vote', { ...form, source })
+      // Provenance : étiquettes de campagne seulement (src, utm_*), jamais d'identifiant publicitaire.
+      await bootcampCall('submit-vote', { ...form, attribution: getAttributionLabels() })
       trackEvent('cta_click', { path: '/#vote-sent' })
+      // Pixels Meta/Snap : seulement si consentement ; aucune donnée personnelle (ni courriel, ni choix).
+      trackAd('Lead', { content_name: 'Vote Bootcamp RPVD' })
       setSent(true)
     } catch (err) {
       setError(err.message)
@@ -213,6 +216,7 @@ export default function BootcampPage() {
     const tag = document.querySelector('meta[name="description"]')
     if (tag) tag.setAttribute('content', `Bootcamp RPVD : 1 h 30 en direct sur Zoom, le dimanche, pour maîtriser la démarche d'un chapitre avant ton examen. Sec 1 à 5. ${B.price} tout inclus.`)
     trackEvent('pageview', { path: '/' })
+    trackAd('ViewContent', { content_name: B.productName, content_type: 'product', content_ids: [B.productId] }, { replay: true })
     bootcampCall('bootcamp-public', { action: 'sessions' })
       .then((d) => {
         setSessions(d.sessions || [])

@@ -18,6 +18,7 @@ const { sendEmail, subscriptionActivatedEmail, subscriptionRenewedEmail } = requ
 const { SUBSCRIPTION_PLANS, SUBSCRIPTION_DURATION_DAYS } = require('./_lib/codes');
 const { sendPurchaseEvent } = require('./_lib/meta-capi');
 const { confirmPaidCheckout } = require('./_lib/bootcamp-ops');
+const { consentGranted, reportBootcampPurchase } = require('./_lib/ad-conversions');
 
 let stripeClient = null;
 function getStripe() {
@@ -46,7 +47,11 @@ function planExpiryIso() {
 }
 
 // Best-effort : ne doit jamais faire échouer la réponse au webhook.
-async function reportPurchase({ email, amountCents, currency, eventId }) {
+// Consentement : rien ne part vers Meta sans `mk` = '1' dans les métadonnées Stripe (case cochée par
+// l'acheteur). Le tunnel d'abonnement (create-checkout.js) ne collecte pas ce consentement : ces
+// achats ne sont donc plus transmis à Meta (l'ancien envoi sans consentement a été retiré).
+async function reportPurchase({ email, amountCents, currency, eventId, metadata }) {
+  if (!consentGranted(metadata)) return;
   try {
     await sendPurchaseEvent({
       email,
@@ -94,7 +99,7 @@ async function handleCheckoutCompleted(stripeEvent) {
     .then(() => {}, (e) => console.error('[analytics]', e.message));
 
   const email = (session.customer_details && session.customer_details.email) || session.customer_email || null;
-  await reportPurchase({ email, amountCents: session.amount_total, currency: session.currency, eventId: stripeEvent.id });
+  await reportPurchase({ email, amountCents: session.amount_total, currency: session.currency, eventId: stripeEvent.id, metadata: session.metadata });
 
   if (email) {
     const { sent } = await sendEmail({
@@ -130,7 +135,7 @@ async function handleInvoicePaid(stripeEvent) {
   if (!renewed) return; // déjà traité, ou abonnement inconnu côté RPVD
 
   const email = invoice.customer_email || null;
-  await reportPurchase({ email, amountCents: invoice.amount_paid, currency: invoice.currency, eventId: stripeEvent.id });
+  await reportPurchase({ email, amountCents: invoice.amount_paid, currency: invoice.currency, eventId: stripeEvent.id, metadata: subscription.metadata });
 
   if (email) {
     const { sent } = await sendEmail({
@@ -159,7 +164,11 @@ exports.handler = async (event) => {
     const object = stripeEvent.data && stripeEvent.data.object;
     if (stripeEvent.type === 'checkout.session.completed' && object && object.metadata && object.metadata.kind === 'bootcamp') {
       // Billet du Bootcamp (paiement unique de 20 $) : confirmation, inscription Zoom, courriel.
-      await confirmPaidCheckout(getServiceClient(), object);
+      const confirmed = await confirmPaidCheckout(getServiceClient(), object);
+      // Mesure publicitaire (Meta + Snap, API de conversions) : best-effort, seulement si l'acheteur a
+      // coché la case de consentement, et seulement à la 1re confirmation du billet (Stripe réessaie
+      // parfois le même événement : `ok` n'est renvoyé qu'une fois). Ne lève jamais.
+      if (confirmed && confirmed.ok) await reportBootcampPurchase(object);
     } else if (stripeEvent.type === 'checkout.session.completed') {
       await handleCheckoutCompleted(stripeEvent);
     } else if (stripeEvent.type === 'invoice.paid') {

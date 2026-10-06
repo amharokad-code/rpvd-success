@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { BOOTCAMP as B } from '../config/bootcamp'
 import { trackEvent } from '../utils/track'
+import { trackAd, getCheckoutAdPayload } from '../utils/ads'
 import { bootcampCall, queryParam } from '../lib/bootcampApi'
 import { CARD, CTA, CTA_GHOST, INPUT, LegalLinks, Notice, PageShell, SeatMeter, Spinner } from '../components/bootcamp/BootcampUI'
 import BUSINESS from '../legal/business.json'
@@ -24,6 +25,7 @@ export default function ReserverPage() {
   const [email, setEmail] = useState('')
   const [policy, setPolicy] = useState(false)
   const [adult, setAdult] = useState(false)
+  const [adConsent, setAdConsent] = useState(false) // case facultative, jamais cochée d'avance
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
 
@@ -45,12 +47,15 @@ export default function ReserverPage() {
     setError(null)
     try {
       trackEvent('checkout_started', { path: '/reserver', plan: 'bootcamp' })
+      // Pixels Meta/Snap (seulement si consentement du bandeau) : aucune donnée personnelle.
+      trackAd('InitiateCheckout', { value: B.priceValue, currency: B.currency, content_ids: [B.productId], num_items: 1 })
       const { url } = await bootcampCall('bootcamp-checkout', {
         session_id: id,
         email: email.trim(),
         accept_policy: policy,
         adult_or_guardian: adult,
-        source: queryParam('src') || '',
+        // Étiquettes de campagne ; identifiants de clic et témoins SEULEMENT si la case est cochée.
+        ...getCheckoutAdPayload(adConsent),
       })
       window.location.href = url
     } catch (e) {
@@ -141,6 +146,15 @@ export default function ReserverPage() {
               <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-300">
                 <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-[#f2994a]" />
                 <span>Le paiement est fait par un adulte : parent, tuteur ou élève de 18 ans et plus.</span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-300">
+                <input type="checkbox" checked={adConsent} onChange={(e) => setAdConsent(e.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-[#f2994a]" />
+                <span>
+                  <span className="text-slate-500">(Facultatif)</span> J'accepte que RPVD informe Meta (Instagram, Facebook) et Snapchat de mon achat pour mesurer l'efficacité de ses publicités : montant, courriel sous forme chiffrée (haché), adresse IP et type d'appareil. Refuser ne change rien à ta réservation.{' '}
+                  <a href="/legal/privacy" target="_blank" rel="noreferrer" className="text-pyramid-orange hover:underline">
+                    Détails
+                  </a>
+                </span>
               </label>
               {error && <Notice tone="error">{error}</Notice>}
               <button type="submit" disabled={busy || !policy || !adult} className={`${CTA} w-full text-lg`}>

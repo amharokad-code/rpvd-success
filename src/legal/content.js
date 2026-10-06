@@ -31,7 +31,7 @@ RPVD Success (« RPVD », « nous ») est exploité par ${BUSINESS.operator}, ${
 ## Bootcamp RPVD : ce qu'on collecte et pourquoi
 - Vote : ton courriel, ton niveau, ta matière et le sujet choisi (plus ta précision si tu choisis « Autre sujet »). Pour compter les votes, t'envoyer le résultat et les annonces de sessions.
 - Consentement : la date à laquelle tu as coché les cases du formulaire, comme preuve de ton consentement.
-- Provenance : le nom de la publication qui t'a amené (par exemple « tiktok »), sans aucun suivi de ta personne.
+- Provenance : le nom de la publication ou de la campagne qui t'a amené (par exemple « tiktok » ou le nom d'une annonce), gardé avec ton vote ou ton billet. Aucun identifiant publicitaire n'est enregistré dans notre base de données.
 - Billet : ton courriel, le montant, l'état du billet et les références de paiement Stripe. Pour confirmer ta place, t'envoyer ton lien Zoom, te rembourser si tu le demandes et tenir notre comptabilité.
 - Paiement : il se fait chez Stripe. Nous ne voyons jamais le numéro de carte. Stripe peut demander le nom du titulaire de la carte pour traiter le paiement ; nous ne le conservons pas.
 - Cours sur Zoom : ton courriel est transmis à Zoom uniquement pour créer ton lien personnel. Tu apparais comme « Élève » suivi d'un code. Caméra désactivée, micro coupé (ouvert seulement quand l'animateur te donne la parole), aucun enregistrement du cours par RPVD, messages privés entre élèves désactivés.
@@ -62,6 +62,15 @@ RPVD Success (« RPVD », « nous ») est exploité par ${BUSINESS.operator}, ${
 - Liste de désabonnement : conservée tant que nécessaire pour respecter ton choix.
 - Compte de l'outil d'analyse : jusqu'à ce que tu le supprimes (Réglages) ou que tu en fasses la demande.
 
+## Mesure de nos publicités (Meta et Snapchat)
+Nous faisons de la publicité sur Instagram et Facebook (Meta) et sur Snapchat (Snap). Pour savoir si elle fonctionne, nous utilisons deux outils, chacun avec son propre consentement. Les deux sont facultatifs : refuser ne change rien à ta réservation ni à ton accès.
+- Pixels dans ton navigateur (Meta Pixel, Snap Pixel). Chargés SEULEMENT si tu cliques « Tout accepter » dans le bandeau de témoins. Ils ne tournent que sur la page d'accueil, le vote, la réservation, la confirmation d'achat et la présentation de la méthode, jamais sur les pages dont l'adresse contient un identifiant personnel (remboursement, désabonnement, administration, outil d'analyse). Ils reçoivent des événements (page vue, vote envoyé, début du paiement, achat avec le montant de 20 $ CAD), jamais ton courriel ni ton nom. Meta et Snap y associent leurs propres témoins (par exemple _fbp, _fbc, _scid) et voient l'adresse IP de ton appareil, selon leurs propres politiques.
+- Confirmation d'achat envoyée depuis notre serveur (API de conversions de Meta et de Snap). Seulement si tu coches, sur la page de réservation, la case facultative prévue à cet effet (jamais cochée d'avance). Après ton paiement, nous transmettons alors à Meta et à Snap : le montant et la devise, l'heure de l'achat, ton courriel sous forme hachée (empreinte irréversible calculée sur notre serveur : ton courriel lui-même n'est pas envoyé), l'adresse IP et le type de navigateur de ton appareil, ainsi que, si tu en avais, l'identifiant du clic sur la publicité (fbclid, ScCid) et les témoins Meta et Snap. Ces renseignements sont inscrits dans les métadonnées de ton paiement chez Stripe pour pouvoir être transmis, et y restent attachés tant que Stripe conserve ce paiement. Sans la case cochée, rien n'est envoyé et rien de cela n'est enregistré.
+- Provenance de la publicité : le nom de la campagne qui t'a amené (paramètres « src » et « utm ») est gardé avec ton vote ou ton billet. Ce sont des étiquettes sans lien avec ta personne.
+- Pourquoi : mesurer combien de personnes ont voté ou réservé grâce à une publicité, pour décider quoi garder ou arrêter. Fondement : ton consentement (Loi 25). Meta et Snap sont des entreprises américaines : ces renseignements sont donc traités hors du Québec.
+- Retirer ton consentement : lien « Gérer mes cookies » au bas des pages du Bootcamp. Les pixels cessent aussitôt d'envoyer des événements et nous supprimons les témoins Meta et Snap de ce site. La confirmation d'achat depuis notre serveur a lieu une seule fois, juste après le paiement : si tu changes d'avis ensuite, écris à ${BUSINESS.email}. Nous ne pouvons pas rappeler ce qui a déjà été transmis, mais tu peux aussi demander à Meta et à Snap de supprimer ces données depuis les paramètres de ton compte sur leurs plateformes.
+- Nos publicités s'adressent aux 14 ans et plus et aux parents, jamais aux enfants de moins de 13 ans.
+
 ## Fournisseurs et hébergement hors du Québec
 Certains fournisseurs hébergent des renseignements à l'extérieur du Québec, notamment aux États-Unis. Avant de leur en confier, nous évaluons les facteurs relatifs à la vie privée et nous leur transmettons le strict minimum.
 - Supabase : base de données et connexion
@@ -71,7 +80,8 @@ Certains fournisseurs hébergent des renseignements à l'extérieur du Québec, 
 - Zoom : cours en direct (courriel et nom affiché « Élève » seulement)
 - Google Gemini : analyse des photos d'exercices (outil d'analyse seulement)
 - Google Analytics : statistiques de visite, seulement si tu cliques « Tout accepter » dans le bandeau de cookies.
-- Meta (API Conversions) : confirmation d'achat d'un abonnement à l'outil d'analyse, voir la Politique de cookies. Aucune donnée du Bootcamp n'est transmise à Meta.
+- Meta (Instagram, Facebook) : pixel du navigateur (seulement si tu cliques « Tout accepter ») et API de conversions (seulement si tu coches la case de la page de réservation). Voir « Mesure de nos publicités ».
+- Snap (Snapchat) : pixel et API de conversions, avec les mêmes consentements que Meta.
 
 ## Sécurité
 - Connexion chiffrée (HTTPS) partout.
@@ -120,7 +130,7 @@ RPVD Success ("RPVD", "we") is operated by ${BUSINESS.operator}, ${BUSINESS.city
 ## RPVD Bootcamp: what we collect and why
 - Vote: your email, grade, subject and chosen topic (plus your detail if you pick "Other topic"). To count votes and send you the result and session announcements.
 - Consent: the date you ticked the form's boxes, as proof of consent.
-- Source: the name of the post that brought you (e.g. "tiktok"), with no tracking of you as a person.
+- Source: the name of the post or campaign that brought you (e.g. "tiktok" or an ad's name), kept with your vote or ticket. No advertising identifier is stored in our database.
 - Ticket: your email, amount, ticket status and Stripe payment references. To confirm your seat, send your Zoom link, refund you on request and keep our accounts.
 - Payment: handled by Stripe. We never see the card number. Stripe may ask for the cardholder's name to process the payment; we do not keep it.
 - Zoom classes: your email is sent to Zoom only to create your personal link. You appear as "Élève" (student) plus a code. Camera off, microphone muted (opened only when the instructor gives you the floor), no recording by RPVD, private messages between students disabled.
@@ -151,6 +161,15 @@ RPVD Success ("RPVD", "we") is operated by ${BUSINESS.operator}, ${BUSINESS.city
 - Unsubscribe list: kept as long as needed to honour your choice.
 - Analysis tool account: until you delete it (Settings) or ask us to.
 
+## Ad measurement (Meta and Snapchat)
+We advertise on Instagram and Facebook (Meta) and on Snapchat (Snap). To know whether our ads work, we use two tools, each with its own consent. Both are optional: declining changes nothing about your booking or access.
+- Browser pixels (Meta Pixel, Snap Pixel). Loaded ONLY if you click "Accept all" in the cookie banner. They run only on the home page, the vote, the booking page, the purchase confirmation and the method presentation, never on pages whose address contains a personal identifier (refund, unsubscribe, admin, analysis tool). They receive events (page view, vote sent, checkout started, purchase with the CAD $20 amount), never your email or name. Meta and Snap attach their own cookies (e.g. _fbp, _fbc, _scid) and see your device's IP address, under their own policies.
+- Purchase confirmation sent from our server (Meta and Snap Conversions APIs). Only if you tick the optional box on the booking page (never pre-ticked). After your payment we then send Meta and Snap: the amount and currency, the purchase time, your email in hashed form (an irreversible fingerprint computed on our server: the email itself is not sent), your device's IP address and browser type, and, if you had them, the ad click identifier (fbclid, ScCid) and the Meta and Snap cookies. This information is written into your payment's metadata at Stripe so it can be sent, and stays attached to that payment for as long as Stripe keeps it. Without the box ticked, nothing is sent and none of it is recorded.
+- Ad source: the name of the campaign that brought you (the "src" and "utm" parameters) is kept with your vote or ticket. These are labels with no link to you as a person.
+- Why: to measure how many people voted or booked thanks to an ad, and decide what to keep or stop. Basis: your consent (Law 25). Meta and Snap are US companies: this information is therefore processed outside Quebec.
+- Withdrawing consent: the "Gérer mes cookies" link ("Manage my cookies") at the bottom of the Bootcamp pages. The pixels stop sending events at once and we delete the Meta and Snap cookies of this site. The server-side purchase confirmation happens once, right after payment: if you change your mind afterwards, write to ${BUSINESS.email}. We cannot recall what has already been sent, but you can also ask Meta and Snap to delete this data from your account settings on their platforms.
+- Our ads are aimed at ages 14 and over and at parents, never at children under 13.
+
 ## Providers and hosting outside Quebec
 Some providers host information outside Quebec, notably in the United States. Before entrusting them with any, we assess privacy factors and send only the strict minimum.
 - Supabase: database and sign-in
@@ -160,7 +179,8 @@ Some providers host information outside Quebec, notably in the United States. Be
 - Zoom: live classes (email and display name "Élève" only)
 - Google Gemini: exercise photo analysis (analysis tool only)
 - Google Analytics: visit statistics, only if you click "Accept all" in the cookie banner.
-- Meta (Conversions API): purchase confirmation for an analysis tool subscription, see the Cookie Policy. No Bootcamp data is sent to Meta.
+- Meta (Instagram, Facebook): browser pixel (only if you click "Accept all") and Conversions API (only if you tick the box on the booking page). See "Ad measurement".
+- Snap (Snapchat): pixel and Conversions API, with the same consents as Meta.
 
 ## Security
 - Encrypted connection (HTTPS) everywhere.
@@ -322,21 +342,23 @@ Dernière mise à jour : ${UPDATED}
 
 RPVD utilise un minimum de cookies/stockage local :
 - Nécessaires : session de connexion (Supabase), préférence de région/langue, empreinte d'appareil anti-partage. Toujours actifs — le site ne fonctionne pas sans eux.
-- Mesure d'audience et marketing (désactivés par défaut) : Google Analytics (statistiques de visite) et la mesure de nos publicités, chargés SEULEMENT si tu cliques « Tout accepter ». Sans ton accord, aucun script Google n'est téléchargé. Refuser est aussi simple qu'accepter.
+- Mesure d'audience et marketing (désactivés par défaut) : Google Analytics (statistiques de visite), Meta Pixel et Snap Pixel (mesure de nos publicités sur Instagram, Facebook et Snapchat). Chargés SEULEMENT si tu cliques « Tout accepter » : sans ton accord, aucun script de Google, de Meta ou de Snap n'est téléchargé. Meta et Snap déposent leurs propres témoins (par exemple _fbp, _fbc, _scid). Refuser est aussi simple qu'accepter.
+- Stockage de session (sessionStorage, effacé à la fermeture de l'onglet) : le nom de la campagne publicitaire qui t'a amené (src, utm) et, si tu n'as pas refusé le marketing, l'identifiant de clic de la publicité (fbclid, ScCid). Ces identifiants ne sont envoyés à notre serveur que si tu coches la case de mesure publicitaire à la réservation, et ils sont effacés si tu refuses ou retires ton consentement.
 
-Nous utilisons aussi un suivi côté serveur (Meta Conversions API) sur les confirmations d'achat, qui ne dépend pas d'un cookie navigateur — il s'agit d'une donnée transactionnelle liée à ton achat, légale indépendamment de ton choix de cookies.
+La mesure côté serveur (API de conversions de Meta et de Snap) ne dépend pas d'un témoin du navigateur, mais elle exige quand même ton accord : elle n'a lieu que si tu coches la case facultative de la page de réservation (jamais cochée d'avance). Sans cette case, aucune confirmation d'achat n'est envoyée à Meta ni à Snap. Détails : politique de confidentialité, section « Mesure de nos publicités ».
 
-Tu peux changer ton choix à tout moment en vidant le stockage local de ton navigateur.`,
+Tu peux changer ou retirer ton choix à tout moment avec le lien « Gérer mes cookies » au bas des pages du Bootcamp (ou en vidant le stockage local de ton navigateur).`,
   en: `## Cookie Policy
 Last updated: ${UPDATED_EN}
 
 RPVD uses a minimal set of cookies/local storage:
 - Necessary: login session (Supabase), region/language preference, anti-sharing device fingerprint. Always active — the site does not work without them.
-- Analytics and marketing (off by default): Google Analytics (visit statistics) and ad measurement, loaded ONLY if you click "Accept all". Without your consent, no Google script is downloaded. Declining is as easy as accepting.
+- Analytics and marketing (off by default): Google Analytics (visit statistics), Meta Pixel and Snap Pixel (measuring our ads on Instagram, Facebook and Snapchat). Loaded ONLY if you click "Accept all": without your consent, no Google, Meta or Snap script is downloaded. Meta and Snap set their own cookies (e.g. _fbp, _fbc, _scid). Declining is as easy as accepting.
+- Session storage (sessionStorage, erased when the tab is closed): the name of the ad campaign that brought you (src, utm) and, unless you declined marketing, the ad click identifier (fbclid, ScCid). These identifiers are sent to our server only if you tick the ad measurement box at booking, and they are erased if you decline or withdraw your consent.
 
-We also use server-side tracking (Meta Conversions API) on purchase confirmations, which does not depend on a browser cookie — it is transactional data tied to your purchase, lawful independently of your cookie choice.
+Server-side measurement (Meta and Snap Conversions APIs) does not depend on a browser cookie, but it still requires your consent: it happens only if you tick the optional box on the booking page (never pre-ticked). Without that box, no purchase confirmation is sent to Meta or Snap. Details: privacy policy, "Ad measurement" section.
 
-You can change your choice at any time by clearing your browser's local storage.`,
+You can change or withdraw your choice at any time with the "Gérer mes cookies" link at the bottom of the Bootcamp pages (or by clearing your browser's local storage).`,
 }
 
 export const REFUND_POLICY = {

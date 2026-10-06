@@ -1,14 +1,19 @@
 'use strict';
-// POST /.netlify/functions/bootcamp-checkout  { session_id, email?, accept_policy, adult_or_guardian, source? }
+// POST /.netlify/functions/bootcamp-checkout
+//   { session_id, email?, accept_policy, adult_or_guardian, attribution?, marketing_consent?, ad_ids? }
+// `marketing_consent` = case facultative « mesure publicitaire » (jamais cochée d'avance). Sans elle,
+// ni identifiant de clic, ni témoin, ni IP, ni agent utilisateur n'est lu ni conservé (voir _lib/ad-conversions.js).
 // Réserve une place (billet « pending » retenu 35 min) puis ouvre Stripe Checkout en paiement
 // unique : 20,00 $ CAD, montant final (rien n'est ajouté au paiement). Le webhook Stripe
 // confirme le billet, inscrit l'élève à la réunion Zoom et envoie la confirmation.
 
-const { HttpError, preflight, parseBody, json, getIp, sha256, handleError } = require('./_lib/http');
+const { HttpError, preflight, parseBody, json, getIp, sha256, header, handleError } = require('./_lib/http');
 const { getServiceClient } = require('./_lib/supabase');
 const { assertRateLimit } = require('./_lib/ratelimit');
 const { getStripe } = require('./_lib/stripe-client');
 const B = require('./_lib/bootcamp');
+const A = require('./_lib/attribution');
+const { buildCheckoutMetadata } = require('./_lib/ad-conversions');
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -28,6 +33,10 @@ exports.handler = async (event) => {
     if (email && !EMAIL_PATTERN.test(email)) throw new HttpError(400, 'BAD_REQUEST', 'Courriel invalide.');
 
     await assertRateLimit(`bootcamp-checkout:ip:${sha256(getIp(event))}`, 12, 3600);
+
+    // Étiquettes de campagne (non personnelles) : toujours validées et conservées avec le billet.
+    // L'ancien champ `source` (texte seul) reste accepté pour les pages déjà ouvertes.
+    const attribution = A.cleanAttribution(body.attribution && typeof body.attribution === 'object' ? body.attribution : { src: body.source });
 
     const db = getServiceClient();
     const { data: session, error } = await db.from('bootcamp_sessions').select('*').eq('id', sessionId).maybeSingle();
@@ -54,13 +63,28 @@ exports.handler = async (event) => {
       status: 'pending',
       email: email || null,
       refund_token: B.newToken(),
-      source: typeof body.source === 'string' ? body.source.slice(0, 60) : null,
+      source: A.composeSource(attribution),
     });
     if (insertError) throw insertError;
 
     const base = B.siteUrl();
     const when = B.formatWhen(session.starts_at);
-    const metadata = { kind: 'bootcamp', session_id: session.id, ticket_id: ticketId };
+    // Mesure publicitaire : identifiants de clic, témoins Meta/Snap, IP et agent utilisateur SEULEMENT
+    // si la case de consentement est cochée (=== true, jamais une valeur « truthy »).
+    const consent = body.marketing_consent === true;
+    const eventId = A.newEventId('p'); // partagé avec le pixel de /merci (déduplication)
+    const metadata = buildCheckoutMetadata({
+      sessionId: session.id,
+      ticketId,
+      eventId,
+      consent,
+      attribution,
+      clientIds: consent ? A.cleanClientIds({ attribution: body.attribution, adIds: body.ad_ids }) : null,
+      ip: consent ? A.cleanIp(getIp(event)) : null,
+      userAgent: consent ? A.cleanUserAgent(header(event, 'user-agent')) : null,
+    });
+    // Le paiement (PaymentIntent) ne reçoit que l'essentiel : rien de publicitaire.
+    const baseMetadata = { kind: 'bootcamp', session_id: session.id, ticket_id: ticketId };
     let checkout;
     try {
       checkout = await getStripe().checkout.sessions.create({
@@ -81,8 +105,8 @@ exports.handler = async (event) => {
         ],
         ...(email ? { customer_email: email } : {}),
         metadata,
-        payment_intent_data: { metadata, description: `Bootcamp RPVD — ${session.topic} (${when})` },
-        success_url: `${base}/merci?s=${session.id}`,
+        payment_intent_data: { metadata: baseMetadata, description: `Bootcamp RPVD — ${session.topic} (${when})` },
+        success_url: `${base}/merci?s=${session.id}&e=${eventId}`,
         cancel_url: `${base}/reserver?s=${session.id}&annule=1`,
         expires_at: Math.floor(Date.now() / 1000) + 31 * 60,
         // Même réglage que create-checkout.js (Managed Payments désactivé pour ne pas exiger de

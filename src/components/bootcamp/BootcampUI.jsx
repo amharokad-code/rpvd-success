@@ -3,6 +3,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import SiteNav from '../SiteNav'
 import CookieConsentBanner from '../CookieConsentBanner'
+import { resetConsent } from '../../utils/consent'
 
 export const CTA =
   'squishy focus-ring inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-[#f5ad6b] to-[#e07b2e] px-7 font-bold text-[#0b0b0c] shadow-[0_0_40px_-8px_rgba(242,153,74,0.75)] transition hover:brightness-110 disabled:opacity-60'
@@ -98,6 +99,7 @@ export function LegalLinks() {
       <a href="/legal/privacy" className="inline-block px-2 py-2.5 hover:underline">Confidentialité</a>
       <a href="/legal/refunds" className="inline-block px-2 py-2.5 hover:underline">Remboursements</a>
       <a href="/legal/contact" className="inline-block px-2 py-2.5 hover:underline">Contact légal</a>
+      <button type="button" onClick={resetConsent} className="inline-block px-2 py-2.5 hover:underline">Gérer mes cookies</button>
     </p>
   )
 }

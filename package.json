@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "node --test netlify/functions/__tests__/safeParse.test.js",
+    "test": "node --test \"netlify/functions/__tests__/*.test.js\" \"src/utils/__tests__/*.test.mjs\"",
     "eval:moteur-d": "node scripts/eval-moteur-d.js",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "dev:functions": "node scripts/dev-functions.cjs"
+    "dev:functions": "node scripts/dev-functions.cjs",
+    "check:zoom": "node scripts/check-zoom.cjs"
   },
   "keywords": [],
   "author": "",

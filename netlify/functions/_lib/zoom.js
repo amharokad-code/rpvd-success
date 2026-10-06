@@ -12,12 +12,22 @@ function zoomConfigured() {
   return Boolean(process.env.ZOOM_ACCOUNT_ID && process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET);
 }
 
+// Propriétaire des réunions : « me » (le créateur de l'application) par défaut. Si Zoom répond
+// « User does not exist: me », renseigne ZOOM_HOST_EMAIL (courriel du compte Zoom hôte).
+function hostId() {
+  return encodeURIComponent(process.env.ZOOM_HOST_EMAIL || 'me');
+}
+
 async function token() {
   if (cachedToken && Date.now() < cachedUntil) return cachedToken;
   const basic = Buffer.from(`${process.env.ZOOM_CLIENT_ID}:${process.env.ZOOM_CLIENT_SECRET}`).toString('base64');
   const url = `https://zoom.us/oauth/token?grant_type=account_credentials&account_id=${encodeURIComponent(process.env.ZOOM_ACCOUNT_ID)}`;
   const res = await fetch(url, { method: 'POST', headers: { Authorization: `Basic ${basic}` } });
-  if (!res.ok) throw new Error(`Zoom OAuth HTTP ${res.status}`);
+  if (!res.ok) {
+    // La réponse d'erreur d'OAuth ne contient que { reason, error } : aucun secret, utile au diagnostic.
+    const detail = await res.text().catch(() => '');
+    throw new Error(`Zoom OAuth HTTP ${res.status}: ${detail.slice(0, 200)}`);
+  }
   const data = await res.json();
   cachedToken = data.access_token;
   cachedUntil = Date.now() + Math.max(60, (data.expires_in || 3600) - 120) * 1000;
@@ -41,7 +51,7 @@ async function call(method, path, body) {
 // Protection des élèves mineurs : caméras coupées, micros coupés à l'entrée, mode focus (les
 // élèves ne voient que l'animateur), aucun enregistrement automatique.
 async function createMeeting({ topic, startsAt, durationMin }) {
-  const data = await call('POST', '/users/me/meetings', {
+  const data = await call('POST', `/users/${hostId()}/meetings`, {
     topic: topic.slice(0, 190),
     type: 2,
     start_time: new Date(startsAt).toISOString().replace(/\.\d{3}Z$/, 'Z'),

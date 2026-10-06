@@ -13,6 +13,7 @@ const { getServiceClient } = require('./_lib/supabase');
 const { assertRateLimit } = require('./_lib/ratelimit');
 const { sendEmail, bootcampVoteEmail } = require('./_lib/email');
 const { LEVELS, SUBJECTS, voteWeekKey } = require('./_lib/bootcamp');
+const { cleanAttribution, composeSource } = require('./_lib/attribution');
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -35,7 +36,10 @@ exports.handler = async (event) => {
     const subject = clean(body.subject, 40);
     const topic = clean(body.topic, 120);
     const topicOther = clean(body.topic_other, 200);
-    const source = clean(body.source, 60) || null;
+    // Provenance : étiquettes de campagne validées (src, utm_*) ; jamais d'identifiant publicitaire.
+    // L'ancien champ `source` (texte seul) reste accepté pour les pages déjà ouvertes.
+    const attribution = cleanAttribution(body.attribution && typeof body.attribution === 'object' ? body.attribution : { src: body.source });
+    const source = composeSource(attribution);
 
     if (!EMAIL_PATTERN.test(email)) throw new HttpError(400, 'BAD_REQUEST', 'Courriel invalide.');
     if (body.consent !== true || body.age_ok !== true) {

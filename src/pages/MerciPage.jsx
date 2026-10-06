@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { trackEvent } from '../utils/track'
 import { bootcampCall, queryParam } from '../lib/bootcampApi'
+import { BOOTCAMP as B } from '../config/bootcamp'
+import { trackAd, isPurchaseEventId } from '../utils/ads'
 import { CARD, CTA, CTA_GHOST, LegalLinks, PageShell } from '../components/bootcamp/BootcampUI'
 
 function icsStamp(date) {
@@ -66,6 +68,16 @@ export default function MerciPage() {
   useEffect(() => {
     document.title = 'Place réservée — Bootcamp RPVD'
     trackEvent('pageview', { path: '/merci' })
+    // Pixels Meta/Snap (seulement si consentement) : même event_id que l'envoi serveur -> dédupliqué.
+    // `e` vient de la redirection Stripe ; format vérifié, une seule émission par onglet.
+    const eventId = queryParam('e')
+    if (isPurchaseEventId(eventId)) {
+      trackAd(
+        'Purchase',
+        { value: B.priceValue, currency: B.currency, content_ids: [B.productId], content_name: B.productName, content_type: 'product', num_items: 1, transaction_id: eventId },
+        { eventId, replay: true, once: true },
+      )
+    }
     if (id) bootcampCall('bootcamp-public', { action: 'session', id }).then((d) => setSession(d.session)).catch(() => {})
   }, [id])
 

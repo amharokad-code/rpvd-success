@@ -6,13 +6,13 @@ import { readConsent, writeConsent } from '../utils/consent'
 
 const COPY = {
   fr: {
-    text: "On utilise le strict nécessaire (connexion, langue, anti-partage). Tu peux aussi accepter des cookies marketing pour nous aider à mesurer nos pubs — refuser ne change rien à ton accès.",
+    text: "On utilise le strict nécessaire (connexion, langue, anti-partage). Tu peux aussi accepter la mesure de nos publicités (Google Analytics, pixels Meta et Snapchat) : refuser ne change rien à ton accès, et tu peux changer d'avis en tout temps (« Gérer mes cookies » au bas de la page).",
     acceptAll: 'Tout accepter',
     necessaryOnly: 'Nécessaire seulement',
     learnMore: 'En savoir plus',
   },
   en: {
-    text: 'We use only what\'s necessary (login, language, anti-sharing). You can also accept marketing cookies to help us measure our ads — declining doesn\'t change your access.',
+    text: 'We use only what\'s necessary (login, language, anti-sharing). You can also accept ad measurement (Google Analytics, Meta and Snapchat pixels): declining doesn\'t change your access, and you can change your mind at any time (the "Gérer mes cookies" link at the bottom of the page).',
     acceptAll: 'Accept all',
     necessaryOnly: 'Necessary only',
     learnMore: 'Learn more',
@@ -27,6 +27,10 @@ export default function CookieConsentBanner() {
 
   useEffect(() => {
     setVisible(!readConsent())
+    // « Gérer mes cookies » (pied de page) rouvre le bandeau pour changer ou retirer le choix.
+    const reopen = () => setVisible(true)
+    window.addEventListener('rpvd:consent-reopen', reopen)
+    return () => window.removeEventListener('rpvd:consent-reopen', reopen)
   }, [])
 
   if (!visible) return null
