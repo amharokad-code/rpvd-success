@@ -21,7 +21,7 @@ const WEEK = [
   ['Lun → Mer', 'Tu votes', 'Ton examen, ton niveau, le sujet qui te bloque. 30 secondes.'],
   ['Jeu · 17 h', 'Sélection', 'Les 4 sujets les plus demandés au Québec sont retenus. Courriel « SÉLECTIONNÉ ».'],
   ['Ven → Sam 23 h 59', 'Tu réserves', `${B.price} tout inclus. Remboursement intégral jusqu'à samedi 23 h 59.`],
-  ['Dimanche', 'Le cours', 'Ton lien Zoom personnel arrive 30 à 60 min avant. 1 h 30 en direct.'],
+  ['Dimanche', 'Le cours', 'Ton lien du cours arrive 30 à 60 min avant. 1 h 30 en direct.'],
 ]
 
 const MINUTES = [
@@ -33,18 +33,18 @@ const MINUTES = [
 
 const PROMISES = [
   ['↩', 'Remboursement intégral', "Sur simple demande jusqu'au samedi 23 h 59, en un clic depuis ton courriel. Aucun remboursement le dimanche, jour du cours."],
-  ['🔒', 'Lien Zoom personnel', 'Envoyé 30 à 60 minutes avant le cours, à ton nom. Il ne fonctionne que sur un appareil à la fois.'],
-  ['👥', `${B.capacity} élèves maximum`, 'La salle Zoom est plafonnée : quand les places sont vendues, la session est complète. Pour vrai.'],
-  ['🛡', 'Zéro donnée inutile', "Seulement ton courriel. Pas de nom, pas d'âge, pas de caméra : tu apparais comme « Élève » et ton micro s'ouvre seulement quand on te donne la parole."],
+  ['🔒', 'Lien du cours', 'Envoyé par courriel 30 à 60 minutes avant le cours. Réservé aux élèves inscrits.'],
+  ['👥', `${B.capacity} élèves maximum`, 'La salle est plafonnée : quand les places sont vendues, la session est complète. Pour vrai.'],
+  ['🛡', 'Zéro donnée inutile', "Seulement ton courriel. Pas de nom, pas d'âge, pas de caméra : tu choisis ton pseudo et ton micro s'ouvre seulement quand on te donne la parole."],
 ]
 
 const FAQ = [
   ["C'est quoi la différence avec un cours ?", "Zéro blabla, zéro théorie abstraite. On t'enseigne la démarche de résolution, étape par étape, appliquée aux exercices qui piègent le plus aux examens."],
   ['Combien ça coûte ?', `${B.price} par session de ${B.duration}, tout inclus : le montant affiché est le montant payé, rien ne s'ajoute au paiement. À titre de comparaison, le tutorat privé tourne autour de ${B.tutorAnchor} de l'heure.`],
-  ['Comment je reçois le lien ?', "Par courriel, 30 à 60 minutes avant le début. C'est un lien personnel : il ne marche que sur un appareil à la fois, donc ne le partage pas."],
+  ['Comment je reçois le lien ?', "Par courriel, 30 à 60 minutes avant le début. Il est réservé aux élèves inscrits, donc ne le partage pas."],
   ['Et si je ne peux plus venir ?', "Remboursement intégral sur simple demande jusqu'au samedi 23 h 59 (bouton dans ton courriel de confirmation). Le dimanche, plus de remboursement."],
   ["Mon sujet n'a pas été choisi ?", "Les 4 sessions retenues restent ouvertes à tous, et ton vote compte pour la semaine suivante : revote dès lundi."],
-  ['Je dois allumer ma caméra ?', "Non. Les caméras des élèves sont désactivées et ton micro est coupé : il s'ouvre seulement quand l'animateur te donne la parole. On ne te demande ni ton nom ni ton âge, tu apparais comme « Élève »."],
+  ['Je dois allumer ma caméra ?', "Non. Les caméras des élèves sont désactivées et ton micro est coupé : il s'ouvre seulement quand l'animateur te donne la parole. On ne te demande ni ton nom ni ton âge, tu choisis ton pseudo."],
   ['Je suis mineur(e) ?', "Dès 14 ans, tu peux voter toi-même. Moins de 14 ans : demande à un parent de remplir le vote. Le paiement est toujours fait par un adulte (parent, tuteur ou élève de 18 ans et plus)."],
   ['Pourquoi pas l’histoire ou la géo ?', "Le Bootcamp ne couvre que ce qui se décompose en démarche : maths, sciences, chimie, physique et le français vu comme un algorithme."],
 ]
@@ -214,7 +214,7 @@ export default function BootcampPage() {
   useEffect(() => {
     document.title = "Bootcamp RPVD — la démarche, la veille de l'examen"
     const tag = document.querySelector('meta[name="description"]')
-    if (tag) tag.setAttribute('content', `Bootcamp RPVD : 1 h 30 en direct sur Zoom, le dimanche, pour maîtriser la démarche d'un chapitre avant ton examen. Sec 1 à 5. ${B.price} tout inclus.`)
+    if (tag) tag.setAttribute('content', `Bootcamp RPVD : 1 h 30 en direct en ligne, le dimanche, pour maîtriser la démarche d'un chapitre avant ton examen. Sec 1 à 5. ${B.price} tout inclus.`)
     trackEvent('pageview', { path: '/' })
     trackAd('ViewContent', { content_name: B.productName, content_type: 'product', content_ids: [B.productId] }, { replay: true })
     bootcampCall('bootcamp-public', { action: 'sessions' })
@@ -269,7 +269,7 @@ export default function BootcampPage() {
           transition={{ delay: 0.4, duration: 0.8 }}
           className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-300"
         >
-          {B.duration} en direct sur Zoom pour maîtriser la <b className="text-slate-50">démarche</b> de ton chapitre. Zéro blabla, zéro théorie abstraite : les étapes, les pièges d'examen, tes questions.
+          {B.duration} en direct en ligne pour maîtriser la <b className="text-slate-50">démarche</b> de ton chapitre. Zéro blabla, zéro théorie abstraite : les étapes, les pièges d'examen, tes questions.
         </motion.p>
 
         <motion.div initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">

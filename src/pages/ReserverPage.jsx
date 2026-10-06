@@ -109,10 +109,10 @@ export default function ReserverPage() {
 
           <div className={`${CARD} mt-6 p-5 sm:p-6`}>
             <Row label="Quand" value={session.when} />
-            <Row label="Durée" value="1 h 30 en direct sur Zoom (1 h de démarche + 30 min de questions)" />
+            <Row label="Durée" value="1 h 30 en direct en ligne (1 h de démarche + 30 min de questions)" />
             <Row label="Prix" value={`${B.price} tout inclus`} />
             <Row label="Remboursement" value={`Intégral jusqu'au ${session.refund_deadline}`} />
-            <Row label="Lien Zoom" value="Personnel, envoyé 30 à 60 min avant le cours" />
+            <Row label="Lien du cours" value="Personnel, envoyé 30 à 60 min avant le cours" />
             {canBuy && (
               <div className="pt-4">
                 <SeatMeter left={session.seats_left} capacity={session.capacity} />
@@ -129,7 +129,7 @@ export default function ReserverPage() {
             <form onSubmit={pay} className="mt-6 flex flex-col gap-4">
               <label className="flex flex-col gap-2 text-sm">
                 <span className="font-semibold text-slate-200">
-                  Courriel qui recevra le lien Zoom <span className="font-normal text-slate-500">(le seul renseignement qu'on te demande)</span>
+                  Courriel qui recevra le lien du cours <span className="font-normal text-slate-500">(le seul renseignement qu'on te demande)</span>
                 </span>
                 <input type="email" autoComplete="email" placeholder="toi@exemple.com" value={email} onChange={(e) => setEmail(e.target.value)} className={INPUT} />
               </label>
@@ -140,7 +140,7 @@ export default function ReserverPage() {
                   <a href="/legal/terms" target="_blank" rel="noreferrer" className="text-pyramid-orange hover:underline">
                     conditions du Bootcamp
                   </a>{' '}
-                  : remboursement intégral sur demande jusqu'au {session.refund_deadline}, aucun remboursement le dimanche, lien Zoom personnel, caméra désactivée et micro ouvert seulement sur invitation.
+                  : remboursement intégral sur demande jusqu'au {session.refund_deadline}, aucun remboursement le dimanche, lien du cours, caméra désactivée et micro ouvert seulement sur invitation.
                 </span>
               </label>
               <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-300">

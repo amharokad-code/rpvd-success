@@ -1,6 +1,6 @@
 // /desabonner?v=<vote> ou ?b=<billet> : ne plus recevoir les annonces du Bootcamp (LCAP).
 // Un clic, aucune connexion, aucune question. Les courriels liés à un billet payé (confirmation,
-// lien Zoom, remboursement) continuent : ils exécutent le contrat.
+// lien du cours, remboursement) continuent : ils exécutent le contrat.
 import { useEffect, useState } from 'react'
 import { bootcampCall, queryParam } from '../lib/bootcampApi'
 import { CARD, CTA, LegalLinks, Notice, PageShell, Spinner } from '../components/bootcamp/BootcampUI'
@@ -42,7 +42,7 @@ export default function DesabonnerPage() {
         ) : (
           <>
             <p className="leading-relaxed text-slate-300">
-              Tu ne recevras plus le résultat des votes, les places libérées ni les suivis. Si tu as un billet payé, tu recevras quand même sa confirmation et ton lien Zoom.
+              Tu ne recevras plus le résultat des votes, les places libérées ni les suivis. Si tu as un billet payé, tu recevras quand même sa confirmation et ton lien du cours.
             </p>
             {error && (
               <div className="mt-4">

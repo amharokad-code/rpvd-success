@@ -32,9 +32,9 @@ RPVD Success (« RPVD », « nous ») est exploité par ${BUSINESS.operator}, ${
 - Vote : ton courriel, ton niveau, ta matière et le sujet choisi (plus ta précision si tu choisis « Autre sujet »). Pour compter les votes, t'envoyer le résultat et les annonces de sessions.
 - Consentement : la date à laquelle tu as coché les cases du formulaire, comme preuve de ton consentement.
 - Provenance : le nom de la publication ou de la campagne qui t'a amené (par exemple « tiktok » ou le nom d'une annonce), gardé avec ton vote ou ton billet. Aucun identifiant publicitaire n'est enregistré dans notre base de données.
-- Billet : ton courriel, le montant, l'état du billet et les références de paiement Stripe. Pour confirmer ta place, t'envoyer ton lien Zoom, te rembourser si tu le demandes et tenir notre comptabilité.
+- Billet : ton courriel, le montant, l'état du billet et les références de paiement Stripe. Pour confirmer ta place, t'envoyer ton lien du cours, te rembourser si tu le demandes et tenir notre comptabilité.
 - Paiement : il se fait chez Stripe. Nous ne voyons jamais le numéro de carte. Stripe peut demander le nom du titulaire de la carte pour traiter le paiement ; nous ne le conservons pas.
-- Cours sur Zoom : ton courriel est transmis à Zoom uniquement pour créer ton lien personnel. Tu apparais comme « Élève » suivi d'un code. Caméra désactivée, micro coupé (ouvert seulement quand l'animateur te donne la parole), aucun enregistrement du cours par RPVD, messages privés entre élèves désactivés.
+- Cours en ligne : le lien du cours t'est envoyé par courriel. Ton courriel n'est pas transmis à la plateforme de visioconférence. Tu peux utiliser un pseudonyme. Caméra des élèves coupée, micro coupé (ouvert seulement quand l'animateur te donne la parole), aucun enregistrement du cours par RPVD.
 - Sécurité : une empreinte irréversible (hachage) de l'adresse IP sert à bloquer les abus (trop de requêtes en une heure). Elle n'est jamais associée à ton vote ni à ton billet et elle est effacée au plus tard 7 jours après.
 
 ## Outil d'analyse (/app) : ce qu'on collecte et pourquoi
@@ -52,13 +52,13 @@ RPVD Success (« RPVD », « nous ») est exploité par ${BUSINESS.operator}, ${
 - Nous ne faisons aucune publicité destinée aux enfants de moins de 13 ans.
 
 ## Courriels
-- Courriels liés à ta demande ou à ton billet (confirmation de vote, confirmation de réservation, lien Zoom, remboursement) : envoyés parce qu'ils sont nécessaires au service.
+- Courriels liés à ta demande ou à ton billet (confirmation de vote, confirmation de réservation, lien du cours, remboursement) : envoyés parce qu'ils sont nécessaires au service.
 - Annonces (sujet sélectionné, places libérées, suivi après le cours) : seulement avec ton consentement, donné en cochant la case du formulaire ou découlant de ton achat. Chaque annonce contient un lien « Ne plus recevoir les annonces », appliqué immédiatement.
 - Chaque courriel identifie l'expéditeur : ${BUSINESS.operator}, ${WHERE}, ${BUSINESS.email}.
 
 ## Durée de conservation
 - Votes : supprimés automatiquement 6 mois après la semaine du vote.
-- Billets : courriel et lien Zoom effacés automatiquement 6 mois après l'achat. Le montant, la date et la référence de paiement sont gardés 6 ans pour nos obligations comptables et fiscales.
+- Billets : courriel et lien du cours effacés automatiquement 6 mois après l'achat. Le montant, la date et la référence de paiement sont gardés 6 ans pour nos obligations comptables et fiscales.
 - Liste de désabonnement : conservée tant que nécessaire pour respecter ton choix.
 - Compte de l'outil d'analyse : jusqu'à ce que tu le supprimes (Réglages) ou que tu en fasses la demande.
 
@@ -77,7 +77,7 @@ Certains fournisseurs hébergent des renseignements à l'extérieur du Québec, 
 - Netlify : hébergement du site et fonctions serveur
 - Stripe : paiements
 - Resend : envoi des courriels
-- Zoom : cours en direct (courriel et nom affiché « Élève » seulement)
+- Plateforme de visioconférence (Jitsi Meet) : cours en direct (aucun courriel transmis, pseudonyme au choix)
 - Google Gemini : analyse des photos d'exercices (outil d'analyse seulement)
 - Google Analytics : statistiques de visite, seulement si tu cliques « Tout accepter » dans le bandeau de cookies.
 - Meta (Instagram, Facebook) : pixel du navigateur (seulement si tu cliques « Tout accepter ») et API de conversions (seulement si tu coches la case de la page de réservation). Voir « Mesure de nos publicités ».
@@ -131,9 +131,9 @@ RPVD Success ("RPVD", "we") is operated by ${BUSINESS.operator}, ${BUSINESS.city
 - Vote: your email, grade, subject and chosen topic (plus your detail if you pick "Other topic"). To count votes and send you the result and session announcements.
 - Consent: the date you ticked the form's boxes, as proof of consent.
 - Source: the name of the post or campaign that brought you (e.g. "tiktok" or an ad's name), kept with your vote or ticket. No advertising identifier is stored in our database.
-- Ticket: your email, amount, ticket status and Stripe payment references. To confirm your seat, send your Zoom link, refund you on request and keep our accounts.
+- Ticket: your email, amount, ticket status and Stripe payment references. To confirm your seat, send your class link, refund you on request and keep our accounts.
 - Payment: handled by Stripe. We never see the card number. Stripe may ask for the cardholder's name to process the payment; we do not keep it.
-- Zoom classes: your email is sent to Zoom only to create your personal link. You appear as "Élève" (student) plus a code. Camera off, microphone muted (opened only when the instructor gives you the floor), no recording by RPVD, private messages between students disabled.
+- Online classes: the class link is emailed to you. Your email is not sent to the video platform. You may use a nickname. Student cameras off, microphone muted (opened only when the instructor gives you the floor), no recording by RPVD.
 - Security: an irreversible fingerprint (hash) of the IP address is used to block abuse (too many requests within an hour). It is never linked to your vote or ticket and is erased within 7 days.
 
 ## Analysis tool (/app): what we collect and why
@@ -151,13 +151,13 @@ RPVD Success ("RPVD", "we") is operated by ${BUSINESS.operator}, ${BUSINESS.city
 - We do not advertise to children under 13.
 
 ## Emails
-- Emails tied to your request or ticket (vote confirmation, booking confirmation, Zoom link, refund) are sent because they are necessary.
+- Emails tied to your request or ticket (vote confirmation, booking confirmation, class link, refund) are sent because they are necessary.
 - Announcements (selected topic, released seats, after-class follow-up) only with your consent. Every announcement includes an "Unsubscribe from announcements" link, applied immediately.
 - Every email identifies the sender: ${BUSINESS.operator}, ${WHERE}, ${BUSINESS.email}.
 
 ## Retention
 - Votes: automatically deleted 6 months after the voting week.
-- Tickets: email and Zoom link automatically erased 6 months after purchase. Amount, date and payment reference are kept 6 years for accounting and tax obligations.
+- Tickets: email and class link automatically erased 6 months after purchase. Amount, date and payment reference are kept 6 years for accounting and tax obligations.
 - Unsubscribe list: kept as long as needed to honour your choice.
 - Analysis tool account: until you delete it (Settings) or ask us to.
 
@@ -176,7 +176,7 @@ Some providers host information outside Quebec, notably in the United States. Be
 - Netlify: website hosting and server functions
 - Stripe: payments
 - Resend: email delivery
-- Zoom: live classes (email and display name "Élève" only)
+- Video platform (Jitsi Meet): live classes (no email sent, nickname of your choice)
 - Google Gemini: exercise photo analysis (analysis tool only)
 - Google Analytics: visit statistics, only if you click "Accept all" in the cookie banner.
 - Meta (Instagram, Facebook): browser pixel (only if you click "Accept all") and Conversions API (only if you tick the box on the booking page). See "Ad measurement".
@@ -224,7 +224,7 @@ Ces conditions encadrent l'utilisation du site ${BUSINESS.website}, du Bootcamp 
 - ${BUSINESS.website}
 
 ## Bootcamp RPVD : le service
-- Une session de révision de 1 h 30 en direct sur Zoom (1 h de démarche, puis 30 minutes de questions), un dimanche, sur un sujet choisi par le vote des élèves.
+- Une session de révision de 1 h 30 en direct en ligne (1 h de démarche, puis 30 minutes de questions), un dimanche, sur un sujet choisi par le vote des élèves.
 - Le sujet, la date, l'heure, la durée, le prix et le nombre de places sont affichés avant le paiement et repris dans le courriel de confirmation, qui est ta copie du contrat.
 - Le Bootcamp est un service privé, indépendant du ministère de l'Éducation et des écoles.
 
@@ -239,12 +239,12 @@ Ces conditions encadrent l'utilisation du site ${BUSINESS.website}, du Bootcamp 
 - Si RPVD annule la session ou ne peut pas la donner à cause d'un problème de notre côté, tu es remboursé intégralement et automatiquement.
 
 ## Bootcamp RPVD : accès au cours
-- Ton lien Zoom personnel arrive par courriel 30 à 60 minutes avant le début. Il fonctionne sur un seul appareil à la fois et ne se partage pas.
+- Ton lien du cours arrive par courriel 30 à 60 minutes avant le début. Il ne se partage pas.
 - Prévois une connexion internet et un appareil fonctionnels : un problème de ton côté après la date limite de remboursement ne donne pas droit à un remboursement.
 
 ## Règles de la classe
 - Caméras des élèves désactivées. Micros coupés, ouverts uniquement quand l'animateur donne la parole.
-- Le nom affiché par défaut est « Élève » suivi d'un code. Si tu le changes, utilise ton prénom ou un pseudonyme respectueux.
+- Choisis un pseudonyme ou ton prénom, jamais ton nom complet. Utilise ton prénom ou un pseudonyme respectueux.
 - Questions dans le chat, avec respect. Aucun propos haineux, harcelant, sexuel ou violent, aucune publicité.
 - Ne donne jamais tes coordonnées (téléphone, réseaux sociaux, adresse) dans le chat. Les messages privés entre élèves sont désactivés.
 - Aucun enregistrement, aucune capture d'écran, aucune rediffusion du cours ni des documents.
@@ -285,7 +285,7 @@ These terms govern the use of ${BUSINESS.website}, the RPVD Bootcamp and the ana
 - ${BUSINESS.website}
 
 ## RPVD Bootcamp: the service
-- A 90-minute live review session on Zoom (1 hour of method, then 30 minutes of questions), on a Sunday, on a topic chosen by students' votes.
+- A 90-minute live review session online (1 hour of method, then 30 minutes of questions), on a Sunday, on a topic chosen by students' votes.
 - Topic, date, time, length, price and number of seats are shown before payment and repeated in the confirmation email, which is your copy of the contract.
 - The Bootcamp is a private service, independent from the Ministry of Education and schools.
 
@@ -300,12 +300,12 @@ These terms govern the use of ${BUSINESS.website}, the RPVD Bootcamp and the ana
 - If RPVD cancels the session or cannot deliver it because of an issue on our side, you are refunded in full automatically.
 
 ## RPVD Bootcamp: class access
-- Your personal Zoom link arrives by email 30 to 60 minutes before the start. It works on one device at a time and must not be shared.
+- Your class link arrives by email 30 to 60 minutes before the start. It must not be shared.
 - Make sure your internet connection and device work: an issue on your side after the refund deadline does not entitle you to a refund.
 
 ## Class rules
 - Students' cameras are off. Microphones are muted and opened only when the instructor gives the floor.
-- Default display name is "Élève" plus a code. If you change it, use your first name or a respectful nickname.
+- Pick a nickname or your first name, never your full name. Keep it respectful.
 - Questions go in the chat, respectfully. No hateful, harassing, sexual or violent content, no advertising.
 - Never share your contact details (phone, social media, address) in the chat. Private messages between students are disabled.
 - No recording, screenshots or redistribution of the class or materials.
@@ -377,7 +377,7 @@ Section ajoutée le 5 octobre 2026.
 - Remboursement intégral sur simple demande jusqu'au samedi 23 h 59 (heure du Québec) précédant la session, en un clic avec le bouton « Gérer / annuler ma réservation » du courriel de confirmation.
 - Aucun remboursement le dimanche, jour du cours, y compris pour les places libérées remises en vente ce jour-là.
 - Si RPVD annule une session, tous les billets sont remboursés intégralement et automatiquement.
-- Le lien Zoom est personnel, envoyé 30 à 60 minutes avant le cours, et ne fonctionne que sur un appareil à la fois. Un lien partagé n'ouvre pas droit à un remboursement.
+- Le lien du cours est réservé aux élèves inscrits et envoyé 30 à 60 minutes avant le cours. Un lien partagé n'ouvre pas droit à un remboursement.
 - Les élèves de moins de 18 ans doivent passer par un parent ou un tuteur pour réserver et payer.`,
   en: `## Refund Policy
 Last updated: ${UPDATED_EN}
@@ -394,6 +394,6 @@ Section added October 5, 2026.
 - Full refund on request until Saturday 11:59 p.m. (Quebec time) before the session, in one click from the "Manage / cancel my booking" button in the confirmation email.
 - No refunds on Sunday, the day of the class, including for released seats resold that day.
 - If RPVD cancels a session, every ticket is refunded in full automatically.
-- The Zoom link is personal, sent 30 to 60 minutes before class, and works on one device at a time. A shared link does not entitle anyone to a refund.
+- The class link is for registered students only and sent 30 to 60 minutes before class. A shared link does not entitle anyone to a refund.
 - Students under 18 must have a parent or guardian book and pay.`,
 }

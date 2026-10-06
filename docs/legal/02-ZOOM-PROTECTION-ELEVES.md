@@ -32,3 +32,12 @@ Les réunions créées automatiquement ont déjà : inscription obligatoire, lie
 
 ## Si un élève partage ses coordonnées dans le chat
 Supprimer le message (survol → Supprimer), rappeler la règle à tout le monde sans nommer l'élève.
+
+---
+## Variante sans Zoom Pro : Jitsi Meet (meet.jit.si)
+À utiliser tant que Zoom Pro n'est pas payé. Coller le lien dans l'admin (`/admin/bootcamp`, lien manuel de la session).
+- Salle au nom impossible à deviner (ex. `rpvd-` + 12 caractères aléatoires), mot de passe, salle d'attente activée.
+- À l'ouverture : menu Sécurité → activer le lobby ; participants → « Couper le micro de tous » et « Arrêter la vidéo de tous » ; réglages modérateur → désactiver « Tous peuvent démarrer la vidéo/le micro ».
+- Ne jamais enregistrer, ne jamais demander caméra, nom complet ou âge. Pseudonyme au choix.
+- Problème de comportement : participant → Expulser, puis changer le mot de passe.
+- Limite : pas de lien personnel par élève, donc ne pas annoncer « lien personnel ». Retourner à Zoom Pro dès les premières ventes.

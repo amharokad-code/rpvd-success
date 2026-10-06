@@ -26,11 +26,11 @@ function downloadIcs(session) {
     `DTSTART:${icsStamp(start)}`,
     `DTEND:${icsStamp(end)}`,
     `SUMMARY:Bootcamp RPVD — ${session.topic}`,
-    'DESCRIPTION:Lien Zoom personnel envoyé par courriel 30 à 60 minutes avant le cours.',
+    'DESCRIPTION:Lien du cours envoyé par courriel 30 à 60 minutes avant le cours.',
     'BEGIN:VALARM',
     'TRIGGER:-PT60M',
     'ACTION:DISPLAY',
-    'DESCRIPTION:Bootcamp RPVD dans 1 h : surveille ton courriel pour le lien Zoom',
+    'DESCRIPTION:Bootcamp RPVD dans 1 h : surveille ton courriel pour le lien du cours',
     'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR',
@@ -50,14 +50,14 @@ function googleCalendarUrl(session) {
     action: 'TEMPLATE',
     text: `Bootcamp RPVD — ${session.topic}`,
     dates: `${icsStamp(start)}/${icsStamp(end)}`,
-    details: 'Lien Zoom personnel envoyé par courriel 30 à 60 minutes avant le cours.',
+    details: 'Lien du cours envoyé par courriel 30 à 60 minutes avant le cours.',
   })
   return `https://calendar.google.com/calendar/render?${p.toString()}`
 }
 
 const NEXT = [
   ['📩', 'Courriel de confirmation', "Il arrive dans quelques minutes, avec le détail de ta réservation, les règles de la classe et le bouton pour annuler (jusqu'à samedi 23 h 59)."],
-  ['🔗', 'Ton lien Zoom personnel', 'Envoyé 30 à 60 minutes avant le cours. Il ne marche que sur un appareil à la fois.'],
+  ['🔗', 'Ton lien du cours', 'Envoyé par courriel 30 à 60 minutes avant le cours. Ne le partage pas.'],
   ['✏️', 'Le jour J', 'Feuille, crayon, et tes questions prêtes. Connecte-toi 5 minutes avant.'],
 ]
 

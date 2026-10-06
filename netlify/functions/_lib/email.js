@@ -262,7 +262,7 @@ function bootcampSelectedEmail({ topic, level, subject, when, price, deadline, u
         ['Sujet', topic],
         ['Niveau', `${level} · ${subject}`],
         ['Quand', when],
-        ['Durée', '1 h 30 en direct sur Zoom'],
+        ['Durée', '1 h 30 en direct en ligne'],
         ['Prix', `${price} tout inclus`],
       ],
       button: { label: 'Réserver ma place', url },
@@ -311,7 +311,7 @@ function bootcampTicketEmail({ topic, level, subject, when, price, refundDeadlin
         ...(reference ? [['Référence', reference]] : []),
       ],
       outro: [
-        '🔗 Ton lien Zoom PERSONNEL arrive par courriel 30 à 60 minutes avant le cours. Il ne fonctionne que sur un appareil à la fois : ne le partage pas.',
+        '🔗 Le lien du cours arrive par courriel 30 à 60 minutes avant le début. Ne le partage pas.',
         'Règles de la classe : arrive 5 minutes avant, prépare une feuille et un crayon, pose tes questions dans le chat, aucun enregistrement ni capture de la session.',
         `Remboursement intégral sur simple demande jusqu'à ${refundDeadline}, avec le bouton « Gérer / annuler ma réservation ». Aucun remboursement le dimanche, jour du cours.`,
         "Pendant le cours : caméra désactivée, micro coupé (activé seulement quand l'animateur te donne la parole). On ne te demande ni ton nom ni ton âge : tu apparais comme « Élève ».",
@@ -324,7 +324,7 @@ function bootcampTicketEmail({ topic, level, subject, when, price, refundDeadlin
   );
 }
 
-// 5. Lien Zoom personnel, 30-60 min avant.
+// 5. Lien du cours, 30-60 min avant.
 function bootcampZoomLinkEmail({ topic, when, joinUrl, personal }) {
   return mk(
     {
@@ -332,7 +332,7 @@ function bootcampZoomLinkEmail({ topic, when, joinUrl, personal }) {
       paragraphs: [
         `« ${topic} » commence ${when}. Voici ton lien d'accès${personal ? ' personnel' : ''}.`,
       ],
-      button: { label: 'Rejoindre le cours sur Zoom', url: joinUrl },
+      button: { label: 'Rejoindre le cours', url: joinUrl },
       outro: [
         personal
           ? 'Ce lien est à ton nom et ne fonctionne que sur un seul appareil à la fois. Ne le partage pas.'
@@ -341,7 +341,7 @@ function bootcampZoomLinkEmail({ topic, when, joinUrl, personal }) {
       ],
       footer: BOOTCAMP_FOOTER,
     },
-    `🔴 ${topic} : ton lien Zoom`,
+    `🔴 ${topic} : ton lien du cours`,
   );
 }
 

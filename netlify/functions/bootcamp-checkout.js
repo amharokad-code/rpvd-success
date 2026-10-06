@@ -5,7 +5,7 @@
 // ni identifiant de clic, ni témoin, ni IP, ni agent utilisateur n'est lu ni conservé (voir _lib/ad-conversions.js).
 // Réserve une place (billet « pending » retenu 35 min) puis ouvre Stripe Checkout en paiement
 // unique : 20,00 $ CAD, montant final (rien n'est ajouté au paiement). Le webhook Stripe
-// confirme le billet, inscrit l'élève à la réunion Zoom et envoie la confirmation.
+// confirme le billet, inscrit l'élève à la réunionline et envoie la confirmation.
 
 const { HttpError, preflight, parseBody, json, getIp, sha256, header, handleError } = require('./_lib/http');
 const { getServiceClient } = require('./_lib/supabase');
@@ -98,7 +98,7 @@ exports.handler = async (event) => {
               unit_amount: session.price_cents,
               product_data: {
                 name: `Bootcamp RPVD — ${session.topic}`,
-                description: `${session.level} · ${session.subject} · ${when} · 1 h 30 en direct sur Zoom`,
+                description: `${session.level} · ${session.subject} · ${when} · 1 h 30 en direct en ligne`,
               },
             },
           },
