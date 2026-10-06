@@ -244,7 +244,7 @@ Ces conditions encadrent l'utilisation du site ${BUSINESS.website}, du Bootcamp 
 
 ## Règles de la classe
 - Caméras des élèves désactivées. Micros coupés, ouverts uniquement quand l'animateur donne la parole.
-- Choisis un pseudonyme ou ton prénom, jamais ton nom complet. Utilise ton prénom ou un pseudonyme respectueux.
+- Choisis un pseudonyme ou ton prénom, jamais ton nom complet. Reste respectueux.
 - Questions dans le chat, avec respect. Aucun propos haineux, harcelant, sexuel ou violent, aucune publicité.
 - Ne donne jamais tes coordonnées (téléphone, réseaux sociaux, adresse) dans le chat. Les messages privés entre élèves sont désactivés.
 - Aucun enregistrement, aucune capture d'écran, aucune rediffusion du cours ni des documents.
