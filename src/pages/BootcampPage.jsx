@@ -368,7 +368,7 @@ export default function BootcampPage() {
       </Section>
 
       {/* VOTE */}
-      <Section id="vote" eyebrow="30 SECONDES" title="Vote & Clutch" intro={`Votes ouverts du lundi au mercredi. Sélection ${nextSelection} à 17 h.`}>
+      <Section id="vote" eyebrow="30 SECONDES" title="Vote & Clutch" intro={`Sélection ${nextSelection} à 17 h.`}>
         <Reveal>
           <VoteForm />
         </Reveal>
