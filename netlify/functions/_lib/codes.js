@@ -48,8 +48,8 @@ const PLANS = {
 
 // Contrat pricing v3 : Solo/Trio/Premium (paiement unique, ci-dessus) ne sont plus vendus —
 // PLANS reste pour les codes déjà émis (activate-code.js) et l'historique. Les nouveaux achats
-// passent par un vrai abonnement Stripe récurrent (Basic/Pro), facturé automatiquement tous les
-// 3 mois (mode: 'subscription', Price ID Stripe réels — pas de price_data ad-hoc comme avant).
+// passent par un vrai abonnement Stripe récurrent (Basic/Pro), facturé automatiquement chaque
+// mois (mode: 'subscription', Price ID Stripe réels — pas de price_data ad-hoc comme avant).
 //
 // « priceId » : UN SEUL Price Stripe par plan (pas un par devise) — chaque Price a ses propres
 // « currency_options » (CAD/EUR/GBP en plus de la devise de base USD), configurées directement
@@ -57,21 +57,21 @@ const PLANS = {
 // localisation du client ; `amounts` ci-dessous n'est qu'un miroir pour l'affichage (contrat
 // honnêteté commerciale : les montants affichés doivent correspondre exactement aux
 // currency_options réels, jamais une conversion approximative).
-const SUBSCRIPTION_DURATION_DAYS = 90;
+const SUBSCRIPTION_DURATION_DAYS = 30; // facturation mensuelle (Price ID mensuels, 2026-10-07)
 const SUBSCRIPTION_PLANS = {
   basic: {
     credits: 50,
     label: 'Basic',
     // Price ID LIVE (contrat pricing v3) — les anciens price_1UFYW1.../price_1UGfk9... n'existaient
     // qu'en mode test Stripe, jamais utilisables pour un vrai paiement.
-    priceId: 'price_1UKhEUAJoPaz3Yer2u32exlF',
-    amounts: { usd: 1200, cad: 1700, eur: 1000, gbp: 900 },
+    priceId: 'price_1UO34bAJoPaz3YerVcSe3bSu',
+    amounts: { usd: 650, cad: 900, eur: 600, gbp: 500 },
   },
   pro: {
     credits: 120,
     label: 'Pro',
-    priceId: 'price_1UKhEUAJoPaz3YerAKsYfWcp',
-    amounts: { usd: 2000, cad: 2800, eur: 1800, gbp: 1500 },
+    priceId: 'price_1UO32WAJoPaz3Yer0GBAYOfX',
+    amounts: { usd: 450, cad: 1800, eur: 400, gbp: 350 },
   },
 };
 

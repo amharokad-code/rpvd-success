@@ -1,5 +1,5 @@
 // Mur de paiement (contrat pricing v3) : Basic et Pro, deux abonnements Stripe RÉCURRENTS
-// (facturation automatique tous les 3 mois) — Pro mis en avant. Prix réels uniquement — pas de
+// (facturation automatique chaque mois) — Pro mis en avant. Prix réels uniquement — pas de
 // faux prix barré, pas de compte à rebours, pas de badge d'urgence artificielle. Le caractère
 // récurrent est annoncé explicitement (honnêteté commerciale, même principe que le refus des
 // dark patterns) : l'app doit dire clairement que la carte sera redébitée, et offrir un moyen
@@ -76,7 +76,7 @@ export default function PaywallModal({ open, credits, onClose, onHaveCode }) {
                       </span>
                     </span>
                     {/* Le prix RÉEL débité + sa période, toujours ensemble : jamais un chiffre
-                        sans son "/3 mois" à côté (contrat honnêteté commerciale — l'utilisateur
+                        sans sa période "/ mois" à côté (contrat honnêteté commerciale — l'utilisateur
                         doit comprendre au premier coup d'œil que ce n'est pas une charge mensuelle). */}
                     <span className="flex flex-col items-end">
                       <span className="font-mono text-xl font-bold tabular-nums text-emerald-400">{total}</span>

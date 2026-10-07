@@ -184,7 +184,7 @@ function subscriptionActivatedEmail({ plan, credits }) {
     title: `Bienvenue dans le forfait ${label} ⚡`,
     paragraphs: [
       `Ton paiement est passé. Ton compte a maintenant ${credits} crédits sur cet appareil — rien à activer, c'est déjà fait.`,
-      `C'est un abonnement : ${credits} crédits reviendront automatiquement tous les 3 mois, et ta carte sera débitée à chaque renouvellement. Tu peux annuler à tout moment depuis les Réglages de l'app.`,
+      `C'est un abonnement : ${credits} crédits reviendront automatiquement chaque mois, et ta carte sera débitée à chaque renouvellement. Tu peux annuler à tout moment depuis les Réglages de l'app.`,
     ],
     codes: [],
     outro: ['Prends ton prochain devoir en photo, et on décortique ça ensemble.'],
@@ -199,7 +199,7 @@ function subscriptionRenewedEmail({ plan, credits }) {
   const content = {
     title: `Ton forfait ${label} vient d'être renouvelé 🔄`,
     paragraphs: [
-      `Tes ${credits} crédits sont de retour pour 3 mois de plus. Ta carte a été débitée automatiquement, comme prévu à l'abonnement.`,
+      `Tes ${credits} crédits sont de retour pour un mois de plus. Ta carte a été débitée automatiquement, comme prévu à l'abonnement.`,
     ],
     codes: [],
     outro: ["Envie d'arrêter ? Tu peux annuler à tout moment depuis les Réglages de l'app."],

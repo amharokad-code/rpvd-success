@@ -1,7 +1,7 @@
 'use strict';
 // POST /.netlify/functions/create-checkout
 // Crée une session Stripe Checkout en mode ABONNEMENT (contrat pricing v3) pour Basic ou Pro —
-// facturation récurrente automatique tous les 3 mois via de vrais Price ID Stripe. Contrairement
+// facturation récurrente automatique chaque mois via de vrais Price ID Stripe. Contrairement
 // à l'ancien modèle à paiement unique, l'abonnement s'attache directement au compte connecté
 // (client_reference_id), pas à un code d'activation par courriel : la connexion est obligatoire.
 

@@ -2,6 +2,9 @@
 
 Dernière mise à jour : 2026-10-05 (fin de journée)
 
+## -3. ABONNEMENTS MENSUELS (2026-10-07, prioritaire sur §0)
+Basic et Pro sont maintenant **mensuels** (plus tous les 3 mois). Price ID Stripe : Basic `price_1UO34bAJoPaz3YerVcSe3bSu` (CAD 9 / EUR 6 / GBP 5 / USD 6,50), Pro `price_1UO32WAJoPaz3Yer0GBAYOfX` (CAD 18 / EUR 4 / GBP 3,50 / USD 4,50 : **montants non-CAD de Pro à vérifier dans Stripe, plus bas que Basic**). Code : `_lib/codes.js` (priceId, amounts, `SUBSCRIPTION_DURATION_DAYS = 30`), `src/lib/pricing.js` (miroir, `PLAN_DURATION_MONTHS = 1`), textes `src/i18n/copy.js`, `src/legal/content.js`, courriels d'abonnement. Crédits par cycle inchangés (50 / 120, maintenant par mois). Aucune variable Netlify à changer (Price ID dans le code).
+
 ## -2. ⚠️ BOOTCAMP RPVD v2 (2026-10-05, prioritaire sur tout ce qui suit)
 
 La page principale (`/`) est maintenant le **Bootcamp RPVD** : 1 h 30 en direct sur Zoom le dimanche (13/15/17/19 h), 20,00 $ CAD tout inclus, Sec 1-5 (maths CST/TS/SN, ST/STE Sec 4, chimie/physique Sec 5, français). Doc d'exploitation complète : `docs/academie/01-SYSTEME-ET-CHECKLIST.md`.

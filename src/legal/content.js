@@ -259,7 +259,7 @@ Ces conditions encadrent l'utilisation du site ${BUSINESS.website}, du Bootcamp 
 - Les analyses générées par l'IA (Google Gemini) sont un outil d'accompagnement pédagogique, pas un diagnostic officiel ; elles peuvent contenir des erreurs.
 - Utiliser l'outil pendant un examen surveillé ou une évaluation officielle est strictement interdit.
 - Un abonnement (Basic ou Pro) est personnel et rattaché à un seul appareil. Une utilisation simultanée non autorisée sur plusieurs appareils peut entraîner la suspension du compte.
-- Basic et Pro sont des abonnements facturés automatiquement tous les 3 mois jusqu'à annulation. Tu peux annuler à tout moment depuis Réglages → Gérer mon abonnement, sans justification.
+- Basic et Pro sont des abonnements facturés automatiquement chaque mois jusqu'à annulation. Tu peux annuler à tout moment depuis Réglages → Gérer mon abonnement, sans justification.
 - L'utilisation par un mineur sous le seuil légal de son marché (voir la Politique de confidentialité) nécessite l'autorisation d'un parent ou tuteur.
 
 ## Renseignements personnels
@@ -320,7 +320,7 @@ These terms govern the use of ${BUSINESS.website}, the RPVD Bootcamp and the ana
 - AI-generated analyses (Google Gemini) are a learning-support tool, not an official diagnosis, and may contain mistakes.
 - Using the tool during a proctored exam or official assessment is strictly prohibited.
 - A subscription (Basic or Pro) is personal and tied to a single device. Unauthorized simultaneous use on several devices may lead to account suspension.
-- Basic and Pro are billed automatically every 3 months until cancelled. You can cancel at any time from Settings → Manage subscription, no justification needed.
+- Basic and Pro are billed automatically every month until cancelled. You can cancel at any time from Settings → Manage subscription, no justification needed.
 - Use by a minor below their market's legal threshold (see the Privacy Policy) requires a parent's or guardian's authorization.
 
 ## Personal information
@@ -365,7 +365,7 @@ export const REFUND_POLICY = {
   fr: `## Politique de remboursement
 Dernière mise à jour : ${UPDATED}
 
-- Les abonnements Basic et Pro sont facturés d'avance pour une période de 3 mois.
+- Les abonnements Basic et Pro sont facturés d'avance pour une période d'un mois.
 - Tu peux annuler à tout moment ; l'annulation prend effet à la fin de la période déjà payée (pas de remboursement au prorata pour la période en cours).
 - En cas d'erreur de facturation ou de problème technique avéré empêchant l'usage du service, écris-nous à ${SUPPORT_EMAIL} — nous traitons ces demandes au cas par cas.
 - Un compte suspendu pour partage non autorisé (contrat, section « Compte et partage ») n'est pas remboursé.

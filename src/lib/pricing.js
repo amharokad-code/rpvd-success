@@ -1,11 +1,11 @@
 // Prix par devise (contrat quadri-langue) — miroir exact des `currency_options` du Price Stripe
 // (voir netlify/functions/_lib/codes.js) : un seul Price par plan, avec CAD/EUR/GBP/USD dessus.
 export const PLAN_AMOUNTS = {
-  basic: { usd: 1200, cad: 1700, eur: 1000, gbp: 900 },
-  pro: { usd: 2000, cad: 2800, eur: 1800, gbp: 1500 },
+  basic: { usd: 650, cad: 900, eur: 600, gbp: 500 },
+  pro: { usd: 450, cad: 1800, eur: 400, gbp: 350 },
 }
 
-export const PLAN_DURATION_MONTHS = 3
+export const PLAN_DURATION_MONTHS = 1
 
 const REGION_CURRENCY = { qc: 'cad', fr: 'eur', us: 'usd', uk: 'gbp' }
 const CURRENCY_LOCALE = { cad: 'fr-CA', eur: 'fr-FR', usd: 'en-US', gbp: 'en-GB' }

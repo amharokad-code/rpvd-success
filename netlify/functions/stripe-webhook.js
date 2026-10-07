@@ -3,8 +3,8 @@
 // Contrat pricing v3 (abonnement récurrent Basic/Pro) — 3 événements gérés :
 //   - checkout.session.completed (mode subscription) : première activation, applique le plan
 //     et les crédits directement au compte connecté (client_reference_id).
-//   - invoice.paid (billing_reason = subscription_cycle) : renouvellement automatique tous les
-//     3 mois, remet les crédits au plein montant du plan.
+//   - invoice.paid (billing_reason = subscription_cycle) : renouvellement automatique chaque
+//     mois, remet les crédits au plein montant du plan.
 //   - customer.subscription.deleted : l'abonnement est résilié, on détache juste l'ID côté compte.
 //   - checkout.session.completed (metadata.kind = 'bootcamp') : billet du Bootcamp payé
 //     (voir _lib/bootcamp-ops.js → confirmPaidCheckout).
