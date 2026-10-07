@@ -277,18 +277,25 @@ function bootcampSelectedEmail({ topic, level, subject, when, price, deadline, u
   );
 }
 
-// 3. Sujet non retenu : les autres sessions restent ouvertes à tous.
-function bootcampNotSelectedEmail({ topic, level, sessions = [], url , unsubscribe }) {
+// 3. Sujet non retenu : les autres sessions restent ouvertes à tous + l'outil d'analyse disponible
+// tout de suite. Chiffres réels seulement (essai de 3 analyses, Basic 9 $ CAD / mois, tutorat privé
+// ~40 $ de l'heure comme sur le paywall) : aucune promesse de note, aucun superlatif.
+function bootcampNotSelectedEmail({ topic, level, sessions = [], url, appUrl, unsubscribe }) {
   const rows = sessions.map((s) => [s.when, `${s.topic} (${s.level})`]);
+  const appLink = appUrl || 'https://rpvdsuccess.com/app';
   return mk(
     {
       title: 'Pas ce dimanche pour ton sujet',
       paragraphs: [
         `« ${topic} » (${level}) n'a pas fait partie des 4 sujets les plus votés cette semaine.`,
-        rows.length ? 'Les sessions retenues sont ouvertes à tous, si l\'une d\'elles t\'aide aussi :' : 'Ton vote compte : revote lundi pour la semaine prochaine.',
+        rows.length ? "Les sessions retenues sont ouvertes à tous, si l'une d'elles t'aide aussi :" : 'Ton vote compte : revote pour la semaine prochaine.',
       ],
       rows,
       button: url ? { label: 'Voir les sessions de dimanche', url } : null,
+      outro: [
+        "En attendant, tu n'as pas à attendre dimanche pour avancer : l'outil RPVD Success t'explique la démarche d'un exercice à partir d'une photo, en 3 niveaux, à toute heure.",
+        `Essai gratuit de 3 analyses. Ensuite, Basic coûte 9 $ par mois (50 analyses), sans engagement, à comparer à environ 40 $ de l'heure pour un tuteur privé. Un adulte doit s'occuper de l'abonnement si tu as moins de 18 ans. À essayer : ${appLink}`,
+      ],
       footer: BOOTCAMP_FOOTER,
       unsubscribe,
     },

@@ -338,7 +338,7 @@ async function notifyVoters(db, weekKey, { dryRun = false } = {}) {
           url: `${siteUrl()}/reserver?s=${session.id}`,
           unsubscribe: unsubscribeLinks('v', vote.id),
         })
-      : bootcampNotSelectedEmail({ topic: shown, level: vote.level, sessions: list, url: `${siteUrl()}/#sessions`, unsubscribe: unsubscribeLinks('v', vote.id) });
+      : bootcampNotSelectedEmail({ topic: shown, level: vote.level, sessions: list, url: `${siteUrl()}/#sessions`, appUrl: `${siteUrl()}/app?src=vote-pas-retenu`, unsubscribe: unsubscribeLinks('v', vote.id) });
     return { to: vote.email, ...body };
   });
   const results = await sendBatch(messages);
