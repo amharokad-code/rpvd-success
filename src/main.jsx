@@ -8,6 +8,7 @@ import BootcampPage from './pages/BootcampPage'
 import AccueilPage from './pages/AccueilPage'
 import BootcampAdminPage from './pages/BootcampAdminPage'
 import BetaPage from './pages/BetaPage'
+import BetaAdminPage from './pages/BetaAdminPage'
 import ReserverPage from './pages/ReserverPage'
 import MerciPage from './pages/MerciPage'
 import RembourserPage from './pages/RembourserPage'
@@ -65,6 +66,7 @@ function pickRoute() {
   if (path === '/accueil') return <AccueilPage />
   if (path === '/admin/bootcamp') return <BootcampAdminPage />
   if (path === '/beta') return <BetaPage />
+  if (path === '/admin/beta') return <BetaAdminPage />
   if (path === '/admin/insights') return <AdminInsightsPage />
   if (isLegalContactPath()) return <LegalContactPage />
   const legalDoc = legalDocFromPath()
