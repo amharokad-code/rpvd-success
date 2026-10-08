@@ -6,6 +6,7 @@
 // Gemini échoue, comme analyze-homework.
 
 const { HttpError, preflight, parseBody, json, getIp, sha256, handleError } = require('./_lib/http');
+const { betaGate } = require('./_lib/beta');
 const { getServiceClient, getUserFromRequest, getFingerprint, rpc } = require('./_lib/supabase');
 const { assertRateLimit } = require('./_lib/ratelimit');
 const { generateClone } = require('./_lib/gemini');
@@ -59,7 +60,7 @@ exports.handler = async (event) => {
     // 2. Consomme 1 crédit (même garde-fou que l'analyse principale).
     let consumed;
     try {
-      consumed = await rpc('consume_credit', { p_user_id: user.id, p_fingerprint: fingerprint });
+      consumed = await rpc('consume_credit', { p_user_id: user.id, p_fingerprint: (await betaGate(user.id, fingerprint)).fingerprint });
     } catch (err) {
       if (err instanceof HttpError && err.code === 'FINGERPRINT_MISMATCH') {
         await getServiceClient()

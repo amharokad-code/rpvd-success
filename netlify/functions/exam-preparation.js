@@ -4,6 +4,7 @@
 // Consomme 1 crédit (appel Gemini), remboursé si échec — même contrat que le reste.
 
 const { HttpError, preflight, parseBody, json, getIp, sha256, handleError } = require('./_lib/http');
+const { betaGate } = require('./_lib/beta');
 const { getServiceClient, getUserFromRequest, getFingerprint, rpc } = require('./_lib/supabase');
 const { assertRateLimit } = require('./_lib/ratelimit');
 const { generateExamPrep } = require('./_lib/gemini');
@@ -42,7 +43,7 @@ exports.handler = async (event) => {
 
     let consumed;
     try {
-      consumed = await rpc('consume_credit', { p_user_id: user.id, p_fingerprint: fingerprint });
+      consumed = await rpc('consume_credit', { p_user_id: user.id, p_fingerprint: (await betaGate(user.id, fingerprint)).fingerprint });
     } catch (err) {
       if (err instanceof HttpError && err.code === 'FINGERPRINT_MISMATCH') {
         await getServiceClient()

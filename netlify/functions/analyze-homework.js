@@ -5,6 +5,7 @@
 // L'image n'est jamais stockée ni journalisée : seule l'analyse est conservée.
 
 const { HttpError, preflight, parseBody, json, getIp, sha256, handleError } = require('./_lib/http');
+const { betaGate } = require('./_lib/beta');
 const { getServiceClient, getUserFromRequest, getFingerprint, rpc } = require('./_lib/supabase');
 const { assertRateLimit } = require('./_lib/ratelimit');
 const { analyzeImage } = require('./_lib/gemini');
@@ -124,7 +125,7 @@ exports.handler = async (event) => {
     // security_events) : c'est au backend de journaliser l'incident (contrat §0/§2).
     let consumed;
     try {
-      consumed = await rpc('consume_credit', { p_user_id: user.id, p_fingerprint: fingerprint });
+      consumed = await rpc('consume_credit', { p_user_id: user.id, p_fingerprint: (await betaGate(user.id, fingerprint)).fingerprint });
     } catch (err) {
       // FINGERPRINT_REVERIFY_REQUIRED (friction progressive, remplace l'ancien 403 dur
       // FINGERPRINT_MISMATCH inconditionnel) : au 3e écart sur 24h, on journalise et on

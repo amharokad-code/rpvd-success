@@ -12,3 +12,6 @@ dist/
 
 # Campagne : dependances locales
 campagne/**/node_modules
+
+# Codes de bêta fermée (secrets distribués à la main)
+beta-codes.csv
