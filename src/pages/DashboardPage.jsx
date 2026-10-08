@@ -17,6 +17,7 @@ import SocialFollowPrompt from '../components/SocialFollowPrompt'
 import { useCopy } from '../context/RegionContext'
 import { isProPlan } from '../lib/plan'
 import { ApiError, analyzeHomework, reverifyDevice } from '../lib/api'
+import { PICKER_SUBJECTS, modeForSubject } from '../lib/mode'
 import { DEMO_ANALYSIS } from '../fixtures/demoAnalysis'
 
 function getSearch() {
@@ -39,6 +40,8 @@ function releasePreview(file) {
 
 export default function DashboardPage({ profile, onProfileChange, onOpenActivate }) {
   const { t, region } = useCopy()
+  // Matière choisie → mode du Moteur D (calcul : maths/physique/chimie ; raisonnement : sciences/histoire/anglais).
+  const [subject, setSubject] = useState('math')
   // Phases : 'upload' (zone de dépôt) → 'ready' (aperçu + bouton) → 'loading' → 'result' | 'error'.
   const [phase, setPhase] = useState('upload')
   const [file, setFile] = useState(null) // { base64, mimeType, previewUrl }
@@ -155,6 +158,7 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
         base64: source.base64,
         mimeType: source.mimeType,
         region,
+        mode: modeForSubject(subject),
         notationText: profile?.preferred_notation,
         notationImage,
       })
@@ -250,6 +254,23 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
               }}
             />
           )}
+
+          <div role="group" aria-label={t.analysis.subjectPrompt} className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-medium text-slate-400">{t.analysis.subjectPrompt}</span>
+            {PICKER_SUBJECTS.map((key) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={subject === key}
+                onClick={() => setSubject(key)}
+                className={`squishy focus-ring inline-flex min-h-[44px] items-center rounded-full px-4 text-sm font-semibold transition-colors ${
+                  subject === key ? 'bg-amber-500 text-slate-900' : 'glass text-slate-300 hover:text-slate-100'
+                }`}
+              >
+                {t.subjects[key]}
+              </button>
+            ))}
+          </div>
 
           {/* Verrouillée nativement par `disabled` (aria-disabled, tabIndex=-1, ZONE_DISABLED) ;
               le clic bulle jusqu'ici (pas de stopPropagation dans UploadVortex) pour ouvrir le mur de paiement. */}

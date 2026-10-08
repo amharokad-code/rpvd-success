@@ -67,11 +67,12 @@ function toApiError(error) {
 
 // --- Netlify Functions -----------------------------------------------------
 
-export async function analyzeHomework({ base64, mimeType, region, notationText, notationImage }) {
+export async function analyzeHomework({ base64, mimeType, region, mode, notationText, notationImage }) {
   return callFunction('analyze-homework', {
     imageBase64: base64,
     mimeType,
     region,
+    mode: mode || undefined,
     notationText: notationText || undefined,
     notationImageBase64: notationImage?.base64,
     notationMimeType: notationImage?.mimeType,

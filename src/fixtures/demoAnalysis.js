@@ -47,7 +47,13 @@ export const DEMO_ANALYSIS = {
   pitfall: "Le piège classique : oublier de faire la même opération des deux côtés du signe égal.",
   consigne_translation: 'On te demande de trouver la valeur cachée derrière le x pour que l’équation soit vraie.',
   // Moteur D « RPVD Visuel v2 » (dev uniquement : ?demo).
-  moteur: 2,
+  moteur: 3,
+  mode: 'calcul',
+  pattern_key: 'chimie/dilution/trouver-volume-initial',
+  declencheurs: ['diluer', 'solution mère', 'volume à prélever'],
+  piege: "Garde les mêmes unités des deux côtés : mL avec mL, mol/L avec mol/L, sinon ton volume sera faux.",
+  confiance: 'moyenne',
+  a_verifier: 'Confirme avec ton prof combien de chiffres significatifs il veut.',
   matiere_cible: 'Chimie / Solutions et dilution',
   niveaux: [
     {
@@ -60,6 +66,7 @@ export const DEMO_ANALYSIS = {
         { expression: '$V_1 = \\frac{C_2 \\cdot V_2}{C_1}$', explication: 'Isoler le volume initial' },
       ],
       reponse: '$V_1$ en mL, prélevé à la pipette volumétrique',
+      verification: "L'unité attendue est un volume, et il doit être plus petit que $V_2$.",
       principe: "Lors d'une dilution, la quantité de soluté prélevée dans la solution mère reste la même dans la solution fille.",
     },
     {
@@ -72,6 +79,7 @@ export const DEMO_ANALYSIS = {
         { expression: '$V_1 = \\frac{0{,}50 \\cdot 250}{12}$', explication: 'Substituer avec les unités cohérentes' },
       ],
       reponse: '$V_1 \\approx 10\\ \\text{mL}$ (à confirmer avec ton prof)',
+      verification: "Ton $V_1$ est bien en mL et plus petit que 250 mL ?",
       principe: "Lors d'une dilution, la quantité de soluté prélevée dans la solution mère reste la même dans la solution fille.",
     },
     {
@@ -87,6 +95,7 @@ export const DEMO_ANALYSIS = {
         { expression: '$V_1 \\approx 10{,}4\\ \\text{mL}$', explication: 'Calculer la valeur finale' },
       ],
       reponse: '$V_1 \\approx 10\\ \\text{mL}$',
+      verification: "Remets $V_1$ dans $C_1 \\cdot V_1$ : tu retombes sur $C_2 \\cdot V_2$ ?",
       principe: "Lors d'une dilution, la quantité de soluté prélevée dans la solution mère reste la même dans la solution fille.",
     },
   ],

@@ -2,7 +2,7 @@
 // `qc` = français québécois (textes client obligatoires), `fr` = variantes FR-FR,
 // `us` = English (US), `uk` = English (UK). Les 4 objets exposent EXACTEMENT les mêmes clés.
 
-export const SUBJECT_KEYS = ['math', 'chimie', 'physique', 'sciences', 'francais', 'anglais', 'autre']
+export const SUBJECT_KEYS = ['math', 'chimie', 'physique', 'sciences', 'histoire', 'francais', 'anglais', 'autre']
 
 // Matières : identiques dans les deux régions.
 const SUBJECTS = {
@@ -10,6 +10,7 @@ const SUBJECTS = {
   chimie: 'Chimie',
   physique: 'Physique',
   sciences: 'Sciences',
+  histoire: 'Histoire',
   francais: 'Français',
   anglais: 'Anglais',
   autre: 'Autre',
@@ -55,6 +56,13 @@ const qc = {
   analysis: {
     level1Title: 'Identification',
     visuelTitles: ['Le pattern', 'Avec tes chiffres', 'Étape par étape'],
+    nextLine: 'Ligne suivante',
+    showAll: 'Tout afficher',
+    recognize: 'Reconnais-le',
+    verifyLabel: 'Vérifie',
+    trapLabel: 'Piège',
+    subjectPrompt: "C'est quelle matière ?",
+    confidenceNote: 'À valider',
     level2Title: 'La démarche',
     level3Title: 'Le principe',
     connuLabel: 'CONNU',
@@ -323,6 +331,13 @@ const fr = {
   analysis: {
     level1Title: 'Identification',
     visuelTitles: ['Le pattern', 'Avec tes chiffres', 'Étape par étape'],
+    nextLine: 'Ligne suivante',
+    showAll: 'Tout afficher',
+    recognize: 'Reconnais-le',
+    verifyLabel: 'Vérifie',
+    trapLabel: 'Piège',
+    subjectPrompt: "C'est quelle matière ?",
+    confidenceNote: 'À valider',
     level2Title: 'La démarche',
     level3Title: 'Le principe',
     connuLabel: 'CONNU',
@@ -589,6 +604,13 @@ const us = {
   analysis: {
     level1Title: 'Identification',
     visuelTitles: ['The pattern', 'With your numbers', 'Step by step'],
+    nextLine: 'Next line',
+    showAll: 'Show all',
+    recognize: 'Spot it',
+    verifyLabel: 'Check',
+    trapLabel: 'Trap',
+    subjectPrompt: 'Which subject?',
+    confidenceNote: 'Double-check',
     level2Title: 'The approach',
     level3Title: 'The idea',
     connuLabel: 'GIVEN',
@@ -855,6 +877,13 @@ const uk = {
   analysis: {
     level1Title: 'Identification',
     visuelTitles: ['The pattern', 'With your numbers', 'Step by step'],
+    nextLine: 'Next line',
+    showAll: 'Show all',
+    recognize: 'Spot it',
+    verifyLabel: 'Check',
+    trapLabel: 'Trap',
+    subjectPrompt: 'Which subject?',
+    confidenceNote: 'Double-check',
     level2Title: 'The approach',
     level3Title: 'The idea',
     connuLabel: 'GIVEN',

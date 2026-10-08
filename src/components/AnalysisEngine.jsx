@@ -168,10 +168,40 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, o
 
           {hasVisuel ? (
             <>
-              <h2 key={level} className="mb-4 font-display text-xl font-bold leading-snug text-slate-50 motion-safe:animate-rise sm:text-2xl">
+              <h2 key={level} className="mb-3 font-display text-xl font-bold leading-snug text-slate-50 motion-safe:animate-rise sm:text-2xl">
                 {t.analysis.visuelTitles?.[level - 1]}
               </h2>
-              <VisualLevel key={level} level={niveaux[level - 1]} answerLabel={t.analysis.finalAnswer} />
+              {/* Confiance : bandeau discret seulement si le moteur n'est pas sûr de lui. */}
+              {(analysis.confiance === 'moyenne' || analysis.confiance === 'basse') && analysis.a_verifier && (
+                <p role="note" className="mb-3 rounded-xl border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-sm leading-relaxed text-amber-200/90">
+                  <span className="font-semibold">{t.analysis.confidenceNote} : </span>
+                  {analysis.a_verifier}
+                </p>
+              )}
+              {/* « Reconnais-le » : les signaux qui annoncent ce type d'exercice. */}
+              {Array.isArray(analysis.declencheurs) && analysis.declencheurs.length > 0 && (
+                <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t.analysis.recognize}</span>
+                  {analysis.declencheurs.map((d, i) => (
+                    <span key={i} className="rounded-full border border-orange-400/30 bg-orange-400/10 px-2.5 py-0.5 text-xs text-[#f2994a]">
+                      {d}
+                    </span>
+                  ))}
+                </div>
+              )}
+              <VisualLevel
+                key={level}
+                level={niveaux[level - 1]}
+                answerLabel={t.analysis.finalAnswer}
+                mode={analysis.mode}
+                labels={t.analysis}
+              />
+              {hasFullAccess && analysis.piege && (
+                <p className="mt-4 rounded-r-xl border-l-4 border-[#f2994a] bg-slate-900/50 px-4 py-3 text-sm leading-relaxed text-slate-200">
+                  <span className="font-semibold text-[#f2994a]">{t.analysis.trapLabel} : </span>
+                  {analysis.piege}
+                </p>
+              )}
             </>
           ) : hasMethode ? (
             <>
@@ -312,7 +342,7 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, o
             {/* Phase 3 : piège classique + traduction de consigne — réservés au forfait Pro. */}
             {hasFullAccess && (analysis?.pitfall || analysis?.consigne_translation) && (
               <div className="mt-6 space-y-2">
-                {analysis?.pitfall && (
+                {analysis?.pitfall && !hasVisuel && (
                   <details className="rounded-2xl bg-slate-900/60 px-4 py-3">
                     <summary className="cursor-pointer text-sm font-semibold text-slate-200">{t.analysis.pitfallLabel}</summary>
                     <p className="mt-2 text-sm leading-relaxed text-slate-300">{analysis.pitfall}</p>

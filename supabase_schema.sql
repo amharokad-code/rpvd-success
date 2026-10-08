@@ -1575,3 +1575,22 @@ alter table public.bootcamp_unsubscribes enable row level security;
 --   alter table public.bootcamp_votes drop column if exists exams;
 --   alter table public.bootcamp_votes drop column if exists ip_hash;
 --   alter table public.bootcamp_tickets drop column if exists buyer_name;
+
+
+-- =============================================================================
+-- Moteur D v3 : clé de pattern, mode, confiance (idempotent) + journal du moteur.
+-- =============================================================================
+alter table public.submissions add column if not exists pattern_key text;
+alter table public.submissions add column if not exists mode text;
+alter table public.submissions add column if not exists confiance text;
+create index if not exists submissions_pattern_key_idx on public.submissions (pattern_key);
+
+create table if not exists public.engine_logs (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz default now(),
+  user_id uuid,
+  mode text, region text, model text,
+  latency_ms int, finish_reason text,
+  statut text, confiance text, pattern_key text, error_code text
+);
+alter table public.engine_logs enable row level security; -- aucune policy : accès service seulement

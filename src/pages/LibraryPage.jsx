@@ -89,9 +89,21 @@ export default function LibraryPage() {
 
   const groups = useMemo(() => {
     const visible = filter === 'all' ? items : items.filter((item) => subjectOf(item) === filter)
-    return SUBJECT_KEYS.map((key) => ({ key, items: visible.filter((item) => subjectOf(item) === key) })).filter(
-      (group) => group.items.length > 0,
-    )
+    // Regroupement par clé de pattern (v3) ; les fiches sans clé exploitable vont dans « Autres ».
+    const map = new Map()
+    for (const item of visible) {
+      const raw = item.analysis?.pattern_key
+      const key = raw && raw !== 'autre/non-classe/non-classe' ? raw : 'autres'
+      if (!map.has(key)) map.set(key, { key, title: '', declencheurs: [], items: [] })
+      const group = map.get(key)
+      group.items.push(item)
+      if (key !== 'autres') {
+        if (!group.title) group.title = item.analysis?.matiere_cible || item.problem_type || key
+        if (group.declencheurs.length === 0 && Array.isArray(item.analysis?.declencheurs)) group.declencheurs = item.analysis.declencheurs
+      }
+    }
+    const list = [...map.values()]
+    return [...list.filter((g) => g.key !== 'autres'), ...list.filter((g) => g.key === 'autres')]
   }, [items, filter])
 
   function formatDate(value) {
@@ -188,14 +200,27 @@ export default function LibraryPage() {
           {groups.map((group, groupIndex) => (
             <section
               key={group.key}
-              aria-labelledby={`library-group-${group.key}`}
+              aria-labelledby={`library-group-${group.key.replace(/[^a-z0-9-]/g, '_')}`}
               className="flex flex-col gap-4 motion-safe:animate-rise"
               style={{ animationDelay: `${groupIndex * 80}ms` }}
             >
-              <h2 id={`library-group-${group.key}`} className="flex items-baseline gap-3">
-                <span className="font-display text-2xl font-bold text-slate-50">{t.subjects[group.key]}</span>
-                <span className="font-mono text-sm tabular-nums text-slate-400">{t.library.count(group.items.length)}</span>
-              </h2>
+              <div className="flex flex-col gap-2">
+                <h2 id={`library-group-${group.key.replace(/[^a-z0-9-]/g, '_')}`} className="flex items-baseline gap-3">
+                  <span className="font-display text-2xl font-bold text-slate-50">
+                    {group.key === 'autres' ? (region === 'us' || region === 'uk' ? 'Other' : 'Autres') : group.title}
+                  </span>
+                  <span className="font-mono text-sm tabular-nums text-slate-400">{t.library.count(group.items.length)}</span>
+                </h2>
+                {group.declencheurs.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {group.declencheurs.map((d, i) => (
+                      <span key={i} className="rounded-full border border-orange-400/30 bg-orange-400/10 px-2.5 py-0.5 text-xs text-[#f2994a]">
+                        {d}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
               <ul className="grid gap-4 sm:grid-cols-2">
                 {group.items.map((item) => (
                   <li key={item.id}>

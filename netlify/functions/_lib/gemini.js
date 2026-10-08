@@ -4,7 +4,7 @@
 
 const { HttpError } = require('./http');
 const { safeParseGemini } = require('./safeParse');
-const { MOTEUR_D_PROMPT } = require('../_prompts/moteur-d');
+const { buildSystemPrompt } = require('../_prompts/commun-v3');
 
 // gemini-1.5/2.0/2.5-flash sont retirés pour cette clé (404 « no longer available to new
 // users », malgré /v1beta/models qui les liste encore). Et gemini-3.6/3.7/3.5-flash + flash-latest
@@ -24,7 +24,7 @@ const API_BASE = 'https://generativelanguage.googleapis.com/v1beta';
 // avec la limite d'exécution de la plateforme Netlify elle-même (le process se ferait tuer AVANT
 // notre propre AbortController). À 12s/modèle, deux essais (principal + repli) tiennent sous 26s.
 const TIMEOUT_MS = 12000;
-const SUBJECTS = ['math', 'chimie', 'physique', 'sciences', 'francais', 'anglais', 'autre'];
+const SUBJECTS = ['math', 'chimie', 'physique', 'sciences', 'histoire', 'francais', 'anglais', 'autre'];
 const MIN_STEPS = 2;
 // Plafond relevé (contrat) : un exercice complexe doit pouvoir produire une décomposition
 // aussi longue que nécessaire plutôt que d'être artificiellement coupée à 7 étapes — l'UI
@@ -56,6 +56,7 @@ const LEVEL_SCHEMA = {
     },
     reponse: { type: 'STRING' },
     principe: { type: 'STRING', description: '2 à 3 lignes, sans formule ni calcul.' },
+    verification: { type: 'STRING', description: 'Une ligne de 6 à 16 mots pour tester la réponse (v3).' },
   },
   required: ['niveau', 'connu', 'cherche', 'schema_ascii', 'demarche', 'reponse', 'principe'],
 };
@@ -66,6 +67,13 @@ const RESPONSE_SCHEMA = {
     statut: { type: 'STRING', format: 'enum', enum: ['ok', 'incomplet'] },
     message: { type: 'STRING', description: "Phrase d'explication si incomplet, sinon chaîne vide." },
     matiere_cible: { type: 'STRING', description: 'Ex. « Chimie / Solutions et dilution ».' },
+    mode: { type: 'STRING', description: 'calcul ou raisonnement.' },
+    type_question: { type: 'STRING', description: 'Mode raisonnement : type de question (section 4).' },
+    pattern_key: { type: 'STRING', description: 'matiere/famille/forme (v3.3).' },
+    declencheurs: { type: 'ARRAY', items: { type: 'STRING' }, description: '2 à 4 signaux de reconnaissance.' },
+    piege: { type: 'STRING', description: 'Erreur la plus fréquente, 8 à 20 mots.' },
+    confiance: { type: 'STRING', format: 'enum', enum: ['haute', 'moyenne', 'basse'] },
+    a_verifier: { type: 'STRING', description: 'Une phrase si confiance != haute.' },
     niveaux: { type: 'ARRAY', items: LEVEL_SCHEMA, description: 'Exactement 3 objets : niveau 1, 2, 3.' },
     cheminement: {
       type: 'ARRAY',
@@ -121,25 +129,14 @@ function sanitizeNotation(value) {
     .slice(0, MAX_NOTATION_CHARS);
 }
 
-// Instruction système : prompt Moteur D (netlify/functions/_prompts/moteur-d.js) + région + notation.
-function buildSystemInstruction({ region, preferredNotation }) {
-  const code = String(REGION_STYLE[region] ? region : DEFAULT_REGION).toUpperCase();
-  const notation = sanitizeNotation(preferredNotation);
-  const lines = [
-    MOTEUR_D_PROMPT,
-    '',
-    '## RÉGION DEMANDÉE',
-    code,
-    '',
-    'Rappel : le champ expression contient toujours du LaTeX entre $...$ (même une équation simple comme $3x + 7 = 22$).',
-    '',
-    '## CHAMPS OPTIONNELS (hors fiche, mêmes langue et tutoiement que la région)',
-    "hint : UNE phrase qui débloque la première ligne sans révéler la démarche ni la réponse. pitfall : l'erreur la plus courante sur CE type d'exercice, 1-2 phrases concrètes. consigne_translation : l'énoncé réécrit en mots très simples, sans méthode ni réponse. Chaînes vides si statut = incomplet.",
-  ];
-  if (notation) {
-    lines.push('', "## NOTATION PERSONNALISÉE (texte de l'élève)", notation);
-  }
-  return lines.join('\n');
+// Instruction système : base du mode (calcul | raisonnement) + couche v3 + région + notation
+// (voir netlify/functions/_prompts/commun-v3.js).
+function buildSystemInstruction({ region, preferredNotation, mode = 'calcul' }) {
+  return buildSystemPrompt({
+    mode,
+    region: REGION_STYLE[region] ? region : DEFAULT_REGION,
+    notation: sanitizeNotation(preferredNotation),
+  });
 }
 
 // Remplace chaque {{i}} par slots[i][mode]. Retourne null si aucun trou ou slot manquant.
@@ -220,10 +217,16 @@ function normalizeAscii(value, index) {
   return text;
 }
 
+// « $\text{Quel est le fait ?}$ » → « Quel est le fait ? » : le mode raisonnement enveloppe parfois du texte pur dans du LaTeX.
+const unwrapText = (value) => {
+  const m = /^\$\\text\{([^{}$]*)\}\$$/.exec(String(value == null ? '' : value).trim());
+  return m ? m[1] : value;
+};
+
 function normalizeLevel(item, index) {
   if (!item || typeof item !== 'object') return null;
   const demarche = (Array.isArray(item.demarche) ? item.demarche : [])
-    .map((line) => ({ expression: cleanString(line && line.expression), explication: cleanString(line && line.explication) }))
+    .map((line) => ({ expression: cleanString(unwrapText(line && line.expression)), explication: cleanString(unwrapText(line && line.explication)) }))
     .filter((line) => line.expression)
     .slice(0, MAX_DEMARCHE_LINES);
   if (demarche.length === 0) return null;
@@ -233,8 +236,9 @@ function normalizeLevel(item, index) {
     cherche: cleanString(item.cherche),
     schema_ascii: normalizeAscii(item.schema_ascii, index),
     demarche,
-    reponse: cleanString(item.reponse),
+    reponse: cleanString(unwrapText(item.reponse)),
     principe: cleanString(item.principe),
+    verification: typeof item.verification === 'string' ? item.verification.trim() : '',
   };
 }
 
@@ -243,7 +247,7 @@ function normalizeLevel(item, index) {
 function isUsableRaw(raw) {
   if (!raw || typeof raw !== 'object') return false;
   if (raw.statut === 'incomplet') return true;
-  return Array.isArray(raw.niveaux) && raw.niveaux.length >= 3 && raw.niveaux.slice(0, 3).every((l, i) => normalizeLevel(l, i));
+  return Array.isArray(raw.niveaux) && raw.niveaux.length === 3 && raw.niveaux.every((l, i) => normalizeLevel(l, i));
 }
 
 function guessSubject(matiere) {
@@ -251,6 +255,7 @@ function guessSubject(matiere) {
   if (/math/.test(m)) return 'math';
   if (/chim|chem/.test(m)) return 'chimie';
   if (/phys/.test(m)) return 'physique';
+  if (/hist/.test(m)) return 'histoire';
   if (/scien/.test(m)) return 'sciences';
   if (/fran|french/.test(m)) return 'francais';
   if (/angl|english/.test(m)) return 'anglais';
@@ -259,6 +264,32 @@ function guessSubject(matiere) {
 
 const asLines = (level) =>
   level.demarche.map((l) => (l.explication ? l.expression + ' (' + l.explication + ')' : l.expression)).join('\n');
+
+// Clé de pattern v3.3 : matiere/famille/forme, minuscules, sans accent ; sinon clé « non classé ».
+const normalizeKey = (k = '') => {
+  const s = String(k)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9/-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/\/+/g, '/')
+    .replace(/^[-/]+|[-/]+$/g, '');
+  return /^[a-z0-9-]+\/[a-z0-9-]+\/[a-z0-9-]+$/.test(s) ? s : 'autre/non-classe/non-classe';
+};
+
+// Validation douce des champs v3 : jamais de 502 pour un champ manquant.
+function finalizeFiche(f) {
+  f.pattern_key = normalizeKey(f.pattern_key);
+  f.declencheurs = Array.isArray(f.declencheurs) ? f.declencheurs.slice(0, 4).map(String) : [];
+  f.piege = typeof f.piege === 'string' ? f.piege : '';
+  f.confiance = ['haute', 'moyenne', 'basse'].includes(f.confiance) ? f.confiance : 'moyenne';
+  f.a_verifier = f.confiance === 'haute' ? '' : String(f.a_verifier || '');
+  (f.niveaux || []).forEach((n) => {
+    n.verification = typeof n.verification === 'string' ? n.verification : '';
+  });
+  return f;
+}
 
 // Valide la sortie Moteur D et construit l'Analysis : le format v2 (niveaux, cheminement) pour le
 // rendu visuel + les champs historiques (level_1/2/3_steps, final_answer...) pour la bibliothèque,
@@ -277,10 +308,25 @@ function buildAnalysis(raw) {
   const [n1, n2, n3] = niveaux;
 
   const matiere = cleanString(raw.matiere_cible);
+  const v3 = finalizeFiche({
+    pattern_key: raw.pattern_key,
+    declencheurs: raw.declencheurs,
+    piege: cleanString(raw.piege) || cleanString(raw.pitfall),
+    confiance: raw.confiance,
+    a_verifier: raw.a_verifier,
+    niveaux,
+  });
   const steps = n3.demarche.map((l) => ({ title: l.expression, text: l.explication || l.expression }));
 
   return {
-    moteur: 2,
+    moteur: 3,
+    mode: raw.mode === 'raisonnement' ? 'raisonnement' : 'calcul',
+    type_question: cleanString(raw.type_question),
+    pattern_key: v3.pattern_key,
+    declencheurs: v3.declencheurs,
+    piege: v3.piege,
+    confiance: v3.confiance,
+    a_verifier: v3.a_verifier,
     problem_type: matiere || 'Exercice',
     subject_guess: guessSubject(matiere),
     matiere_cible: matiere,
@@ -294,7 +340,7 @@ function buildAnalysis(raw) {
     level_3_steps: steps,
     final_answer: n3.reponse || n2.reponse || n1.reponse,
     hint: cleanString(raw.hint),
-    pitfall: cleanString(raw.pitfall),
+    pitfall: v3.piege,
     consigne_translation: cleanString(raw.consigne_translation),
   };
 }
@@ -462,6 +508,7 @@ async function analyzeImage({
   preferredNotation = '',
   notationImage = null,
   taskType = 'full_analysis',
+  mode = 'calcul',
 }) {
   const userParts = [
     { inlineData: { mimeType, data: base64 } },
@@ -477,7 +524,7 @@ async function analyzeImage({
   }
 
   const body = {
-    systemInstruction: { parts: [{ text: buildSystemInstruction({ region, preferredNotation }) }] },
+    systemInstruction: { parts: [{ text: buildSystemInstruction({ region, preferredNotation, mode }) }] },
     contents: [{ role: 'user', parts: userParts }],
     generationConfig: {
       responseMimeType: 'application/json',
@@ -499,6 +546,8 @@ async function analyzeImage({
 
   const { raw, metrics } = await runGeminiJson(body, taskType, isUsableRaw);
   const analysis = buildAnalysis(raw);
+  // Le mode demandé fait foi (le modèle peut oublier le champ « mode »).
+  analysis.mode = mode === 'raisonnement' ? 'raisonnement' : 'calcul';
   return { analysis, metrics };
 }
 
@@ -709,4 +758,6 @@ module.exports = {
   buildAnalysis,
   buildSystemInstruction,
   isUsableRaw,
+  normalizeKey,
+  finalizeFiche,
 };

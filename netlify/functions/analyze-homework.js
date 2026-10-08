@@ -69,6 +69,18 @@ function validateBody(body) {
   return { base64, mimeType, region, notationImage };
 }
 
+// Journal du moteur (table engine_logs) : jamais bloquant, aucune donnée d'élève ni image.
+function logEngine(row) {
+  try {
+    getServiceClient()
+      .from('engine_logs')
+      .insert(row)
+      .then(() => {}, (e) => console.error('[engine_logs]', e && e.message));
+  } catch (e) {
+    console.error('[engine_logs]', e && e.message);
+  }
+}
+
 exports.handler = async (event) => {
   const early = preflight(event);
   if (early) return early;
@@ -103,6 +115,9 @@ exports.handler = async (event) => {
     const region = bodyRegion || (profile && REGIONS.includes(profile.region) ? profile.region : 'qc');
     const preferredNotation = bodyNotation || (profile && profile.preferred_notation) || '';
     const hasFullAccess = isProPlan(profile && profile.plan);
+    // Mode du Moteur D : « calcul » (maths, physique, chimie) ou « raisonnement » (sciences, histoire, anglais).
+    const mode = parsedBody.mode === 'raisonnement' ? 'raisonnement' : 'calcul';
+    const engineStart = Date.now();
 
     // 5. Consommation atomique d'un crédit (NO_CREDITS → 402, FINGERPRINT_MISMATCH → 403).
     // Le RAISE EXCEPTION de consume_credit annule sa transaction (donc son propre insert
@@ -146,7 +161,7 @@ exports.handler = async (event) => {
     // on sert l'analyse en cache et on saute l'appel Gemini (contrat cache, voir
     // supabase_schema.sql/analysis_cache). Le crédit reste consommé normalement
     // (étape 5, déjà faite) : le cache économise la latence/le coût Gemini, pas le crédit.
-    const contentHash = sha256(`${base64}:${mimeType}:${region}:moteur-d-v2`);
+    const contentHash = sha256(`${base64}:${mimeType}:${region}:${mode}:moteur-d-v3`);
     const notationKey = preferredNotation || '';
     let analysis;
     let geminiMetrics = null;
@@ -170,10 +185,11 @@ exports.handler = async (event) => {
     // 6. Analyse Gemini (sauté si servi depuis le cache) ; remboursement du crédit en cas d'échec.
     if (!servedFromCache) {
       try {
-        const result = await analyzeImage({ base64, mimeType, region, preferredNotation, notationImage, taskType: 'full_analysis' });
+        const result = await analyzeImage({ base64, mimeType, region, preferredNotation, notationImage, taskType: 'full_analysis', mode });
         analysis = result.analysis;
         geminiMetrics = result.metrics;
       } catch (err) {
+        logEngine({ user_id: user.id, mode, region, latency_ms: Date.now() - engineStart, statut: err && err.code === 'OCR_FAIL' ? 'incomplet' : 'erreur', error_code: (err && err.code) || 'AI_ERROR' });
         try {
           await rpc('refund_credit', { p_user_id: user.id });
         } catch (refundError) {
@@ -200,12 +216,24 @@ exports.handler = async (event) => {
     // d'ici, pour ce que ce compte Basic reçoit et garde dans sa bibliothèque.
     const clientAnalysis = hasFullAccess
       ? analysis
-      : (({ hint, pitfall, consigne_translation, ...rest }) => rest)(analysis);
+      : (({ hint, pitfall, piege, consigne_translation, ...rest }) => rest)(analysis);
 
-    // 7. Enregistrement de la soumission (sans l'image).
-    const { data: submission, error: insertError } = await getServiceClient()
-      .from('submissions')
-      .insert({
+    logEngine({
+      user_id: user.id,
+      mode,
+      region,
+      model: geminiMetrics && geminiMetrics.modelUsed,
+      latency_ms: Date.now() - engineStart,
+      finish_reason: geminiMetrics && geminiMetrics.finishReason,
+      statut: 'ok',
+      confiance: analysis.confiance,
+      pattern_key: analysis.pattern_key,
+      error_code: null,
+    });
+
+    // 7. Enregistrement de la soumission (sans l'image). Colonnes v3 (pattern_key, mode, confiance) :
+    // si la migration SQL n'a pas encore été exécutée, on réessaie sans elles (jamais bloquant).
+    const submissionRow = {
         user_id: user.id,
         problem_type: clientAnalysis.problem_type,
         level_1_response: clientAnalysis.level_1,
@@ -214,9 +242,17 @@ exports.handler = async (event) => {
         analysis: clientAnalysis,
         region,
         gemini_metrics: geminiMetrics,
-      })
-      .select('id')
-      .single();
+    };
+    const insertSubmission = (row) => getServiceClient().from('submissions').insert(row).select('id').single();
+    let { data: submission, error: insertError } = await insertSubmission({
+      ...submissionRow,
+      pattern_key: clientAnalysis.pattern_key || null,
+      mode,
+      confiance: clientAnalysis.confiance || null,
+    });
+    if (insertError && /pattern_key|mode|confiance/.test(insertError.message || '')) {
+      ({ data: submission, error: insertError } = await insertSubmission(submissionRow));
+    }
 
     let submissionId = null;
     if (insertError) {
