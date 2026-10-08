@@ -9,6 +9,7 @@ import GlassCard from './ui/GlassCard'
 import ArbreCheminement from './ArbreCheminement'
 import TextToSpeech from './TextToSpeech'
 import ClonePractice from './ClonePractice'
+import BetaFeedback from './BetaFeedback'
 import VisualLevel from './VisualLevel'
 import { stripMath } from './MathText'
 import { isProPlan } from '../lib/plan'
@@ -88,7 +89,7 @@ function PlainText({ text, mode }) {
   )
 }
 
-export default function AnalysisEngine({ analysis, submissionId, region, plan, onDone, onSave, onNew, onCreditsChange }) {
+export default function AnalysisEngine({ analysis, submissionId, region, plan, betaUserId, onDone, onSave, onNew, onCreditsChange }) {
   const { t } = useCopy()
   // Contrat pricing v3 : Basic = scan de base seulement. L'indice/pièges/consigne sont déjà
   // retirés côté serveur pour ce plan (analyze-homework.js) — `analysis?.hint` etc. sont donc
@@ -404,6 +405,7 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, o
           </>
         )}
       </div>
+      {betaUserId && submissionId && <BetaFeedback userId={betaUserId} submissionId={submissionId} />}
     </section>
   )
 }

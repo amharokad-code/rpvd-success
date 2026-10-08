@@ -7,6 +7,7 @@ import LegalContactPage from './pages/LegalContactPage'
 import BootcampPage from './pages/BootcampPage'
 import AccueilPage from './pages/AccueilPage'
 import BootcampAdminPage from './pages/BootcampAdminPage'
+import BetaPage from './pages/BetaPage'
 import ReserverPage from './pages/ReserverPage'
 import MerciPage from './pages/MerciPage'
 import RembourserPage from './pages/RembourserPage'
@@ -26,6 +27,7 @@ initAds()
 //   /reserver  ?s=<session> → Stripe Checkout ; /merci après paiement ; /rembourser ?t=<jeton> ; /desabonner ?v= ou ?b=
 //   /accueil   présentation de la méthode (ancienne landing)
 //   /admin/bootcamp  décompte des votes + envoi des courriels (jeton requis)
+//   /beta      bêta fermée : votes des testeurs (compte is_beta)
 //   /app       l'outil d'analyse (connexion par lien magique, puis tableau de bord)
 //   /legal/*   pages statiques indépendantes
 const LEGAL_DOCS = ['privacy', 'terms', 'cookies', 'refunds']
@@ -62,6 +64,7 @@ function pickRoute() {
   if (path === '/desabonner') return <DesabonnerPage />
   if (path === '/accueil') return <AccueilPage />
   if (path === '/admin/bootcamp') return <BootcampAdminPage />
+  if (path === '/beta') return <BetaPage />
   if (path === '/admin/insights') return <AdminInsightsPage />
   if (isLegalContactPath()) return <LegalContactPage />
   const legalDoc = legalDocFromPath()

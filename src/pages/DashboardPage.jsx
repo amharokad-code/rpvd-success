@@ -6,6 +6,8 @@ import Button from '../components/ui/Button'
 import UploadVortex from '../components/UploadVortex'
 import SkeletonLoader from '../components/SkeletonLoader'
 import AnalysisEngine from '../components/AnalysisEngine'
+import BetaVoteBanner from '../components/BetaVoteBanner'
+import { isBetaActive } from '../lib/beta'
 import LibraryModal from '../components/LibraryModal'
 import PaywallModal from '../components/PaywallModal'
 import CreditsBadge from '../components/CreditsBadge'
@@ -374,11 +376,13 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
             submissionId={result.submission_id}
             region={region}
             plan={profile?.plan}
+            betaUserId={isBetaActive(profile) ? profile.id : undefined}
             onDone={noop}
             onSave={handleSaveRequest}
             onNew={resetToUpload}
             onCreditsChange={(next) => onProfileChange?.((p) => ({ ...(p ?? {}), credits: next }))}
           />
+          {isBetaActive(profile) && <BetaVoteBanner profile={profile} refreshKey={result.submission_id} />}
           {savedInfo && (
             <p
               role="status"
