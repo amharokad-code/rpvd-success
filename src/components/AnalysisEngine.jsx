@@ -12,6 +12,7 @@ import ClonePractice from './ClonePractice'
 import VisualLevel from './VisualLevel'
 import { stripMath } from './MathText'
 import { isProPlan } from '../lib/plan'
+import { trackEvent } from '../utils/track'
 
 const SLOT_PATTERN = /\{\{(\d+)\}\}/g
 const VALUE_STAGGER_MS = 60
@@ -138,10 +139,12 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, o
   function goToLevel2() {
     setAnimateValues(true)
     setLevel(2)
+    if (submissionId) trackEvent('level_viewed', { props: { level: 2, mode: analysis?.mode } })
   }
 
   function goToLevel3() {
     setLevel(3)
+    if (submissionId) trackEvent('level_viewed', { props: { level: 3, mode: analysis?.mode } })
   }
 
   function handleDone() {

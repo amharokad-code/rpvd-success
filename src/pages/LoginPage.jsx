@@ -56,6 +56,7 @@ export default function LoginPage() {
       setSentTo(value)
     } catch (err) {
       if (!mountedRef.current) return
+      trackEvent('login_error', { props: { code: String(err?.code || err?.message || 'network').slice(0, 40) } })
       setError(err?.code === 'over_email_send_rate_limit' ? t.errors.RATE_LIMITED : t.errors.NETWORK)
     } finally {
       if (mountedRef.current) setBusy(false)

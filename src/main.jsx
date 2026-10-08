@@ -12,6 +12,8 @@ import MerciPage from './pages/MerciPage'
 import RembourserPage from './pages/RembourserPage'
 import DesabonnerPage from './pages/DesabonnerPage'
 import { initAds } from './utils/ads'
+import { installErrorTracking } from './utils/track'
+import AdminInsightsPage from './pages/AdminInsightsPage'
 import './index.css'
 
 // Mesure publicitaire : capture des paramètres de campagne (sessionStorage) et pixels Meta/Snap,
@@ -60,11 +62,14 @@ function pickRoute() {
   if (path === '/desabonner') return <DesabonnerPage />
   if (path === '/accueil') return <AccueilPage />
   if (path === '/admin/bootcamp') return <BootcampAdminPage />
+  if (path === '/admin/insights') return <AdminInsightsPage />
   if (isLegalContactPath()) return <LegalContactPage />
   const legalDoc = legalDocFromPath()
   if (legalDoc) return <LegalPage doc={legalDoc} />
   return <App />
 }
+
+installErrorTracking()
 
 const rootElement = typeof document !== 'undefined' ? document.getElementById('root') : null
 if (rootElement) {

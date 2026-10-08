@@ -18,6 +18,7 @@ import { useCopy } from '../context/RegionContext'
 import { isProPlan } from '../lib/plan'
 import { ApiError, analyzeHomework, reverifyDevice } from '../lib/api'
 import { PICKER_SUBJECTS, modeForSubject } from '../lib/mode'
+import { trackEvent } from '../utils/track'
 import { DEMO_ANALYSIS } from '../fixtures/demoAnalysis'
 
 function getSearch() {
@@ -60,6 +61,12 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
 
   const credits = profile?.credits ?? 0
 
+  // Entonnoir anonyme : l'élève est connecté et l'outil est ouvert.
+  useEffect(() => {
+    if (!IS_DEMO) trackEvent('app_opened', { region })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // Nettoyage : minuterie démo et URL d'aperçu.
   useEffect(() => {
     fileRef.current = file
@@ -97,6 +104,7 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
     }
     replaceFile(payload)
     setPhase('ready')
+    trackEvent('file_selected', { props: { subject, mode: modeForSubject(subject) } })
   }
 
   function resetToUpload() {
@@ -109,7 +117,8 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
     setPhase('upload')
   }
 
-  function openPaywall() {
+  function openPaywall(reason = 'locked') {
+    trackEvent('paywall_shown', { props: { reason: typeof reason === 'string' ? reason : 'locked' } })
     setPaywallOpen(true)
   }
 
@@ -142,6 +151,7 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
     setSavedInfo(null)
     setResult(null)
     setPhase('loading')
+    if (!IS_DEMO) trackEvent('analysis_started', { props: { subject, mode: modeForSubject(subject) } })
 
     if (IS_DEMO) {
       clearTimeout(timerRef.current)
@@ -163,6 +173,7 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
         notationImage,
       })
       setResult({ submission_id: data.submission_id, analysis: data.analysis })
+      trackEvent('analysis_success', { props: { mode: modeForSubject(subject) } })
       if (typeof data.credits_remaining === 'number') {
         const extra = typeof data.streak_days === 'number' ? { streak_days: data.streak_days } : undefined
         updateCredits(data.credits_remaining, extra)
@@ -177,9 +188,10 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
       if (code === 'NO_CREDITS') {
         updateCredits(0)
         setPhase(source ? 'ready' : 'upload')
-        openPaywall()
+        openPaywall('no_credits')
         return
       }
+      trackEvent('analysis_error', { props: { code, mode: modeForSubject(subject) } })
       setError({ code, message: t.errors[code] ?? t.errors.SERVER_ERROR })
       setPhase('error')
     }

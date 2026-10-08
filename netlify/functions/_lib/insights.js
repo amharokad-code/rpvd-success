@@ -302,11 +302,12 @@ function diagnose({ funnel, money, errors, engine, devices, retention, last }) {
   const top = funnel[0].sessions;
   if (top < 30) add('info', 'Trop peu de données', `${top} sessions seulement sur la période.`, 'Les pourcentages sont fragiles : attends plus de trafic avant de trancher.');
 
-  // plus grosse fuite relative (étapes avec assez de volume)
+  // plus grosse fuite en nombre de sessions perdues (étapes avec assez de volume)
   const leaks = funnel
     .map((s, i) => ({ s, i }))
     .filter(({ s, i }) => i > 0 && funnel[i - 1].sessions >= 10 && s.from_prev_pct != null)
-    .sort((a, b) => a.s.from_prev_pct - b.s.from_prev_pct);
+    .filter(({ s }) => s.from_prev_pct < 90)
+    .sort((a, b) => b.s.lost - a.s.lost); // l'impact d'abord : là où on perd le plus de monde
   if (leaks.length) {
     const w = leaks[0];
     const prev = funnel[w.i - 1];
