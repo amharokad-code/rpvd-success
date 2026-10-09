@@ -93,7 +93,7 @@ function canvasSignature() {
     ctx.fillStyle = '#f59e0b'
     ctx.fillRect(0, 0, 220, 40)
     ctx.fillStyle = '#0f172a'
-    ctx.fillText('RPVD Success 3x+7=22 🔒', 2, 2)
+    ctx.fillText('Gradus 3x+7=22 🔒', 2, 2)
     ctx.strokeStyle = 'rgba(16,185,129,0.8)'
     ctx.beginPath()
     ctx.arc(180, 20, 12, 0, Math.PI * 1.5)

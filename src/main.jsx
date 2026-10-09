@@ -23,7 +23,7 @@ import './index.css'
 initAds()
 
 // Routage minimal (pas de react-router) :
-//   /          page principale Bootcamp (Académie RPVD)
+//   /          page principale Bootcamp (Académie Gradus)
 //   /vote      lien court des pubs → Bootcamp, formulaire de vote
 //   /reserver  ?s=<session> → Stripe Checkout ; /merci après paiement ; /rembourser ?t=<jeton> ; /desabonner ?v= ou ?b=
 //   /accueil   présentation de la méthode (ancienne landing)

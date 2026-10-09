@@ -45,8 +45,8 @@ function SessionAdmin({ s, act, busy, zoomOn }) {
   const st = s.stats
   const freed = s.availability.state === 'last_call' ? s.availability.seats_left : 0
   const post = freed > 0
-    ? `🔓 ${freed} place${freed > 1 ? 's' : ''} libérée${freed > 1 ? 's' : ''} suite à des désistements pour le Bootcamp RPVD « ${s.topic} » (${s.level}), ${s.when}. Premier arrivé, premier servi 👉 rpvdsuccess.com`
-    : `🎯 Ce dimanche au Bootcamp RPVD : « ${s.topic} » (${s.level}), ${s.when}. 1 h 30 en direct, 20 $ tout inclus, ${s.availability.seats_left} places restantes 👉 rpvdsuccess.com`
+    ? `🔓 ${freed} place${freed > 1 ? 's' : ''} libérée${freed > 1 ? 's' : ''} suite à des désistements pour le Bootcamp Gradus « ${s.topic} » (${s.level}), ${s.when}. Premier arrivé, premier servi 👉 rpvdsuccess.com`
+    : `🎯 Ce dimanche au Bootcamp Gradus : « ${s.topic} » (${s.level}), ${s.when}. 1 h 30 en direct, 20 $ tout inclus, ${s.availability.seats_left} places restantes 👉 rpvdsuccess.com`
 
   async function loadPeople() {
     const d = await act('attendees', { id: s.id }, { keepStatus: true })
@@ -179,7 +179,7 @@ export default function BootcampAdminPage() {
   const [picks, setPicks] = useState({}) // "niveau|matière|sujet" → créneau
 
   useEffect(() => {
-    document.title = 'Admin Bootcamp — RPVD'
+    document.title = 'Admin Bootcamp — Gradus'
     let meta = document.querySelector('meta[name="robots"]')
     if (!meta) {
       meta = document.createElement('meta')
@@ -256,7 +256,7 @@ export default function BootcampAdminPage() {
     <div className="mx-auto min-h-screen max-w-5xl px-4 py-10 text-slate-200 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-bold tracking-[0.3em] text-pyramid-orange">BOOTCAMP RPVD</p>
+          <p className="text-xs font-bold tracking-[0.3em] text-pyramid-orange">BOOTCAMP GRADUS</p>
           <h1 className="font-display text-3xl font-bold text-slate-50">Tableau de bord</h1>
         </div>
         <div className="flex w-full gap-2 sm:w-auto">

@@ -15,7 +15,7 @@ export default function SiteNav({ current, className = '' }) {
       aria-label="Navigation principale"
       className={`fixed top-3 z-50 flex items-center gap-1 rounded-full border border-white/10 bg-black/60 p-1 pr-1.5 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.8)] backdrop-blur-xl ${className}`}
     >
-      <a href="/" aria-label="RPVD Success" className="flex h-9 w-9 shrink-0 items-center justify-center">
+      <a href="/" aria-label="Gradus" className="flex h-9 w-9 shrink-0 items-center justify-center">
         <Logo variant="icon" className="h-7 w-7" />
       </a>
       {LINKS.map((l) => {

@@ -93,7 +93,7 @@ exports.handler = async (event) => {
           currency: B.CURRENCY,
           unit_amount: session.price_cents,
           product_data: {
-            name: `Bootcamp RPVD — ${session.topic}`,
+            name: `Bootcamp Gradus — ${session.topic}`,
             description: `${session.level} · ${session.subject} · ${when} · 1 h 30 en direct en ligne`,
           },
         },
@@ -104,7 +104,7 @@ exports.handler = async (event) => {
         line_items: [lineItem],
         ...(email ? { customer_email: email } : {}),
         metadata,
-        payment_intent_data: { metadata: baseMetadata, description: `Bootcamp RPVD — ${session.topic} (${when})` },
+        payment_intent_data: { metadata: baseMetadata, description: `Bootcamp Gradus — ${session.topic} (${when})` },
         success_url: `${base}/merci?s=${session.id}&e=${eventId}`,
         cancel_url: `${base}/reserver?s=${session.id}&annule=1`,
         expires_at: Math.floor(Date.now() / 1000) + 31 * 60,

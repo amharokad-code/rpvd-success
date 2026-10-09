@@ -14,7 +14,7 @@ export const PRIVACY_POLICY = {
   fr: `## Politique de confidentialité
 Dernière mise à jour : ${BUSINESS.updated}
 
-RPVD Success (« RPVD », « nous ») est exploité par ${BUSINESS.operator}, ${BUSINESS.city}. Notre règle est simple : on ne collecte que ce qui est indispensable pour te rendre le service, rien de plus. Cette politique explique quoi, pourquoi, combien de temps, et comment exercer tes droits.
+Gradus, un service de RPVD Success (E.M.A. Tutorat) (« Gradus », « nous ») est exploité par ${BUSINESS.operator}, ${BUSINESS.city}. Notre règle est simple : on ne collecte que ce qui est indispensable pour te rendre le service, rien de plus. Cette politique explique quoi, pourquoi, combien de temps, et comment exercer tes droits.
 
 ## Responsable de la protection des renseignements personnels
 - ${BUSINESS.privacyOfficerTitle}
@@ -28,7 +28,7 @@ RPVD Success (« RPVD », « nous ») est exploité par ${BUSINESS.operator}, ${
 - Ton adresse, ton numéro de téléphone ou ton école
 - Ta photo ou ta caméra : pendant les cours en direct, la caméra des élèves est désactivée
 
-## Bootcamp RPVD : ce qu'on collecte et pourquoi
+## Bootcamp Gradus : ce qu'on collecte et pourquoi
 - Vote : ton courriel, ton niveau, ta matière et le sujet choisi (plus ta précision si tu choisis « Autre sujet »). Pour compter les votes, t'envoyer le résultat et les annonces de sessions.
 - Consentement : la date à laquelle tu as coché les cases du formulaire, comme preuve de ton consentement.
 - Provenance : le nom de la publication ou de la campagne qui t'a amené (par exemple « tiktok » ou le nom d'une annonce), gardé avec ton vote ou ton billet. Aucun identifiant publicitaire n'est enregistré dans notre base de données.
@@ -113,7 +113,7 @@ ${BUSINESS.operator} · ${WHERE} · ${BUSINESS.email}`,
   en: `## Privacy Policy
 Last updated: ${BUSINESS.updatedEn}
 
-RPVD Success ("RPVD", "we") is operated by ${BUSINESS.operator}, ${BUSINESS.city}. Our rule is simple: we only collect what is essential to provide the service. This policy explains what, why, for how long, and how to exercise your rights.
+Gradus, a service of RPVD Success (E.M.A. Tutorat) ("Gradus", "we") is operated by ${BUSINESS.operator}, ${BUSINESS.city}. Our rule is simple: we only collect what is essential to provide the service. This policy explains what, why, for how long, and how to exercise your rights.
 
 ## Person in charge of personal information
 - ${BUSINESS.privacyOfficerTitle}
@@ -127,7 +127,7 @@ RPVD Success ("RPVD", "we") is operated by ${BUSINESS.operator}, ${BUSINESS.city
 - Your address, phone number or school
 - Your photo or your camera: during live classes, students' cameras are turned off
 
-## RPVD Bootcamp: what we collect and why
+## Gradus Bootcamp: what we collect and why
 - Vote: your email, grade, subject and chosen topic (plus your detail if you pick "Other topic"). To count votes and send you the result and session announcements.
 - Consent: the date you ticked the form's boxes, as proof of consent.
 - Source: the name of the post or campaign that brought you (e.g. "tiktok" or an ad's name), kept with your vote or ticket. No advertising identifier is stored in our database.
@@ -215,7 +215,7 @@ export const TERMS_OF_SERVICE = {
   fr: `## Conditions d'utilisation
 Dernière mise à jour : ${BUSINESS.updated}
 
-Ces conditions encadrent l'utilisation du site ${BUSINESS.website}, du Bootcamp RPVD et de l'outil d'analyse. En réservant une place ou en utilisant le site, tu les acceptes. Rien dans ces conditions ne limite les droits que te reconnaît la Loi sur la protection du consommateur du Québec.
+Ces conditions encadrent l'utilisation du site ${BUSINESS.website}, du Bootcamp Gradus et de l'outil d'analyse. En réservant une place ou en utilisant le site, tu les acceptes. Rien dans ces conditions ne limite les droits que te reconnaît la Loi sur la protection du consommateur du Québec.
 
 ## Le commerçant
 - ${BUSINESS.operator}
@@ -223,22 +223,22 @@ Ces conditions encadrent l'utilisation du site ${BUSINESS.website}, du Bootcamp 
 - ${BUSINESS.email}
 - ${BUSINESS.website}
 
-## Bootcamp RPVD : le service
+## Bootcamp Gradus : le service
 - Une session de révision de 1 h 30 en direct en ligne (1 h de démarche, puis 30 minutes de questions), un dimanche, sur un sujet choisi par le vote des élèves.
 - Le sujet, la date, l'heure, la durée, le prix et le nombre de places sont affichés avant le paiement et repris dans le courriel de confirmation, qui est ta copie du contrat.
 - Le Bootcamp est un service privé, indépendant du ministère de l'Éducation et des écoles.
 
-## Bootcamp RPVD : prix et paiement
+## Bootcamp Gradus : prix et paiement
 - 20,00 $ CAD par billet, tout inclus : aucun frais ni taxe ne s'ajoute au montant affiché.
 - Paiement unique par carte, via Stripe, au moment de la réservation. Pas d'abonnement, pas de paiement fractionné, aucun intérêt ni frais de retard.
 - Le paiement est fait par un adulte : parent, tuteur ou élève de 18 ans et plus.
 
-## Bootcamp RPVD : remboursement et annulation
+## Bootcamp Gradus : remboursement et annulation
 - Remboursement intégral sur simple demande jusqu'au samedi 23 h 59 (heure du Québec) précédant la session, en un clic depuis le courriel de confirmation.
 - Aucun remboursement le dimanche, jour du cours, y compris pour les places libérées vendues ce jour-là.
-- Si RPVD annule la session ou ne peut pas la donner à cause d'un problème de notre côté, tu es remboursé intégralement et automatiquement.
+- Si Gradus annule la session ou ne peut pas la donner à cause d'un problème de notre côté, tu es remboursé intégralement et automatiquement.
 
-## Bootcamp RPVD : accès au cours
+## Bootcamp Gradus : accès au cours
 - Ton lien du cours arrive par courriel 30 à 60 minutes avant le début. Il ne se partage pas.
 - Prévois une connexion internet et un appareil fonctionnels : un problème de ton côté après la date limite de remboursement ne donne pas droit à un remboursement.
 
@@ -276,7 +276,7 @@ ${BUSINESS.operator} · ${WHERE} · ${BUSINESS.email}`,
   en: `## Terms of Service
 Last updated: ${BUSINESS.updatedEn}
 
-These terms govern the use of ${BUSINESS.website}, the RPVD Bootcamp and the analysis tool. By booking a seat or using the site, you accept them. Nothing in these terms limits the rights granted to you by Quebec's Consumer Protection Act.
+These terms govern the use of ${BUSINESS.website}, the Gradus Bootcamp and the analysis tool. By booking a seat or using the site, you accept them. Nothing in these terms limits the rights granted to you by Quebec's Consumer Protection Act.
 
 ## The merchant
 - ${BUSINESS.operator}
@@ -284,22 +284,22 @@ These terms govern the use of ${BUSINESS.website}, the RPVD Bootcamp and the ana
 - ${BUSINESS.email}
 - ${BUSINESS.website}
 
-## RPVD Bootcamp: the service
+## Gradus Bootcamp: the service
 - A 90-minute live review session online (1 hour of method, then 30 minutes of questions), on a Sunday, on a topic chosen by students' votes.
 - Topic, date, time, length, price and number of seats are shown before payment and repeated in the confirmation email, which is your copy of the contract.
 - The Bootcamp is a private service, independent from the Ministry of Education and schools.
 
-## RPVD Bootcamp: price and payment
+## Gradus Bootcamp: price and payment
 - $20.00 CAD per ticket, all-in: no fee or tax is added to the displayed amount.
 - One-time card payment via Stripe at booking. No subscription, no instalments, no interest or late fees.
 - Payment is made by an adult: parent, guardian or student aged 18+.
 
-## RPVD Bootcamp: refunds and cancellation
+## Gradus Bootcamp: refunds and cancellation
 - Full refund on request until Saturday 11:59 p.m. (Quebec time) before the session, in one click from the confirmation email.
 - No refunds on Sunday, the day of the class, including for released seats sold that day.
-- If RPVD cancels the session or cannot deliver it because of an issue on our side, you are refunded in full automatically.
+- If Gradus cancels the session or cannot deliver it because of an issue on our side, you are refunded in full automatically.
 
-## RPVD Bootcamp: class access
+## Gradus Bootcamp: class access
 - Your class link arrives by email 30 to 60 minutes before the start. It must not be shared.
 - Make sure your internet connection and device work: an issue on your side after the refund deadline does not entitle you to a refund.
 
@@ -340,7 +340,7 @@ export const COOKIE_POLICY = {
   fr: `## Politique de cookies
 Dernière mise à jour : ${UPDATED}
 
-RPVD utilise un minimum de cookies/stockage local :
+Gradus utilise un minimum de cookies/stockage local :
 - Nécessaires : session de connexion (Supabase), préférence de région/langue, empreinte d'appareil anti-partage. Toujours actifs — le site ne fonctionne pas sans eux.
 - Mesure d'audience et marketing (désactivés par défaut) : Google Analytics (statistiques de visite), Meta Pixel et Snap Pixel (mesure de nos publicités sur Instagram, Facebook et Snapchat). Chargés SEULEMENT si tu cliques « Tout accepter » : sans ton accord, aucun script de Google, de Meta ou de Snap n'est téléchargé. Meta et Snap déposent leurs propres témoins (par exemple _fbp, _fbc, _scid). Refuser est aussi simple qu'accepter.
 - Stockage de session (sessionStorage, effacé à la fermeture de l'onglet) : le nom de la campagne publicitaire qui t'a amené (src, utm) et, si tu n'as pas refusé le marketing, l'identifiant de clic de la publicité (fbclid, ScCid). Ces identifiants ne sont envoyés à notre serveur que si tu coches la case de mesure publicitaire à la réservation, et ils sont effacés si tu refuses ou retires ton consentement.
@@ -351,7 +351,7 @@ Tu peux changer ou retirer ton choix à tout moment avec le lien « Gérer mes c
   en: `## Cookie Policy
 Last updated: ${UPDATED_EN}
 
-RPVD uses a minimal set of cookies/local storage:
+Gradus uses a minimal set of cookies/local storage:
 - Necessary: login session (Supabase), region/language preference, anti-sharing device fingerprint. Always active — the site does not work without them.
 - Analytics and marketing (off by default): Google Analytics (visit statistics), Meta Pixel and Snap Pixel (measuring our ads on Instagram, Facebook and Snapchat). Loaded ONLY if you click "Accept all": without your consent, no Google, Meta or Snap script is downloaded. Meta and Snap set their own cookies (e.g. _fbp, _fbc, _scid). Declining is as easy as accepting.
 - Session storage (sessionStorage, erased when the tab is closed): the name of the ad campaign that brought you (src, utm) and, unless you declined marketing, the ad click identifier (fbclid, ScCid). These identifiers are sent to our server only if you tick the ad measurement box at booking, and they are erased if you decline or withdraw your consent.
@@ -370,13 +370,13 @@ Dernière mise à jour : ${UPDATED}
 - En cas d'erreur de facturation ou de problème technique avéré empêchant l'usage du service, écris-nous à ${SUPPORT_EMAIL} — nous traitons ces demandes au cas par cas.
 - Un compte suspendu pour partage non autorisé (contrat, section « Compte et partage ») n'est pas remboursé.
 
-### Bootcamp RPVD (sessions du dimanche en direct)
+### Bootcamp Gradus (sessions du dimanche en direct)
 Section ajoutée le 5 octobre 2026.
 
 - Prix : 20,00 $ CAD par billet, tout inclus. Le montant affiché est le montant payé.
 - Remboursement intégral sur simple demande jusqu'au samedi 23 h 59 (heure du Québec) précédant la session, en un clic avec le bouton « Gérer / annuler ma réservation » du courriel de confirmation.
 - Aucun remboursement le dimanche, jour du cours, y compris pour les places libérées remises en vente ce jour-là.
-- Si RPVD annule une session, tous les billets sont remboursés intégralement et automatiquement.
+- Si Gradus annule une session, tous les billets sont remboursés intégralement et automatiquement.
 - Le lien du cours est réservé aux élèves inscrits et envoyé 30 à 60 minutes avant le cours. Un lien partagé n'ouvre pas droit à un remboursement.
 - Les élèves de moins de 18 ans doivent passer par un parent ou un tuteur pour réserver et payer.`,
   en: `## Refund Policy
@@ -387,13 +387,13 @@ Last updated: ${UPDATED_EN}
 - In case of a billing error or a confirmed technical issue preventing use of the service, write to us at ${SUPPORT_EMAIL} — we handle these on a case-by-case basis.
 - An account suspended for unauthorized sharing (see Terms, "Account and Sharing") is not refunded.
 
-### RPVD Bootcamp (live Sunday sessions)
+### Gradus Bootcamp (live Sunday sessions)
 Section added October 5, 2026.
 
 - Price: $20.00 CAD per ticket, all-in. The displayed amount is the amount charged.
 - Full refund on request until Saturday 11:59 p.m. (Quebec time) before the session, in one click from the "Manage / cancel my booking" button in the confirmation email.
 - No refunds on Sunday, the day of the class, including for released seats resold that day.
-- If RPVD cancels a session, every ticket is refunded in full automatically.
+- If Gradus cancels a session, every ticket is refunded in full automatically.
 - The class link is for registered students only and sent 30 to 60 minutes before class. A shared link does not entitle anyone to a refund.
 - Students under 18 must have a parent or guardian book and pay.`,
 }

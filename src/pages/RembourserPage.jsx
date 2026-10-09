@@ -14,7 +14,7 @@ export default function RembourserPage() {
   const [done, setDone] = useState(false)
 
   useEffect(() => {
-    document.title = 'Ma réservation — Bootcamp RPVD'
+    document.title = 'Ma réservation — Bootcamp Gradus'
     const meta = document.createElement('meta')
     meta.name = 'robots'
     meta.content = 'noindex'

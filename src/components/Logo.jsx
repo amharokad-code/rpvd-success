@@ -1,14 +1,12 @@
-// Logo RPVD Success — pyramide 4 bandes + wordmark, jamais recoloré (les 4 teintes viennent
-// du fichier source ; c'est la palette du site qui s'aligne sur le logo, pas l'inverse).
-// variant="full" : pyramide + "RPVD SUCCESS" + baseline (header/nav) — fichier avec wordmark.
-// variant="icon"/"watermark" : pictogramme isolé (asset dédié, fourni séparément — plus de
-//   recadrage CSS approximatif sur le fichier avec wordmark).
-import logoSrc from '../assets/rpvd-logo.webp'
-import iconSrc from '../assets/rpvd-icon.png'
+// Logo Gradus : escalier ambre (le « gradus », le pas) + wordmark. Sources : campagne/04-creatifs/_outil/brand
+// (node campagne/04-creatifs/_outil/brand/make.mjs régénère les PNG et les icônes du site).
+// variant="full" : escalier + « Gradus » (header/nav). variant="icon"/"watermark" : pictogramme seul.
+import logoSrc from '../assets/gradus-logo.png'
+import iconSrc from '../assets/gradus-icon.png'
 
 export default function Logo({ variant = 'full', className = '' }) {
   if (variant === 'icon') {
-    return <img src={iconSrc} alt="RPVD Success" className={`rounded-lg ${className}`} />
+    return <img src={iconSrc} alt="Gradus" className={`rounded-lg ${className}`} />
   }
 
   if (variant === 'watermark') {
@@ -28,7 +26,7 @@ export default function Logo({ variant = 'full', className = '' }) {
   // cadre large qui garde la largeur pleine sans laisser le vide dicter la hauteur.
   return (
     <div className={`aspect-[16/5] w-full overflow-hidden drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] ${className}`}>
-      <img src={logoSrc} alt="RPVD Success — Pattern > Theory" className="h-full w-full object-cover object-center" />
+      <img src={logoSrc} alt="Gradus — Pattern > Theory" className="h-full w-full object-cover object-center" />
     </div>
   )
 }

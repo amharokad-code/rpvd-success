@@ -1,4 +1,4 @@
-// Page principale (/) : le Bootcamp RPVD. Sessions du dimanche en direct depuis la base (places
+// Page principale (/) : le Bootcamp Gradus. Sessions du dimanche en direct depuis la base (places
 // réelles), vote en cascade, fonctionnement de la semaine, politique claire. Urgence = la vraie
 // (l'examen approche, la date limite du samedi, les places de la salle) ; jamais de faux
 // compte à rebours ni de fausse rareté (contrat honnêteté commerciale).
@@ -116,7 +116,7 @@ function VoteForm() {
       await bootcampCall('submit-vote', { ...form, attribution: getAttributionLabels() })
       trackEvent('cta_click', { path: '/#vote-sent' })
       // Pixels Meta/Snap : seulement si consentement ; aucune donnée personnelle (ni courriel, ni choix).
-      trackAd('Lead', { content_name: 'Vote Bootcamp RPVD' })
+      trackAd('Lead', { content_name: 'Vote Bootcamp Gradus' })
       setSent(true)
     } catch (err) {
       setError(err.message)
@@ -186,7 +186,7 @@ function VoteForm() {
       )}
       <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-300">
         <input type="checkbox" required checked={form.consent} onChange={tick('consent')} className="mt-1 h-5 w-5 shrink-0 accent-[#f2994a]" />
-        <span>J'accepte de recevoir par courriel le résultat du vote et les annonces du Bootcamp RPVD. Désabonnement en un clic dans chaque courriel.</span>
+        <span>J'accepte de recevoir par courriel le résultat du vote et les annonces du Bootcamp Gradus. Désabonnement en un clic dans chaque courriel.</span>
       </label>
       <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-300">
         <input type="checkbox" required checked={form.age_ok} onChange={tick('age_ok')} className="mt-1 h-5 w-5 shrink-0 accent-[#f2994a]" />
@@ -212,9 +212,9 @@ export default function BootcampPage() {
   const [cycle, setCycle] = useState(null)
 
   useEffect(() => {
-    document.title = "Bootcamp RPVD — la démarche, la veille de l'examen"
+    document.title = "Bootcamp Gradus — la démarche, la veille de l'examen"
     const tag = document.querySelector('meta[name="description"]')
-    if (tag) tag.setAttribute('content', `Bootcamp RPVD : 1 h 30 en direct en ligne, le dimanche, pour maîtriser la démarche d'un chapitre avant ton examen. Sec 1 à 5. ${B.price} tout inclus.`)
+    if (tag) tag.setAttribute('content', `Bootcamp Gradus : 1 h 30 en direct en ligne, le dimanche, pour maîtriser la démarche d'un chapitre avant ton examen. Sec 1 à 5. ${B.price} tout inclus.`)
     trackEvent('pageview', { path: '/' })
     trackAd('ViewContent', { content_name: B.productName, content_type: 'product', content_ids: [B.productId] }, { replay: true })
     bootcampCall('bootcamp-public', { action: 'sessions' })
@@ -259,7 +259,7 @@ export default function BootcampPage() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-pyramid-orange opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-pyramid-orange" />
           </span>
-          MODE CLUTCH · BOOTCAMP RPVD
+          MODE CLUTCH · BOOTCAMP GRADUS
         </motion.p>
 
         <motion.h1
@@ -352,7 +352,7 @@ export default function BootcampPage() {
       </Section>
 
       {/* SEMAINE */}
-      <Section id="semaine" eyebrow="LA SEMAINE RPVD" title="Tu votes. On choisit. Tu réussis.">
+      <Section id="semaine" eyebrow="LA SEMAINE GRADUS" title="Tu votes. On choisit. Tu réussis.">
         <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {WEEK.map(([when, title, text], i) => (
             <Reveal key={title} delay={i * 0.08}>
@@ -437,7 +437,7 @@ export default function BootcampPage() {
             <a href="/app?src=bootcamp" onClick={() => trackEvent('cta_click', { path: '/#door-app' })} className="group block h-full rounded-3xl border border-pyramid-orange/40 bg-gradient-to-b from-pyramid-orange/10 to-transparent p-6 transition hover:-translate-y-1 hover:border-pyramid-orange">
               <p className="text-3xl">📸</p>
               <p className="mt-3 font-display text-xl font-bold text-slate-50">Analyser un exercice</p>
-              <p className="mt-1 text-sm text-slate-400">Une photo de ton exercice, et RPVD Success t'explique le pattern en 3 niveaux, à n'importe quelle heure.</p>
+              <p className="mt-1 text-sm text-slate-400">Une photo de ton exercice, et Gradus t'explique le pattern en 3 niveaux, à n'importe quelle heure.</p>
               <p className="mt-4 text-sm font-semibold text-pyramid-orange transition group-hover:translate-x-1">Ouvrir l'outil →</p>
             </a>
           </Reveal>

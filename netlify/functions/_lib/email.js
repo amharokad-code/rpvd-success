@@ -5,7 +5,7 @@
 const { senderLine, unsubscribeHeaders } = require('./legal');
 
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
-const DEFAULT_FROM = 'RPVD Success <onboarding@resend.dev>';
+const DEFAULT_FROM = 'Gradus <onboarding@resend.dev>';
 
 const REGION_WORDS = {
   qc: { look: 'Check tes codes juste ici', bye: "C'est good, à toi de jouer !" },
@@ -61,7 +61,7 @@ function layout({ title, paragraphs = [], codes = [], rows = [], outro = [], but
     <tr><td align="center">
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:540px;background:#111113;border:1px solid rgba(242,153,74,0.16);border-radius:24px;padding:32px 28px;">
         <tr><td>
-          <p style="margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:3px;color:#f2994a;">RPVD SUCCESS</p>
+          <p style="margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:3px;color:#f2994a;">GRADUS</p>
           <div style="height:3px;width:44px;background:#f2994a;border-radius:3px;margin:0 0 18px;"></div>
           <h1 style="margin:0 0 20px;font-size:26px;line-height:1.25;font-weight:800;color:#f5f5f0;">${escapeHtml(title)}</h1>
           ${paragraphs.map((text) => p(escapeHtml(text))).join('\n')}
@@ -90,31 +90,31 @@ function plainText({ title, paragraphs = [], codes = [], rows = [], outro = [], 
 // Contenu localisé (contrat §3, quadri-langue) : titre/sujet + paragraphes + consignes.
 const TRIAL_EMAIL_TEXT = {
   qc: {
-    subject: "Tes 3 codes d'essai RPVD Success 🎁",
+    subject: "Tes 3 codes d'essai Gradus 🎁",
     title: "Tes codes d'essai gratuits sont là 🎁",
     intro: (look) => `Salut ! ${look} : chaque code donne 3 analyses de devoirs et se lie à un seul appareil. Un enfant, un appareil, un code.`,
-    howTo: "Pour activer : ouvre le site RPVD Success, va dans « J'ai un code », tape-le et c'est parti.",
+    howTo: "Pour activer : ouvre le site Gradus, va dans « J'ai un code », tape-le et c'est parti.",
     validity: 'Les codes sont valides 30 jours.',
   },
   fr: {
-    subject: "Tes 3 codes d'essai RPVD Success 🎁",
+    subject: "Tes 3 codes d'essai Gradus 🎁",
     title: "Tes codes d'essai gratuits sont là 🎁",
     intro: (look) => `Salut ! ${look} : chaque code donne 3 analyses de devoirs et se lie à un seul appareil. Un enfant, un appareil, un code.`,
-    howTo: "Pour activer : ouvre le site RPVD Success, va dans « J'ai un code », tape-le et c'est parti.",
+    howTo: "Pour activer : ouvre le site Gradus, va dans « J'ai un code », tape-le et c'est parti.",
     validity: 'Les codes sont valides 30 jours.',
   },
   us: {
-    subject: 'Your 3 RPVD Success trial codes 🎁',
+    subject: 'Your 3 Gradus trial codes 🎁',
     title: 'Your free trial codes are here 🎁',
     intro: (look) => `Hey! ${look}: each code gives 3 homework analyses and locks to one device. One kid, one device, one code.`,
-    howTo: 'To activate: open the RPVD Success site, go to "I have a code", type it in, and you\'re set.',
+    howTo: 'To activate: open the Gradus site, go to "I have a code", type it in, and you\'re set.',
     validity: 'Codes are valid for 30 days.',
   },
   uk: {
-    subject: 'Your 3 RPVD Success trial codes 🎁',
+    subject: 'Your 3 Gradus trial codes 🎁',
     title: 'Your free trial codes are here 🎁',
     intro: (look) => `Hiya! ${look}: each code gives 3 homework analyses and locks to one device. One kid, one device, one code.`,
-    howTo: 'To activate: open the RPVD Success site, go to "I have a code", type it in, and off you go.',
+    howTo: 'To activate: open the Gradus site, go to "I have a code", type it in, and off you go.',
     validity: 'Codes are valid for 30 days.',
   },
 };
@@ -148,13 +148,13 @@ function premiumCodeEmail({ codes, plan, credits }) {
     codes,
     outro: [
       multiple
-        ? "Pour activer : chacun ouvre le site RPVD Success sur SON appareil, va dans « J'ai un code », tape un des codes ci-dessus (un code par appareil)."
-        : "Pour activer : ouvre le site RPVD Success, va dans « J'ai un code », tape-le et c'est parti.",
+        ? "Pour activer : chacun ouvre le site Gradus sur SON appareil, va dans « J'ai un code », tape un des codes ci-dessus (un code par appareil)."
+        : "Pour activer : ouvre le site Gradus, va dans « J'ai un code », tape-le et c'est parti.",
       'Garde ce courriel précieusement : chaque code est à usage unique.',
     ],
   };
   return {
-    subject: multiple ? `Tes ${codes.length} codes RPVD Success (${label}) ⚡` : `Ton code RPVD Success (${label}) ⚡`,
+    subject: multiple ? `Tes ${codes.length} codes Gradus (${label}) ⚡` : `Ton code Gradus (${label}) ⚡`,
     html: layout(content),
     text: plainText(content),
   };
@@ -222,11 +222,11 @@ function activationConfirmedEmail({ plan, credits }) {
   return { subject: `Code activé : ${credits} crédits ajoutés ✅`, html: layout(content), text: plainText(content) };
 }
 
-// --- Académie RPVD : courriels du Bootcamp ------------------------------------------------
+// --- Académie Gradus : courriels du Bootcamp ------------------------------------------------
 // Ton : direct, « tu », jamais de fausse urgence. Toute date/heure est déjà formatée en heure
 // du Québec par l'appelant (_lib/bootcamp.js → formatWhen).
 
-const BOOTCAMP_FOOTER = 'Bootcamp RPVD · une question ? Réponds simplement à ce courriel.';
+const BOOTCAMP_FOOTER = 'Bootcamp Gradus · une question ? Réponds simplement à ce courriel.';
 
 function mk(content, subject) {
   const headers = unsubscribeHeaders(content.unsubscribe);
@@ -293,7 +293,7 @@ function bootcampNotSelectedEmail({ topic, level, sessions = [], url, appUrl, un
       rows,
       button: url ? { label: 'Voir les sessions de dimanche', url } : null,
       outro: [
-        "En attendant, tu n'as pas à attendre dimanche pour avancer : l'outil RPVD Success t'explique la démarche d'un exercice à partir d'une photo, en 3 niveaux, à toute heure.",
+        "En attendant, tu n'as pas à attendre dimanche pour avancer : l'outil Gradus t'explique la démarche d'un exercice à partir d'une photo, en 3 niveaux, à toute heure.",
         `Essai gratuit de 3 analyses. Ensuite, Basic coûte 9 $ par mois (50 analyses), sans engagement, à comparer à environ 40 $ de l'heure pour un tuteur privé. Un adulte doit s'occuper de l'abonnement si tu as moins de 18 ans. À essayer : ${appLink}`,
       ],
       footer: BOOTCAMP_FOOTER,
@@ -308,7 +308,7 @@ function bootcampTicketEmail({ topic, level, subject, when, price, refundDeadlin
   return mk(
     {
       title: 'Ta place est réservée ✅',
-      paragraphs: [`Paiement reçu. Ton billet pour le Bootcamp RPVD est confirmé.`],
+      paragraphs: [`Paiement reçu. Ton billet pour le Bootcamp Gradus est confirmé.`],
       rows: [
         ['Sujet', topic],
         ['Niveau', `${level} · ${subject}`],
@@ -405,7 +405,7 @@ function bootcampFollowupEmail({ topic, appUrl, voteUrl , unsubscribe }) {
     {
       title: 'Bravo pour hier 💪',
       paragraphs: [
-        `Tu as maintenant la démarche pour « ${topic} ». Pour la refaire sur n'importe quel exercice, à n'importe quelle heure : prends-le en photo, RPVD Success te donne le pattern en 3 niveaux.`,
+        `Tu as maintenant la démarche pour « ${topic} ». Pour la refaire sur n'importe quel exercice, à n'importe quelle heure : prends-le en photo, Gradus te donne le pattern en 3 niveaux.`,
       ],
       button: { label: 'Analyser un exercice', url: appUrl },
       outro: [`Un autre examen arrive ? Vote pour le sujet de dimanche prochain : ${voteUrl}`],

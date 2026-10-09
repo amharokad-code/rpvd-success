@@ -28,7 +28,7 @@ const LOADER = [
 const countRpvd = (n) => (n === 1 ? '1 RPVD' : `${n} RPVD`)
 
 const qc = {
-  brand: 'RPVD Success',
+  brand: 'Gradus',
   tagline: 'Prends ton exercice en photo, catche le pattern.',
 
   nav: {
@@ -119,7 +119,7 @@ const qc = {
     haveCode: "J'ai déjà un code",
     // Ancrage honnête (contrat §4 : prix réels uniquement, aucune fausse urgence) —
     // comparaison vérifiable, pas de compteur ni de chrono simulés.
-    tutorAnchor: (monthly) => `Tuteur privé : ~40$/h. RPVD Success : ${monthly}/mois.`,
+    tutorAnchor: (monthly) => `Tuteur privé : ~40$/h. Gradus : ${monthly}/mois.`,
   },
 
   examPrep: {
@@ -209,14 +209,14 @@ const qc = {
     manageSubscription: 'Gérer mon abonnement',
     logout: 'Se déconnecter',
     aboutTitle: 'À propos',
-    aboutAlt: 'Abdel-Majid et Ismael, fondateurs de RPVD Success',
+    aboutAlt: 'Abdel-Majid et Ismael, fondateurs de Gradus',
     aboutNames: 'Abdel-Majid & Ismael',
     aboutBody:
-      "On a fondé RPVD Success parce qu'on s'est tannés de voir des élèves copier une réponse sans jamais comprendre la logique derrière. Pas de raccourci ici : on te montre le pattern, tu l'appliques toi-même. On construit ça comme si c'était pour notre propre petit frère ou notre propre petite sœur.",
+      "On a fondé Gradus parce qu'on s'est tannés de voir des élèves copier une réponse sans jamais comprendre la logique derrière. Pas de raccourci ici : on te montre le pattern, tu l'appliques toi-même. On construit ça comme si c'était pour notre propre petit frère ou notre propre petite sœur.",
   },
 
   auth: {
-    brand: 'RPVD Success',
+    brand: 'Gradus',
     title: 'Connecte-toi',
     subtitle: 'Un petit lien par courriel, pas de mot de passe à retenir.',
     emailLabel: 'Ton courriel',
@@ -235,7 +235,7 @@ const qc = {
     eyebrow: 'QC · France · US · UK — même méthode, 4 marchés',
     heroTitle: "On t'explique la démarche, on te donne pas la réponse.",
     heroSubtitle:
-      "Prends ton exercice en photo. RPVD Success décompose la solution en 3 niveaux — jusqu'à ce que le pattern clique, pas juste la réponse.",
+      "Prends ton exercice en photo. Gradus décompose la solution en 3 niveaux — jusqu'à ce que le pattern clique, pas juste la réponse.",
     ctaPrimary: 'Commencer gratuitement',
     ctaSecondary: 'Voir comment ça marche',
     badgeNoCard: 'Aucune carte pour essayer',
@@ -252,7 +252,7 @@ const qc = {
     approachEyebrow: 'La clé du succès',
     approachTitle: "Ce n'est pas la réponse qui compte. C'est la démarche.",
     approachBody:
-      "N'importe qui peut copier un résultat. Mais si tu ne saisis pas la démarche — le raisonnement, étape par étape — tu restes bloqué dès que les chiffres changent. RPVD Success ne te donne jamais juste une réponse : il construit ta démarche, un niveau à la fois.",
+      "N'importe qui peut copier un résultat. Mais si tu ne saisis pas la démarche — le raisonnement, étape par étape — tu restes bloqué dès que les chiffres changent. Gradus ne te donne jamais juste une réponse : il construit ta démarche, un niveau à la fois.",
     approachPoint1Title: 'Notée à l’examen',
     approachPoint1Text: "Sur la plupart des évaluations, la démarche vaut plus de points que la réponse finale — une bonne réponse sans démarche peut même être refusée.",
     approachPoint2Title: 'Ça se transfère',
@@ -303,7 +303,7 @@ const qc = {
 }
 
 const fr = {
-  brand: 'RPVD Success',
+  brand: 'Gradus',
   tagline: 'Prends ton exercice en photo, capte le pattern.',
 
   nav: {
@@ -394,7 +394,7 @@ const fr = {
     haveCode: "J'ai déjà un code",
     // Ancrage honnête (contrat §4 : prix réels uniquement, aucune fausse urgence) —
     // comparaison vérifiable, pas de compteur ni de chrono simulés.
-    tutorAnchor: (monthly) => `Tuteur privé : ~40$/h. RPVD Success : ${monthly}/mois.`,
+    tutorAnchor: (monthly) => `Tuteur privé : ~40$/h. Gradus : ${monthly}/mois.`,
   },
 
   examPrep: {
@@ -482,14 +482,14 @@ const fr = {
     manageSubscription: 'Gérer mon abonnement',
     logout: 'Se déconnecter',
     aboutTitle: 'À propos',
-    aboutAlt: 'Abdel-Majid et Ismael, fondateurs de RPVD Success',
+    aboutAlt: 'Abdel-Majid et Ismael, fondateurs de Gradus',
     aboutNames: 'Abdel-Majid & Ismael',
     aboutBody:
-      "On a fondé RPVD Success parce qu'on s'est tannés de voir des élèves copier une réponse sans jamais comprendre la logique derrière. Pas de raccourci ici : on te montre le pattern, tu l'appliques toi-même. On construit ça comme si c'était pour notre propre petit frère ou notre propre petite sœur.",
+      "On a fondé Gradus parce qu'on s'est tannés de voir des élèves copier une réponse sans jamais comprendre la logique derrière. Pas de raccourci ici : on te montre le pattern, tu l'appliques toi-même. On construit ça comme si c'était pour notre propre petit frère ou notre propre petite sœur.",
   },
 
   auth: {
-    brand: 'RPVD Success',
+    brand: 'Gradus',
     title: 'Connecte-toi',
     subtitle: 'Un petit lien par e-mail, pas de mot de passe à retenir.',
     emailLabel: 'Ton e-mail',
@@ -508,7 +508,7 @@ const fr = {
     eyebrow: 'QC · France · US · UK — même méthode, 4 marchés',
     heroTitle: "On t'explique la démarche, on te donne pas la réponse.",
     heroSubtitle:
-      "Prends ton exercice en photo. RPVD Success décompose la solution en 3 niveaux — jusqu'à ce que le pattern clique, pas juste la réponse.",
+      "Prends ton exercice en photo. Gradus décompose la solution en 3 niveaux — jusqu'à ce que le pattern clique, pas juste la réponse.",
     ctaPrimary: 'Commencer gratuitement',
     ctaSecondary: 'Voir comment ça marche',
     badgeNoCard: 'Aucune carte pour essayer',
@@ -525,7 +525,7 @@ const fr = {
     approachEyebrow: 'La clé du succès',
     approachTitle: "Ce n'est pas la réponse qui compte. C'est la démarche.",
     approachBody:
-      "N'importe qui peut copier un résultat. Mais si tu ne saisis pas la démarche — le raisonnement, étape par étape — tu restes bloqué dès que les chiffres changent. RPVD Success ne te donne jamais juste une réponse : il construit ta démarche, un niveau à la fois.",
+      "N'importe qui peut copier un résultat. Mais si tu ne saisis pas la démarche — le raisonnement, étape par étape — tu restes bloqué dès que les chiffres changent. Gradus ne te donne jamais juste une réponse : il construit ta démarche, un niveau à la fois.",
     approachPoint1Title: 'Notée à l’examen',
     approachPoint1Text: "Sur la plupart des évaluations, la démarche vaut plus de points que la réponse finale — une bonne réponse sans démarche peut même être refusée.",
     approachPoint2Title: 'Ça se transfère',
@@ -576,7 +576,7 @@ const fr = {
 }
 
 const us = {
-  brand: 'RPVD Success',
+  brand: 'Gradus',
   tagline: 'Snap a pic of your homework, catch the pattern.',
 
   nav: {
@@ -667,7 +667,7 @@ const us = {
     haveCode: 'I already have a code',
     // Honest anchor (contract §4: real prices only, no fake urgency) — a verifiable
     // comparison, no simulated counter or countdown.
-    tutorAnchor: (monthly) => `Private tutor: ~$40/hr. RPVD Success: ${monthly}/month.`,
+    tutorAnchor: (monthly) => `Private tutor: ~$40/hr. Gradus: ${monthly}/month.`,
   },
 
   examPrep: {
@@ -755,14 +755,14 @@ const us = {
     manageSubscription: 'Manage my subscription',
     logout: 'Sign out',
     aboutTitle: 'About',
-    aboutAlt: 'Abdel-Majid and Ismael, founders of RPVD Success',
+    aboutAlt: 'Abdel-Majid and Ismael, founders of Gradus',
     aboutNames: 'Abdel-Majid & Ismael',
     aboutBody:
-      "We started RPVD Success because we were tired of watching students copy an answer without ever understanding the logic behind it. No shortcuts here: we show you the pattern, you apply it yourself. We build this the way we would for our own little brother or sister.",
+      "We started Gradus because we were tired of watching students copy an answer without ever understanding the logic behind it. No shortcuts here: we show you the pattern, you apply it yourself. We build this the way we would for our own little brother or sister.",
   },
 
   auth: {
-    brand: 'RPVD Success',
+    brand: 'Gradus',
     title: 'Sign in',
     subtitle: "A quick email link, buddy — no password to remember.",
     emailLabel: 'Your email',
@@ -781,7 +781,7 @@ const us = {
     eyebrow: 'QC · France · US · UK — same method, 4 markets',
     heroTitle: "We explain the approach. We don't give you the answer.",
     heroSubtitle:
-      "Snap a photo of your problem. RPVD Success breaks the solution into 3 levels — until the pattern clicks, not just the answer.",
+      "Snap a photo of your problem. Gradus breaks the solution into 3 levels — until the pattern clicks, not just the answer.",
     ctaPrimary: 'Start for free',
     ctaSecondary: 'See how it works',
     badgeNoCard: 'No card to try it',
@@ -798,7 +798,7 @@ const us = {
     approachEyebrow: 'The key to success',
     approachTitle: "It's not the answer that matters. It's the approach.",
     approachBody:
-      "Anyone can copy a result. But if you don't grasp the approach — the reasoning, step by step — you're stuck the moment the numbers change. RPVD Success never just hands you an answer: it builds your approach, one level at a time.",
+      "Anyone can copy a result. But if you don't grasp the approach — the reasoning, step by step — you're stuck the moment the numbers change. Gradus never just hands you an answer: it builds your approach, one level at a time.",
     approachPoint1Title: "It's what gets graded",
     approachPoint1Text: 'On most assessments, the approach is worth more than the final answer — a correct answer without one can even be marked wrong.',
     approachPoint2Title: 'It transfers',
@@ -849,7 +849,7 @@ const us = {
 }
 
 const uk = {
-  brand: 'RPVD Success',
+  brand: 'Gradus',
   tagline: 'Snap a photo of your homework, spot the pattern.',
 
   nav: {
@@ -940,7 +940,7 @@ const uk = {
     haveCode: 'I already have a code',
     // Honest anchor (contract §4: real prices only, no fake urgency) — a verifiable
     // comparison, no simulated counter or countdown.
-    tutorAnchor: (monthly) => `Private tutor: ~$40/hr. RPVD Success: ${monthly}/month.`,
+    tutorAnchor: (monthly) => `Private tutor: ~$40/hr. Gradus: ${monthly}/month.`,
   },
 
   examPrep: {
@@ -1028,14 +1028,14 @@ const uk = {
     manageSubscription: 'Manage my subscription',
     logout: 'Sign out',
     aboutTitle: 'About',
-    aboutAlt: 'Abdel-Majid and Ismael, founders of RPVD Success',
+    aboutAlt: 'Abdel-Majid and Ismael, founders of Gradus',
     aboutNames: 'Abdel-Majid & Ismael',
     aboutBody:
-      "We started RPVD Success because we were tired of watching students copy an answer without ever understanding the logic behind it. No shortcuts here: we show you the pattern, you apply it yourself. We build this the way we would for our own little brother or sister.",
+      "We started Gradus because we were tired of watching students copy an answer without ever understanding the logic behind it. No shortcuts here: we show you the pattern, you apply it yourself. We build this the way we would for our own little brother or sister.",
   },
 
   auth: {
-    brand: 'RPVD Success',
+    brand: 'Gradus',
     title: 'Sign in',
     subtitle: 'A quick email link, mate — no password to remember.',
     emailLabel: 'Your email',
@@ -1054,7 +1054,7 @@ const uk = {
     eyebrow: 'QC · France · US · UK — same method, 4 markets',
     heroTitle: "We explain the approach. We don't give you the answer.",
     heroSubtitle:
-      "Snap a photo of your problem. RPVD Success breaks the solution into 3 levels — until the pattern clicks, not just the answer.",
+      "Snap a photo of your problem. Gradus breaks the solution into 3 levels — until the pattern clicks, not just the answer.",
     ctaPrimary: 'Start for free',
     ctaSecondary: 'See how it works',
     badgeNoCard: 'No card to try it',
@@ -1071,7 +1071,7 @@ const uk = {
     approachEyebrow: 'The key to success',
     approachTitle: "It's not the answer that matters. It's the approach.",
     approachBody:
-      "Anyone can copy a result. But if you don't grasp the approach — the reasoning, step by step — you're stuck the moment the numbers change. RPVD Success never just hands you an answer: it builds your approach, one level at a time.",
+      "Anyone can copy a result. But if you don't grasp the approach — the reasoning, step by step — you're stuck the moment the numbers change. Gradus never just hands you an answer: it builds your approach, one level at a time.",
     approachPoint1Title: "It's what gets graded",
     approachPoint1Text: 'On most assessments, the approach is worth more than the final answer — a correct answer without one can even be marked wrong.',
     approachPoint2Title: 'It transfers',

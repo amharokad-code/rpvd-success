@@ -12,7 +12,7 @@ export default function DesabonnerPage() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    document.title = 'Désabonnement — Bootcamp RPVD'
+    document.title = 'Désabonnement — Bootcamp Gradus'
     const meta = document.createElement('meta')
     meta.name = 'robots'
     meta.content = 'noindex'
@@ -38,7 +38,7 @@ export default function DesabonnerPage() {
         {!v && !b ? (
           <Notice tone="error">Lien incomplet. Utilise le lien « Ne plus recevoir les annonces » de ton courriel.</Notice>
         ) : state === 'done' ? (
-          <Notice tone="ok">C'est fait : tu ne recevras plus les annonces du Bootcamp RPVD. Si tu revotes un jour, tu recevras de nouveau le résultat du vote.</Notice>
+          <Notice tone="ok">C'est fait : tu ne recevras plus les annonces du Bootcamp Gradus. Si tu revotes un jour, tu recevras de nouveau le résultat du vote.</Notice>
         ) : (
           <>
             <p className="leading-relaxed text-slate-300">

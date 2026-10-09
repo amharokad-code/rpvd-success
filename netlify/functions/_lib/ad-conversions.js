@@ -12,7 +12,7 @@ const metaCapi = require('./meta-capi');
 const snapCapi = require('./snap-capi');
 
 const PRODUCT_ID = 'bootcamp-rpvd';
-const PRODUCT_NAME = 'Bootcamp RPVD';
+const PRODUCT_NAME = 'Bootcamp Gradus';
 
 // Décision unique, partagée par tous les chemins d'envoi.
 function consentGranted(metadata) {

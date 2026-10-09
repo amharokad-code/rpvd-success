@@ -1,6 +1,6 @@
 {
-  "_note": "Identité légale du commerçant, affichée sur le site (pages légales, /reserver) et dans chaque courriel. Lu à la fois par le site (Vite) et par les Netlify Functions. postalAddress est OBLIGATOIRE (Loi sur la protection du consommateur, contrats à distance ; loi anti-pourriel LCAP) : adresse civique ou case postale.",
-  "brand": "RPVD Success",
+  "_note": "Identité légale du commerçant, affichée sur le site (pages légales, /reserver) et dans chaque courriel. Lu à la fois par le site (Vite) et par les Netlify Functions. postalAddress est OBLIGATOIRE (Loi sur la protection du consommateur, contrats à distance ; loi anti-pourriel LCAP) : adresse civique ou case postale. brand = nom public de la marque ; operator = exploitant légal (nom enregistré) : ne changer operator qu'après enregistrement officiel du nouveau nom.",
+  "brand": "Gradus",
   "operator": "RPVD Success (E.M.A. Tutorat)",
   "city": "Sherbrooke (Québec)",
   "postalAddress": "1239 Chemin Hamel, Sherbrooke (Québec) J1R 0P8",

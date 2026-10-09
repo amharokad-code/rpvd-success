@@ -30,7 +30,7 @@ export default function ReserverPage() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    document.title = 'Réserver ma place — Bootcamp RPVD'
+    document.title = 'Réserver ma place — Bootcamp Gradus'
     trackEvent('pageview', { path: '/reserver' })
     if (!id) {
       setLoadError('Lien incomplet : aucune session choisie.')
@@ -95,7 +95,7 @@ export default function ReserverPage() {
 
       {session && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <p className="mt-8 text-xs font-bold tracking-[0.3em] text-pyramid-orange">BOOTCAMP RPVD</p>
+          <p className="mt-8 text-xs font-bold tracking-[0.3em] text-pyramid-orange">BOOTCAMP GRADUS</p>
           <h1 className="mt-2 font-display text-4xl font-bold leading-tight text-slate-50">{session.topic}</h1>
           <p className="mt-2 text-slate-400">
             {session.level} · {session.subject}
@@ -150,7 +150,7 @@ export default function ReserverPage() {
               <label className="flex cursor-pointer items-start gap-3 text-sm leading-relaxed text-slate-300">
                 <input type="checkbox" checked={adConsent} onChange={(e) => setAdConsent(e.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-[#f2994a]" />
                 <span>
-                  <span className="text-slate-500">(Facultatif)</span> J'accepte que RPVD informe Meta (Instagram, Facebook) et Snapchat de mon achat pour mesurer l'efficacité de ses publicités : montant, courriel sous forme chiffrée (haché), adresse IP et type d'appareil. Refuser ne change rien à ta réservation.{' '}
+                  <span className="text-slate-500">(Facultatif)</span> J'accepte que Gradus informe Meta (Instagram, Facebook) et Snapchat de mon achat pour mesurer l'efficacité de ses publicités : montant, courriel sous forme chiffrée (haché), adresse IP et type d'appareil. Refuser ne change rien à ta réservation.{' '}
                   <a href="/legal/privacy" target="_blank" rel="noreferrer" className="text-pyramid-orange hover:underline">
                     Détails
                   </a>

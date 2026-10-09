@@ -19,18 +19,18 @@ function downloadIcs(session) {
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//RPVD Success//Bootcamp//FR',
+    'PRODID:-//Gradus//Bootcamp//FR',
     'BEGIN:VEVENT',
     `UID:${session.id}@rpvdsuccess.com`,
     `DTSTAMP:${icsStamp(new Date())}`,
     `DTSTART:${icsStamp(start)}`,
     `DTEND:${icsStamp(end)}`,
-    `SUMMARY:Bootcamp RPVD — ${session.topic}`,
+    `SUMMARY:Bootcamp Gradus — ${session.topic}`,
     'DESCRIPTION:Lien du cours envoyé par courriel 30 à 60 minutes avant le cours.',
     'BEGIN:VALARM',
     'TRIGGER:-PT60M',
     'ACTION:DISPLAY',
-    'DESCRIPTION:Bootcamp RPVD dans 1 h : surveille ton courriel pour le lien du cours',
+    'DESCRIPTION:Bootcamp Gradus dans 1 h : surveille ton courriel pour le lien du cours',
     'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR',
@@ -48,7 +48,7 @@ function googleCalendarUrl(session) {
   const end = new Date(start.getTime() + (session.duration_min || 90) * 60000)
   const p = new URLSearchParams({
     action: 'TEMPLATE',
-    text: `Bootcamp RPVD — ${session.topic}`,
+    text: `Bootcamp Gradus — ${session.topic}`,
     dates: `${icsStamp(start)}/${icsStamp(end)}`,
     details: 'Lien du cours envoyé par courriel 30 à 60 minutes avant le cours.',
   })
@@ -66,7 +66,7 @@ export default function MerciPage() {
   const [session, setSession] = useState(null)
 
   useEffect(() => {
-    document.title = 'Place réservée — Bootcamp RPVD'
+    document.title = 'Place réservée — Bootcamp Gradus'
     trackEvent('pageview', { path: '/merci' })
     // Pixels Meta/Snap (seulement si consentement) : même event_id que l'envoi serveur -> dédupliqué.
     // `e` vient de la redirection Stripe ; format vérifié, une seule émission par onglet.

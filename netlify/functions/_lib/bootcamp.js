@@ -1,5 +1,5 @@
 'use strict';
-// Logique centrale de l'Académie RPVD (Bootcamp du dimanche), partagée par les fonctions
+// Logique centrale de l'Académie Gradus (Bootcamp du dimanche), partagée par les fonctions
 // publiques, l'admin, le webhook Stripe et la tâche planifiée.
 //
 // Cycle hebdomadaire (heure du Québec, America/Toronto) :
@@ -18,7 +18,7 @@ const zoom = require('./zoom');
 const TZ = 'America/Toronto';
 const PRICE_CENTS = 2000;
 const CURRENCY = 'cad';
-const STRIPE_PRICE_ID = 'price_1UNbSpAJoPaz3Yer60F2dJua'; // Bootcamp RPVD 20 $ CAD (produit prod_VOOF2XODl3mMGu)
+const STRIPE_PRICE_ID = 'price_1UNbSpAJoPaz3Yer60F2dJua'; // Bootcamp Gradus 20 $ CAD (produit prod_VOOF2XODl3mMGu)
 const DEFAULT_CAPACITY = 90; // salle Zoom Pro = 100, marge de 10 pour l'équipe et les imprévus
 const DURATION_MIN = 90;
 const SLOTS = ['13:00', '15:00', '17:00', '19:00'];
@@ -235,7 +235,7 @@ async function ensureZoomMeeting(db, session) {
   if (session.zoom_meeting_id || !zoom.zoomConfigured()) return session;
   try {
     const { meetingId, joinUrl } = await zoom.createMeeting({
-      topic: `Bootcamp RPVD — ${session.topic} (${session.level})`,
+      topic: `Bootcamp Gradus — ${session.topic} (${session.level})`,
       startsAt: session.starts_at,
       durationMin: DURATION_MIN,
     });
