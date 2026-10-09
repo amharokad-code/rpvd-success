@@ -269,6 +269,24 @@ export default function AdminInsightsPage() {
             </Section>
           </div>
 
+          {d.guest && (d.guest.opened > 0 || d.guest.started > 0) && (
+            <Section title="Essai sans compte" hint="Une analyse avant tout courriel : est-ce que ça mène à des inscriptions ?">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                <Stat label="L’ouvrent" value={d.guest.opened} />
+                <Stat label="Choisissent une photo" value={d.guest.picked} />
+                <Stat label="Analyses lancées" value={d.guest.started} />
+                <Stat label="Fiches reçues" value={d.guest.success} tone={d.guest.started > 0 && d.guest.success / d.guest.started < 0.7 ? 'bad' : 'good'} />
+                <Stat label="S’inscrivent ensuite" value={nf(d.guest.signed_up_after_pct, ' %')} sub={`Clic « créer mon compte » : ${nf(d.guest.signup_click_pct, ' %')}`} />
+              </div>
+              {d.guest.errors_by_code.length > 0 && (
+                <div className="mt-4">
+                  <p className="mb-2 text-sm font-semibold text-slate-300">Erreurs de l’essai</p>
+                  <Bars rows={d.guest.errors_by_code} />
+                </div>
+              )}
+            </Section>
+          )}
+
           <Section title="Qui décroche : appareil, source, région" hint="Part des sessions qui cliquent, se connectent, reçoivent une fiche.">
             <div className="grid gap-6 lg:grid-cols-3">
               {[['Appareil', d.devices], ['Source', d.sources], ['Région', d.regions]].map(([name, rows]) => (

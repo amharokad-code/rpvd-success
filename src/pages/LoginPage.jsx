@@ -8,6 +8,7 @@ import Button from '../components/ui/Button'
 import Footer from '../components/Footer'
 import CookieConsentBanner from '../components/CookieConsentBanner'
 import LandingPage from './LandingPage'
+import GuestTry from '../components/GuestTry'
 import { useCopy } from '../context/RegionContext'
 import { supabase } from '../lib/supabase'
 import { trackEvent } from '../utils/track'
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const [sentTo, setSentTo] = useState(null)
   const [error, setError] = useState(null)
   const [ageConfirmed, setAgeConfirmed] = useState(false)
+  const [guestOpen, setGuestOpen] = useState(false)
   const mountedRef = useRef(true)
   const lang = region === 'us' || region === 'uk' ? 'en' : 'fr'
 
@@ -80,6 +82,16 @@ export default function LoginPage() {
     return <LandingPage market={region} lang={lang} onAgeConfirm={() => setAgeConfirmed(true)} />
   }
 
+  // Essai sans compte : la valeur avant le courriel (la porte d'âge est déjà passée).
+  if (guestOpen) {
+    return (
+      <>
+        <GuestTry lang={lang} region={region} onBack={() => setGuestOpen(false)} onSignup={() => setGuestOpen(false)} />
+        <CookieConsentBanner />
+      </>
+    )
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 py-10">
       <GlassCard className="w-full max-w-sm motion-safe:animate-bop">
@@ -118,7 +130,22 @@ export default function LoginPage() {
             <h1 className="font-display text-2xl font-bold text-slate-50">{t.auth.title}</h1>
             <p className="mt-2 leading-relaxed text-slate-300">{t.auth.subtitle}</p>
 
-            <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => {
+                trackEvent('guest_open', { region })
+                setGuestOpen(true)
+              }}
+              className="mt-5 w-full"
+            >
+              {lang === 'en' ? 'Try it first, no account' : "Essayer d'abord, sans compte"}
+            </Button>
+            <p className="mt-3 text-center text-xs uppercase tracking-wide text-slate-500">
+              {lang === 'en' ? 'or create your free account' : 'ou crée ton compte gratuit'}
+            </p>
+
+            <form onSubmit={handleSubmit} className="mt-3 flex flex-col gap-4">
               <label className="flex flex-col gap-2">
                 <span className="text-sm font-semibold text-slate-300">{t.auth.emailLabel}</span>
                 <input
@@ -129,7 +156,6 @@ export default function LoginPage() {
                   inputMode="email"
                   autoComplete="email"
                   autoCapitalize="none"
-                  autoFocus
                   spellCheck={false}
                   required
                   className="focus-ring min-h-[56px] w-full rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-slate-100 placeholder:text-slate-500"

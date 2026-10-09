@@ -21,6 +21,12 @@ const EVENT_TYPES = [
   'paywall_shown',
   'client_error',
   'login_error',
+  'guest_file_selected',
+  'guest_analysis_started',
+  'guest_analysis_success',
+  'guest_analysis_error',
+  'guest_signup_click',
+  'guest_open',
 ];
 const REGIONS = ['qc', 'fr', 'us', 'uk'];
 const DEVICES = ['mobile', 'tablet', 'desktop'];

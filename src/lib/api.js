@@ -79,6 +79,11 @@ export async function analyzeHomework({ base64, mimeType, region, mode, notation
   })
 }
 
+// Essai SANS compte (aucune session requise) : voir netlify/functions/analyze-guest.js.
+export async function analyzeGuest({ base64, mimeType, region, mode }) {
+  return callFunction('analyze-guest', { imageBase64: base64, mimeType, region, mode, ageConfirmed: true })
+}
+
 // Recours friction progressive (contrat sécurité §6) : réattache l'appareil courant comme
 // légitime après FINGERPRINT_REVERIFY_REQUIRED. Suppose une session valide (l'utilisateur a
 // recliqué son lien magique) — voir netlify/functions/reverify-device.js.

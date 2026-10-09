@@ -295,7 +295,41 @@ function retentionFrom({ users, submissions, now, days }) {
   };
 }
 
-function diagnose({ funnel, money, errors, engine, devices, retention, last }) {
+// Essai sans compte : combien l'ouvrent, l'utilisent, reçoivent une fiche, puis s'inscrivent.
+function guestFrom(sessions, events) {
+  const has = (list, id) => list.some((e) => e.event_type === id);
+  let opened = 0;
+  let picked = 0;
+  let started = 0;
+  let success = 0;
+  let clickedSignup = 0;
+  let signedUpAfter = 0;
+  for (const list of sessions.values()) {
+    if (has(list, 'guest_open')) opened += 1;
+    if (has(list, 'guest_file_selected')) picked += 1;
+    if (has(list, 'guest_analysis_started')) started += 1;
+    const ok = list.find((e) => e.event_type === 'guest_analysis_success');
+    if (ok) {
+      success += 1;
+      if (list.some((e) => e.event_type === 'guest_signup_click')) clickedSignup += 1;
+      const t0 = new Date(ok.created_at).getTime();
+      if (list.some((e) => (e.event_type === 'signup_started' || e.event_type === 'app_opened') && new Date(e.created_at).getTime() >= t0)) signedUpAfter += 1;
+    }
+  }
+  const errs = events.filter((e) => e.event_type === 'guest_analysis_error');
+  return {
+    opened,
+    picked,
+    started,
+    success,
+    errors: errs.length,
+    errors_by_code: countBy(errs, (e) => (e.props && e.props.code) || 'inconnu').slice(0, 6),
+    signup_click_pct: pct(clickedSignup, success),
+    signed_up_after_pct: pct(signedUpAfter, success),
+  };
+}
+
+function diagnose({ funnel, money, errors, engine, devices, retention, last, guest }) {
   const out = [];
   const add = (severity, title, evidence, fix) => out.push({ severity, title, evidence, fix });
 
@@ -352,6 +386,12 @@ function diagnose({ funnel, money, errors, engine, devices, retention, last }) {
   const lastTop = last[0];
   if (lastTop && lastTop.share_pct >= 40 && lastTop.last_event !== 'pageview') add('info', 'Dernier point de contact le plus fréquent', `${lastTop.share_pct} % des sessions finissent sur « ${lastTop.last_event} ».`, 'C’est là que les gens s’arrêtent : lis l’étape correspondante.');
 
+  if (guest && guest.opened >= 5) {
+    if (guest.picked < guest.opened * 0.4) add('medium', "Les gens ouvrent l'essai mais ne choisissent pas de photo", `${guest.picked} photos pour ${guest.opened} ouvertures.`, "La zone de dépôt n'est pas claire ou ils n'ont pas de devoir sous la main : ajoute un exemple en un clic.");
+    if (guest.started >= 5 && guest.success / guest.started < 0.7) add('high', "L'essai sans compte échoue trop souvent", `${guest.success} fiches pour ${guest.started} essais (${guest.errors} erreurs).`, "Regarde les codes d'erreur : photo illisible, limite atteinte ou panne Gemini.");
+    if (guest.success >= 5 && guest.signed_up_after_pct != null && guest.signed_up_after_pct < 20) add('high', "Les essayeurs voient la valeur mais ne créent pas de compte", `Seulement ${guest.signed_up_after_pct} % s'inscrivent après avoir reçu une fiche.`, "Rends l'offre de compte plus claire (ce qu'ils gagnent : 3 analyses, bibliothèque) et mets le bouton plus haut sur la fiche.");
+  }
+
   const order = { high: 0, medium: 1, info: 2 };
   return out.sort((a, b) => order[a.severity] - order[b.severity]);
 }
@@ -365,6 +405,7 @@ function analyze({ events = [], engine = [], users = [], submissions = [], now =
   const errors = errorsFrom(events);
   const eng = engineFrom(engine);
   const retention = retentionFrom({ users, submissions, now, days });
+  const guest = guestFrom(sessions, events);
   const perDay = new Map();
   for (const ev of events) {
     if (ev.event_type !== 'pageview') continue;
@@ -386,7 +427,8 @@ function analyze({ events = [], engine = [], users = [], submissions = [], now =
     errors,
     engine: eng,
     retention,
-    diagnostics: diagnose({ funnel, money, errors, engine: eng, devices, retention, last }),
+    guest,
+    diagnostics: diagnose({ funnel, money, errors, engine: eng, devices, retention, last, guest }),
   };
 }
 
