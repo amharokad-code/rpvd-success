@@ -10,7 +10,7 @@ import Logo from '../components/Logo'
 import { trackEvent } from '../utils/track'
 import { bootcampCall } from '../lib/bootcampApi'
 import { trackAd, getAttributionLabels } from '../utils/ads'
-import { CARD, CTA, CTA_GHOST, INPUT, LegalLinks, Notice, PageShell, Reveal, SeatMeter, Section, Spinner } from '../components/bootcamp/BootcampUI'
+import { CARD, CTA, INPUT, LegalLinks, Notice, PageShell, Reveal, SeatMeter, Section, Spinner } from '../components/bootcamp/BootcampUI'
 
 const PAINS = [
   ['Tu as « compris » en classe…', "mais devant l'examen, plus rien ne revient."],
@@ -241,7 +241,7 @@ export default function BootcampPage() {
     ? { href: `/reserver?s=${single.id}`, label: `Réserver ma place · ${B.price}` }
     : buyable.length > 0
       ? { href: '#sessions', label: `Choisir mon sujet · ${B.price}` }
-      : { href: '#vote', label: 'Voter pour mon sujet' }
+      : { href: '#vote', label: 'Choisir mon sujet' }
   // Réassurance honnête (faits réels de la politique) : levée des freins juste sous le bouton.
   const reassure = buyable.length > 0
     ? `Remboursable jusqu'à ${cycle ? cycle.sales_deadline : 'samedi 23 h 59'} · ton courriel seulement · paiement sécurisé Stripe`
@@ -286,11 +286,8 @@ export default function BootcampPage() {
         </motion.p>
 
         <motion.div initial={reduce ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <a href={primary.href} onClick={() => trackEvent('cta_click', { path: '/#hero' })} className={CTA}>
+          <a href={primary.href} onClick={() => trackEvent('cta_click', { path: '/#hero' })} className={`${CTA} min-h-[64px] w-full px-12 text-xl sm:w-auto`}>
             {primary.label}
-          </a>
-          <a href={buyable.length > 0 ? '#vote' : '#semaine'} className={CTA_GHOST}>
-            {buyable.length > 0 ? 'Voter pour la semaine prochaine' : 'Comment ça marche'}
           </a>
         </motion.div>
 
@@ -300,12 +297,12 @@ export default function BootcampPage() {
           {[
             [B.duration, 'en direct'],
             [B.price, 'tout inclus'],
-            ['Sec 1 à 5', 'Québec'],
-            [`${B.capacity} max`, 'par salle'],
+            ['Sec 1 à 5', ''],
+            ['Places limitées', ''],
           ].map(([a, b]) => (
-            <li key={a} className="rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3">
+            <li key={a} className="flex flex-col justify-center rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-3">
               <p className="font-display text-lg font-bold text-slate-50">{a}</p>
-              <p className="text-xs text-slate-500">{b}</p>
+              {b && <p className="text-xs text-slate-500">{b}</p>}
             </li>
           ))}
         </motion.ul>
@@ -329,7 +326,7 @@ export default function BootcampPage() {
               <p className="font-display text-xl font-bold text-slate-50">Les 4 sujets de dimanche sont annoncés {nextSelection} à 17 h.</p>
               <p className="mt-2 text-slate-400">Ce sont les élèves qui choisissent. Vote maintenant : si ton sujet est retenu, tu reçois ta place en priorité.</p>
               <a href="#vote" className={`${CTA} mt-5`}>
-                Voter pour mon sujet
+                Choisir mon sujet
               </a>
             </div>
           </Reveal>
