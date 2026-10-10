@@ -35,7 +35,7 @@ const MINUTES = [
 const PROMISES = [
   ['↩', 'Remboursement intégral', "Sur simple demande jusqu'au samedi 23 h 59, en un clic depuis ton courriel. Aucun remboursement le dimanche, jour du cours."],
   ['🔒', 'Lien du cours', 'Envoyé par courriel 30 à 60 minutes avant le cours. Réservé aux élèves inscrits.'],
-  ['👥', `${B.capacity} élèves maximum`, 'La salle est plafonnée : quand les places sont vendues, la session est complète. Pour vrai.'],
+  ['👥', 'Places limitées', 'Quand toutes les places sont vendues, la séance est complète. Pour vrai.'],
   ['🛡', 'Zéro donnée inutile', "Seulement ton courriel. Pas de nom, pas d'âge, pas de caméra : tu choisis ton pseudo et ton micro s'ouvre seulement quand on te donne la parole."],
 ]
 

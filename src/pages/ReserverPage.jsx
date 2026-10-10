@@ -119,7 +119,7 @@ export default function ReserverPage() {
                 <p className={`mt-2 text-sm ${session.state === 'last_call' ? 'font-semibold text-pyramid-orange' : 'text-slate-400'}`}>
                   {session.state === 'last_call'
                     ? `${session.seats_left} place${session.seats_left > 1 ? 's' : ''} libérée${session.seats_left > 1 ? 's' : ''} suite à des désistements · non remboursable le dimanche`
-                    : `${session.seats_left} place${session.seats_left > 1 ? 's' : ''} restante${session.seats_left > 1 ? 's' : ''} sur ${session.capacity}`}
+                    : `${session.seats_left} place${session.seats_left > 1 ? 's' : ''} restante${session.seats_left > 1 ? 's' : ''}`}
                 </p>
               </div>
             )}
