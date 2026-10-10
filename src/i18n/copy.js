@@ -29,6 +29,7 @@ const countRpvd = (n) => (n === 1 ? '1 RPVD' : `${n} RPVD`)
 
 const qc = {
   brand: 'Gradus',
+  slogan: 'la marche à suivre',
   tagline: 'Prends ton exercice en photo, catche le pattern.',
 
   nav: {
@@ -304,6 +305,7 @@ const qc = {
 
 const fr = {
   brand: 'Gradus',
+  slogan: 'la marche à suivre',
   tagline: 'Prends ton exercice en photo, capte le pattern.',
 
   nav: {
@@ -577,6 +579,7 @@ const fr = {
 
 const us = {
   brand: 'Gradus',
+  slogan: 'the step-by-step way',
   tagline: 'Snap a pic of your homework, catch the pattern.',
 
   nav: {
@@ -850,6 +853,7 @@ const us = {
 
 const uk = {
   brand: 'Gradus',
+  slogan: 'the step-by-step way',
   tagline: 'Snap a photo of your homework, spot the pattern.',
 
   nav: {

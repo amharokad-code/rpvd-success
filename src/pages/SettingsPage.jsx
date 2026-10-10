@@ -115,7 +115,7 @@ export default function SettingsPage({ profile, onProfileChange }) {
                     onClick={() => chooseRegion(option)}
                     className={`focus-ring flex min-h-[48px] items-center justify-center gap-2 rounded-2xl px-3 text-sm font-semibold transition-colors duration-200 ${
                       active
-                        ? 'bg-amber-500 text-slate-900 shadow-glow-amber'
+                        ? 'bg-amber-500 text-ink shadow-glow-amber'
                         : 'squishy glass text-slate-300 hover:bg-slate-700/50 hover:text-slate-100'
                     }`}
                   >

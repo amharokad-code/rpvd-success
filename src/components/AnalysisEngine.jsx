@@ -280,7 +280,7 @@ export default function AnalysisEngine({ analysis, submissionId, region, plan, b
 
           {firstTry && (
             <p className="mt-5">
-              <span className="inline-flex items-center gap-2 rounded-full bg-coral px-5 py-2 text-base font-semibold text-slate-900 shadow-glow-coral motion-safe:animate-spring-in">
+              <span className="inline-flex items-center gap-2 rounded-full bg-coral px-5 py-2 text-base font-semibold text-ink shadow-glow-coral motion-safe:animate-spring-in">
                 {t.analysis.firstTry}
               </span>
             </p>

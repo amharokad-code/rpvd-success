@@ -1,44 +1,54 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
-/* Base : fond sombre, texte clair, Inter partout. */
+/* Thème clair « beige » (Gradus, 2026-10-10) : on inverse l'échelle des gris et du blanc/noir
+   plutôt que de réécrire chaque classe. slate-50 = encre (titres), slate-950 = crème (fonds).
+   Les « blanc/10 » (bordures, fonds translucides) deviennent de l'encre à faible opacité. */
+:root {
+  --color-white: #3a2d20;
+  --color-black: #fbf6ec;
+  --color-slate-50: #2b2118;
+  --color-slate-100: #34281d;
+  --color-slate-200: #43352a;
+  --color-slate-300: #54453a;
+  --color-slate-400: #6f5e4e;
+  --color-slate-500: #85725f;
+  --color-slate-600: #b3a28f;
+  --color-slate-700: #d8cbb8;
+  --color-slate-800: #e8dfce;
+  --color-slate-900: #f1e9da;
+  --color-slate-950: #f8f2e6;
+}
+
+/* Base : fond beige clair, texte brun encre, Inter partout. */
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    background-color: #f6efe2;
   }
 
   body {
     @apply min-h-screen bg-void text-slate-100 font-sans antialiased;
-    /* Noir pur (identique au fond du logo), une grille technique très discrète (contrat
-       design v2 : "plus futuristique, des points ou quadrillés") et le noise SVG fractal
-       existant pour casser l'effet "écran éteint" — le noir reste largement dominant,
-       la grille dérive très lentement pour un "mini vivant" sans distraire. */
-    background-color: #000000;
+    /* Beige doux, deux lueurs (pêche en haut, sauge en bas) : calme, lumineux, « paysage ».
+       Pas de grille ni de noir : le contraire du look sombre/futuriste agressif. */
+    background-color: #f6efe2;
     background-image:
-      linear-gradient(rgba(203, 213, 225, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(203, 213, 225, 0.05) 1px, transparent 1px),
-      radial-gradient(circle at 50% 0%, rgba(201, 138, 82, 0.06), transparent 55%),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-    background-size: 48px 48px, 48px 48px, 100% 100%, 120px 120px;
-    background-repeat: repeat, repeat, no-repeat, repeat;
+      radial-gradient(900px 500px at 85% -5%, rgba(245, 173, 107, 0.22), transparent 60%),
+      radial-gradient(800px 500px at 0% 105%, rgba(159, 178, 138, 0.20), transparent 60%),
+      linear-gradient(180deg, #f9f3e8 0%, #f3ead9 100%);
+    background-repeat: no-repeat;
     background-attachment: fixed;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    body {
-      @apply animate-grid-drift;
-    }
-  }
-
   ::selection {
-    @apply bg-amber-400 text-black;
+    @apply bg-amber-500 text-ink;
   }
 
-  /* Barre de défilement fine et sombre. */
+  /* Barre de défilement fine, beige. */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgb(51 65 85) transparent;
+    scrollbar-color: rgb(205 190 165) transparent;
   }
 
   ::-webkit-scrollbar {
@@ -51,19 +61,19 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: rgb(51 65 85);
+    background-color: rgb(205 190 165);
     border-radius: 9999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(71 85 105);
+    background-color: rgb(185 168 140);
   }
 }
 
 /* Utilitaires composés (contrat §3). */
 @layer components {
   .focus-ring {
-    @apply outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black;
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-void;
   }
 
   .squishy {

@@ -71,7 +71,7 @@ export default function ExamPrep({ region, onCreditsChange }) {
                     <span
                       key={dot}
                       aria-hidden="true"
-                      className={`h-1.5 w-1.5 rounded-full ${dot <= (FREQUENCY_DOTS[pattern.frequency] || 0) ? 'bg-amber-400' : 'bg-slate-700'}`}
+                      className={`h-1.5 w-1.5 rounded-full ${dot <= (FREQUENCY_DOTS[pattern.frequency] || 0) ? 'bg-amber-500' : 'bg-slate-700'}`}
                     />
                   ))}
                 </span>

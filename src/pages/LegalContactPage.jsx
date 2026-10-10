@@ -192,7 +192,7 @@ export default function LegalContactPage() {
           <button
             type="submit"
             disabled={busy}
-            className="squishy focus-ring min-h-[48px] rounded-2xl bg-amber-500 font-bold text-slate-950 disabled:opacity-60"
+            className="squishy focus-ring min-h-[48px] rounded-2xl bg-amber-500 font-bold text-ink disabled:opacity-60"
           >
             {busy ? '…' : c.submit}
           </button>

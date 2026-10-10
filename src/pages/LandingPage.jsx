@@ -212,7 +212,7 @@ function LiveDemoCard({ t }) {
 
       <div className="mt-5 flex gap-1.5">
         {levels.map((_, i) => (
-          <span key={i} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i === active ? 'bg-amber-400' : 'bg-white/10'}`} />
+          <span key={i} className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i === active ? 'bg-amber-500' : 'bg-white/10'}`} />
         ))}
       </div>
 
@@ -280,7 +280,7 @@ export default function LandingPage({ market, lang, onAgeConfirm }) {
         <header className="grid gap-12 pt-8 lg:grid-cols-2 lg:items-center lg:gap-8">
           <div>
             <Logo variant="icon" className="h-12 w-12 motion-safe:animate-float" />
-            <p className="mt-6 inline-block rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold tracking-wide text-amber-300">
+            <p className="mt-6 inline-block rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold tracking-wide text-amber-300">
               {l.eyebrow}
             </p>
             <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.08] text-slate-50 sm:text-5xl">
@@ -297,7 +297,7 @@ export default function LandingPage({ market, lang, onAgeConfirm }) {
                 <a
                   href="#start"
                   onClick={scrollToStart}
-                  className="squishy focus-ring inline-flex min-h-[56px] items-center justify-center rounded-lg bg-gradient-to-b from-amber-400 to-amber-500 px-7 text-lg font-semibold text-slate-900 shadow-glow-amber hover:from-amber-300 hover:to-amber-400"
+                  className="squishy focus-ring inline-flex min-h-[56px] items-center justify-center rounded-lg bg-gradient-to-b from-[#f5ad6b] to-[#e0903f] px-7 text-lg font-semibold text-ink shadow-glow-amber hover:brightness-105"
                 >
                   {l.ctaPrimary}
                 </a>
@@ -358,7 +358,7 @@ export default function LandingPage({ market, lang, onAgeConfirm }) {
           <section className="glass relative overflow-hidden p-8 pyramid-accent sm:p-12">
             <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_15%_0%,rgba(242,153,74,0.12),transparent_55%)]" />
             <div className="relative mx-auto max-w-2xl text-center">
-              <p className="inline-block rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-xs font-semibold tracking-wide text-amber-300">
+              <p className="inline-block rounded-full border border-amber-400/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold tracking-wide text-amber-300">
                 {l.approachEyebrow}
               </p>
               <h2 className="mt-4 font-display text-3xl font-extrabold leading-tight text-slate-50 sm:text-4xl">
@@ -374,7 +374,7 @@ export default function LandingPage({ market, lang, onAgeConfirm }) {
                 ['lasting', l.approachPoint3Title, l.approachPoint3Text],
               ].map(([key, title, text]) => (
                 <div key={key} className="flex flex-col items-center gap-2 text-center">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-400/10 text-amber-400">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400">
                     <Icon path={ICONS[key]} />
                   </span>
                   <h3 className="font-display text-sm font-bold text-slate-50">{title}</h3>
@@ -423,7 +423,7 @@ export default function LandingPage({ market, lang, onAgeConfirm }) {
             {FEATURES.map(([key, title, text], i) => (
               <Reveal key={key} delay={(i % 3) * 0.08}>
                 <div className="glass group h-full p-6 transition-colors duration-300 hover:border-amber-400/30">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-400/10 text-amber-400 transition-transform duration-300 group-hover:scale-110">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 transition-transform duration-300 group-hover:scale-110">
                     <Icon path={ICONS[key]} />
                   </span>
                   <h3 className="mt-4 font-display text-base font-bold text-slate-50">{title}</h3>
@@ -497,7 +497,7 @@ export default function LandingPage({ market, lang, onAgeConfirm }) {
                   <a
                     href="#start"
                     onClick={scrollToStart}
-                    className="squishy focus-ring inline-flex min-h-[56px] items-center justify-center rounded-lg bg-gradient-to-b from-amber-400 to-amber-500 px-8 text-lg font-semibold text-slate-900 shadow-glow-amber hover:from-amber-300 hover:to-amber-400"
+                    className="squishy focus-ring inline-flex min-h-[56px] items-center justify-center rounded-lg bg-gradient-to-b from-[#f5ad6b] to-[#e0903f] px-8 text-lg font-semibold text-ink shadow-glow-amber hover:brightness-105"
                   >
                     {l.finalCta}
                   </a>

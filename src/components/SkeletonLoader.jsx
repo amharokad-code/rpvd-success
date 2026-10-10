@@ -51,7 +51,7 @@ export default function SkeletonLoader({ messages = [] }) {
       </div>
 
       <div className="mt-6 flex items-center gap-3">
-        <span className="h-3 w-3 shrink-0 rounded-full bg-amber-400 motion-safe:animate-glow-pulse" aria-hidden="true" />
+        <span className="h-3 w-3 shrink-0 rounded-full bg-amber-500 motion-safe:animate-glow-pulse" aria-hidden="true" />
         <p key={index} className="text-base font-medium leading-relaxed text-slate-200 motion-safe:animate-rise">
           {message}
         </p>

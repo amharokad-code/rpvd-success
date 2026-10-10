@@ -230,7 +230,7 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
       <SocialFollowPrompt />
 
       <header className="flex flex-col gap-4">
-        <Logo className="w-full" />
+        <Logo tagline={t.slogan} />
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="leading-relaxed text-slate-400">{t.tagline}</p>
           <div className="flex items-center gap-2">
@@ -278,7 +278,7 @@ export default function DashboardPage({ profile, onProfileChange, onOpenActivate
                 aria-pressed={subject === key}
                 onClick={() => setSubject(key)}
                 className={`squishy focus-ring inline-flex min-h-[44px] items-center rounded-full px-4 text-sm font-semibold transition-colors ${
-                  subject === key ? 'bg-amber-500 text-slate-900' : 'glass text-slate-300 hover:text-slate-100'
+                  subject === key ? 'bg-amber-500 text-ink' : 'glass text-slate-300 hover:text-slate-100'
                 }`}
               >
                 {t.subjects[key]}

@@ -66,7 +66,7 @@ export default function BetaAdminPage() {
     load()
   }, [load])
 
-  const wrap = (children) => <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-4 bg-[#0b0b0c] px-4 py-6 text-slate-100">{children}</main>
+  const wrap = (children) => <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-4 bg-void px-4 py-6 text-slate-100">{children}</main>
 
   if (state.phase === 'loading') return wrap(<p className="text-slate-400">Chargement…</p>)
   if (state.phase === 'login')
@@ -74,7 +74,7 @@ export default function BetaAdminPage() {
       <>
         <h1 className="font-display text-2xl font-bold">Connexion requise</h1>
         <p className="text-slate-300">Connecte-toi à l&rsquo;outil avec ton courriel de fondateur, puis reviens sur cette page.</p>
-        <a href="/app" className="rounded-2xl bg-amber-500 px-5 py-3 text-center font-bold text-black">Ouvrir l&rsquo;outil</a>
+        <a href="/app" className="rounded-2xl bg-amber-500 px-5 py-3 text-center font-bold text-ink">Ouvrir l&rsquo;outil</a>
       </>,
     )
   if (state.phase === 'denied') return wrap(<h1 className="font-display text-2xl font-bold">Accès refusé</h1>)

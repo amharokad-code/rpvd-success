@@ -4,7 +4,7 @@
 import logoSrc from '../assets/gradus-logo.png'
 import iconSrc from '../assets/gradus-icon.png'
 
-export default function Logo({ variant = 'full', className = '' }) {
+export default function Logo({ variant = 'full', className = '', tagline = 'la marche à suivre' }) {
   if (variant === 'icon') {
     return <img src={iconSrc} alt="Gradus" className={`rounded-lg ${className}`} />
   }
@@ -20,13 +20,12 @@ export default function Logo({ variant = 'full', className = '' }) {
     )
   }
 
-  // Pleine largeur du conteneur (contrat) : le fichier source a beaucoup de marge noire vide
-  // au-dessus/en dessous du pictogramme+wordmark (canvas quasi carré), donc l'étirer en `w-full
-  // h-auto` donnerait une bannière démesurément haute. On recadre plutôt (object-cover) dans un
-  // cadre large qui garde la largeur pleine sans laisser le vide dicter la hauteur.
+  // Version complète : escalier + « Gradus », et en dessous la signature (texte normal, pas gras,
+  // traduisible : elle vient de la copie de la région).
   return (
-    <div className={`aspect-[16/5] w-full overflow-hidden drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)] ${className}`}>
-      <img src={logoSrc} alt="Gradus — Pattern > Theory" className="h-full w-full object-cover object-center" />
+    <div className={`flex flex-col gap-1 ${className || 'items-start'}`}>
+      <img src={logoSrc} alt="Gradus" className="h-14 w-auto" />
+      {tagline && <span className="pl-1 text-sm font-normal tracking-wide text-slate-400">{tagline}</span>}
     </div>
   )
 }

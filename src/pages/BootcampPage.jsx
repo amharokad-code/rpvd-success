@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { BOOTCAMP as B } from '../config/bootcamp'
 import { LEVELS, OTHER_TOPIC, SUBJECT_SHOWCASE, subjectsFor, topicsFor } from '../config/curriculum'
+import Logo from '../components/Logo'
 import { trackEvent } from '../utils/track'
 import { bootcampCall } from '../lib/bootcampApi'
 import { trackAd, getAttributionLabels } from '../utils/ads'
@@ -250,6 +251,9 @@ export default function BootcampPage() {
     <PageShell current="bootcamp" width="max-w-4xl">
       {/* HERO */}
       <header className="pt-6 text-center">
+        <div className="mb-8 flex justify-center">
+          <Logo className="items-center" tagline="la marche à suivre" />
+        </div>
         <motion.p
           initial={reduce ? false : { opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}

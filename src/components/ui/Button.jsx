@@ -5,11 +5,11 @@
 // Dégradés (plutôt que des aplats) + liseré « glossy » (shadow-glow-*, voir tailwind.config.js)
 // pour un rendu un peu plus premium/moderne, sans s'éloigner de la palette du contrat.
 const VARIANTS = {
-  primary: 'bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 shadow-glow-amber hover:from-amber-300 hover:to-amber-400',
-  success: 'bg-gradient-to-b from-emerald-400 to-emerald-500 text-slate-900 shadow-glow-emerald hover:from-emerald-300 hover:to-emerald-400',
+  primary: 'bg-gradient-to-b from-[#f5ad6b] to-[#e0903f] text-ink shadow-glow-amber hover:brightness-105',
+  success: 'bg-gradient-to-b from-[#34d399] to-[#10b981] text-ink shadow-glow-emerald hover:brightness-105',
   secondary: 'bg-slate-800 hover:bg-slate-700 text-slate-100 border border-white/5',
   ghost: 'bg-transparent text-slate-300 hover:text-slate-100 hover:bg-white/5',
-  coral: 'bg-gradient-to-b from-coral to-coral-soft text-slate-900 shadow-glow-coral hover:brightness-105',
+  coral: 'bg-gradient-to-b from-coral to-coral-soft text-ink shadow-glow-coral hover:brightness-105',
 }
 
 const SIZES = {

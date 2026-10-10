@@ -30,7 +30,7 @@ export default function SiteNav({ current, className = '' }) {
               active
                 ? 'bg-white/10 text-slate-50'
                 : isApp
-                  ? 'bg-amber-500 text-slate-950 hover:bg-amber-400'
+                  ? 'bg-amber-500 text-ink hover:bg-amber-500'
                   : 'text-slate-400 hover:text-slate-100'
             }`}
           >

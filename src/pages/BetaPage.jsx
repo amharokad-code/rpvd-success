@@ -9,7 +9,7 @@ import { betaHoursLeft, clip, isBetaActive, loadVotes, saveVote } from '../lib/b
 
 function Shell({ children }) {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col gap-6 bg-[#0b0b0c] px-4 py-8 text-slate-100">
+    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col gap-6 bg-void px-4 py-8 text-slate-100">
       <a href="/app" className="text-sm text-slate-400 hover:text-slate-200">
         ← Retour à l&rsquo;outil
       </a>
@@ -72,7 +72,7 @@ export default function BetaPage() {
       <Shell>
         <h1 className="font-display text-2xl font-bold">Connecte-toi d&rsquo;abord</h1>
         <p className="text-slate-300">Ouvre l&rsquo;outil et connecte-toi avec ton courriel, puis reviens ici.</p>
-        <a href="/app" className="rounded-2xl bg-amber-500 px-5 py-3 text-center font-bold text-black">Ouvrir l&rsquo;outil</a>
+        <a href="/app" className="rounded-2xl bg-amber-500 px-5 py-3 text-center font-bold text-ink">Ouvrir l&rsquo;outil</a>
       </Shell>
     )
   if (state.phase === 'nobeta')
@@ -104,7 +104,7 @@ export default function BetaPage() {
         <h1 className="font-display text-3xl font-bold">Merci ! 🙌</h1>
         <p className="text-slate-300">Tes votes sont enregistrés. Tu peux les modifier jusqu&rsquo;à la fin de la bêta (environ {betaHoursLeft(profile)} h).</p>
         <button type="button" onClick={() => setStep(0)} className="focus-ring rounded-2xl border border-white/15 px-5 py-3 font-semibold">Modifier mes votes</button>
-        <a href="/app" className="rounded-2xl bg-amber-500 px-5 py-3 text-center font-bold text-black">Retour à l&rsquo;outil</a>
+        <a href="/app" className="rounded-2xl bg-amber-500 px-5 py-3 text-center font-bold text-ink">Retour à l&rsquo;outil</a>
       </Shell>
     )
 
@@ -186,7 +186,7 @@ export default function BetaPage() {
           <button type="button" onClick={() => setStep(step - 1)} className="focus-ring rounded-2xl border border-white/15 px-5 py-3 font-semibold">Retour</button>
         )}
         <button type="button" onClick={() => setStep(step + 1)} className="focus-ring rounded-2xl border border-white/15 px-5 py-3 font-semibold text-slate-300">Passer</button>
-        <button type="button" disabled={busy} onClick={next} className="focus-ring flex-1 rounded-2xl bg-amber-500 px-5 py-3 font-bold text-black disabled:opacity-60">
+        <button type="button" disabled={busy} onClick={next} className="focus-ring flex-1 rounded-2xl bg-amber-500 px-5 py-3 font-bold text-ink disabled:opacity-60">
           {busy ? 'Enregistrement…' : step === total - 1 ? 'Envoyer' : 'Continuer'}
         </button>
       </div>

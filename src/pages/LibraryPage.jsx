@@ -186,12 +186,12 @@ export default function LibraryPage() {
                   onClick={() => setFilter(key)}
                   className={`squishy focus-ring inline-flex min-h-[44px] items-center gap-2 rounded-full px-4 text-sm font-semibold transition-colors duration-200 ${
                     isActive
-                      ? 'bg-amber-500 text-slate-900 shadow-glow-amber'
+                      ? 'bg-amber-500 text-ink shadow-glow-amber'
                       : 'glass text-slate-300 hover:border-white/15 hover:text-slate-100'
                   }`}
                 >
                   <span>{key === 'all' ? t.library.all : t.subjects[key]}</span>
-                  <span className={`font-mono tabular-nums ${isActive ? 'text-slate-800' : 'text-slate-400'}`}>{count}</span>
+                  <span className={`font-mono tabular-nums ${isActive ? 'text-ink' : 'text-slate-400'}`}>{count}</span>
                 </button>
               )
             })}

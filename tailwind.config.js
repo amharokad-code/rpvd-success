@@ -6,7 +6,7 @@
 // l'ambre Tailwind générique PARTOUT en overridant la teinte `amber` elle-même plutôt qu'en
 // renommant chaque classe dans 14 fichiers — tout `amber-400/500/600` existant hérite donc
 // automatiquement du nouvel orange, sans toucher au JSX des composants.
-const PYRAMID_ORANGE = '#f2994a'
+const PYRAMID_ORANGE = '#b85f14' // orange « texte » (contraste sur beige) ; les fonds de boutons utilisent #f2994a en dur
 const PYRAMID_ORANGE_DEEP = '#e07b2e'
 const PYRAMID_WHITE = '#f5f5f0'
 const PYRAMID_GREY = '#6b6d70'
@@ -24,13 +24,22 @@ module.exports = {
         coral: '#FF8E72',
         'coral-soft': '#FFB4A0',
         // Override de la teinte `amber` native : rebrand global sans sed sur les composants.
+        // Thème clair beige (2026-10-10) : les teintes « texte » (100-400) sont FONCÉES pour rester
+        // lisibles sur le beige ; 500 reste la teinte des fonds de boutons (texte encre dessus).
         amber: {
-          300: '#d9ab7c',
-          400: MUTED_AMBER,
-          500: MUTED_AMBER,
-          600: MUTED_AMBER_DEEP,
+          100: '#5c3511',
+          200: '#7a4616',
+          300: '#8a4f17',
+          400: '#a8571a',
+          500: '#e0903f',
+          600: '#c9762b',
           700: '#8a5426',
         },
+        emerald: { 100: '#064e3b', 200: '#065f46', 300: '#047857', 400: '#059669' },
+        rose: { 100: '#881337', 200: '#9f1239', 300: '#be123c', 400: '#e11d48' },
+        sky: { 200: '#075985', 300: '#0369a1' },
+        orange: { 100: '#7c2d12', 400: '#c2410c' },
+        ink: '#2b2118',
         // Tokens nommés du logo, pour les usages explicitement "marque" (Logo.jsx, tokens 1:1).
         pyramid: {
           orange: PYRAMID_ORANGE,
@@ -38,9 +47,9 @@ module.exports = {
           white: PYRAMID_WHITE,
           grey: PYRAMID_GREY,
         },
-        void: '#000000',
-        surface: '#0d0d0f',
-        'surface-raised': '#17171a',
+        void: '#f6efe2', // fond de page : beige clair
+        surface: '#fffaf0', // cartes : crème
+        'surface-raised': '#fbf4e6',
       },
       fontFamily: {
         // Bold condensée proche du wordmark du logo, réservée aux titres.
@@ -54,7 +63,7 @@ module.exports = {
         'glow-emerald': 'inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.1), 0 0 15px rgba(16,185,129,0.45)',
         'glow-coral': 'inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.1), 0 0 18px rgba(255,142,114,0.5)',
         // Liseré clair en haut de carte (verre biseauté) + ombre portée douce.
-        glass: 'inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.5)',
+        glass: 'inset 0 1px 0 rgba(255,255,255,0.7), 0 8px 28px rgba(120,90,50,0.12)',
       },
       keyframes: {
         // Apparition « pop » d'une carte.

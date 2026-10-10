@@ -129,7 +129,7 @@ export default function GuestTry({ lang = 'fr', region, onSignup, onBack }) {
                 aria-pressed={subject === key}
                 onClick={() => setSubject(key)}
                 className={`squishy focus-ring inline-flex min-h-[44px] items-center rounded-full px-4 text-sm font-semibold transition-colors ${
-                  subject === key ? 'bg-amber-500 text-slate-900' : 'glass text-slate-300 hover:text-slate-100'
+                  subject === key ? 'bg-amber-500 text-ink' : 'glass text-slate-300 hover:text-slate-100'
                 }`}
               >
                 {t.subjects[key]}

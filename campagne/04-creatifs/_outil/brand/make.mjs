@@ -20,7 +20,7 @@ await shot('icon-maskable.svg', 512, join(ROOT, 'public/icons/icon-maskable-512.
 await shot('icon-maskable.svg', 192, join(ROOT, 'public/icons/icon-maskable-192.png'));
 await shot('icon.svg', 512, join(ROOT, 'src/assets/gradus-icon.png'));
 writeFileSync(join(ROOT, 'public/icons/icon.svg'), readFileSync(join(here, 'icon.svg')));
-await p.setViewport({ width: 1600, height: 500 });
+await p.setViewport({ width: 1000, height: 300 });
 await p.goto(pathToFileURL(join(here, 'logo.html')).href);
 await p.screenshot({ path: join(ROOT, 'src/assets/gradus-logo.png'), omitBackground: true });
 await b.close();

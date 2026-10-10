@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Gradus">
-  <defs>
+  <defs><linearGradient id="t" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#e07b2e"/><stop offset="1" stop-color="#f5ad6b"/></linearGradient>
     <linearGradient id="g" x1="0" y1="1" x2="0" y2="0">
       <stop offset="0" stop-color="#e07b2e"/>
       <stop offset="1" stop-color="#f5ad6b"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="112" fill="#0d0e10"/>
-  <path d="M96 392V296H208V212H320V128H424V392Z" fill="url(#g)" stroke="url(#g)" stroke-width="24" stroke-linejoin="round"/>
+  <rect width="512" height="512" rx="112" fill="url(#t)"/>
+  <path d="M96 392V296H208V212H320V128H424V392Z" fill="#fffaf0" stroke="#fffaf0" stroke-width="24" stroke-linejoin="round"/>
 </svg>

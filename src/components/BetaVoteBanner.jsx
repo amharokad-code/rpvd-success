@@ -25,7 +25,7 @@ export default function BetaVoteBanner({ profile, refreshKey }) {
     <div role="status" className="flex items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
       <span>Merci d&rsquo;avoir testé ! Vote pour la suite en 2 minutes (il reste environ {betaHoursLeft(profile)} h).</span>
       <span className="flex shrink-0 items-center gap-2">
-        <a href="/beta" className="focus-ring squishy rounded-xl bg-amber-500 px-3 py-2 font-bold text-black">
+        <a href="/beta" className="focus-ring squishy rounded-xl bg-amber-500 px-3 py-2 font-bold text-ink">
           Voter
         </a>
         <button type="button" aria-label="Fermer" onClick={() => setDismissed(true)} className="focus-ring flex h-8 w-8 items-center justify-center rounded-full text-amber-200/70 hover:text-amber-100">

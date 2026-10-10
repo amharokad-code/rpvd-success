@@ -52,7 +52,7 @@ export function PageShell({ current = 'bootcamp', children, width = 'max-w-3xl' 
     <div className="relative min-h-screen overflow-x-clip text-slate-200">
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[-180px] h-[560px] w-[900px] -translate-x-1/2 rounded-full bg-pyramid-orange/20 blur-[130px]"
+        className="pointer-events-none absolute left-1/2 top-[-180px] h-[560px] w-[900px] -translate-x-1/2 rounded-full bg-[#f5ad6b]/25 blur-[130px]"
         animate={reduce ? undefined : { opacity: [0.45, 0.9, 0.45], scale: [1, 1.08, 1] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       />

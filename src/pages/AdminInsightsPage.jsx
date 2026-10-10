@@ -194,7 +194,7 @@ export default function AdminInsightsPage() {
             autoComplete="off"
             className="min-h-[48px] rounded-xl border border-white/15 bg-black/40 px-4 text-slate-100"
           />
-          <button type="submit" className="min-h-[48px] rounded-xl bg-[#f2994a] px-4 font-semibold text-slate-950">Entrer</button>
+          <button type="submit" className="min-h-[48px] rounded-xl bg-[#f2994a] px-4 font-semibold text-ink">Entrer</button>
         </form>
       </main>
     )
@@ -215,7 +215,7 @@ export default function AdminInsightsPage() {
               type="button"
               aria-pressed={days === n}
               onClick={() => setDays(n)}
-              className={`min-h-[44px] rounded-full px-4 text-sm font-semibold ${days === n ? 'bg-[#f2994a] text-slate-950' : 'border border-white/15 text-slate-300'}`}
+              className={`min-h-[44px] rounded-full px-4 text-sm font-semibold ${days === n ? 'bg-[#f2994a] text-ink' : 'border border-white/15 text-slate-300'}`}
             >
               {n} j
             </button>
