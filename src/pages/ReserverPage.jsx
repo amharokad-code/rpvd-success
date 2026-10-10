@@ -95,7 +95,7 @@ export default function ReserverPage() {
 
       {session && (
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <p className="mt-8 text-xs font-bold tracking-[0.3em] text-pyramid-orange">BOOTCAMP GRADUS</p>
+          <p className="mt-8 text-xs font-bold tracking-[0.3em] text-pyramid-orange">BOOTCAMP GRADUS · SUJET SÉLECTIONNÉ</p>
           <h1 className="mt-2 font-display text-4xl font-bold leading-tight text-slate-50">{session.topic}</h1>
           <p className="mt-2 text-slate-400">
             {session.level} · {session.subject}

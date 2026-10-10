@@ -68,6 +68,7 @@ function SessionCard({ s, index }) {
             <span className="text-xs uppercase tracking-widest text-slate-500">{s.when.split(' à ')[0]}</span>
           </div>
           <div className="min-w-0 flex-1">
+            <p className="mb-1 inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-emerald-300">✓ Sujet sélectionné</p>
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
               {s.level} · {s.subject}
             </p>
@@ -131,7 +132,7 @@ function VoteForm() {
       <motion.div initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-3xl border border-emerald-500/40 bg-emerald-500/10 p-6 sm:p-8">
         <p className="font-display text-2xl font-bold text-emerald-300">✓ Vote reçu</p>
         <p className="mt-2 leading-relaxed text-emerald-100/90">
-          Un courriel de confirmation arrive. Jeudi à 17 h, si ton sujet fait partie des 4 plus demandés, tu reçois ta place à réserver.
+          Un courriel de confirmation arrive. Jeudi à 17 h, on sélectionne les 4 sujets les plus demandés. Si le tien en fait partie, tu es prévenu en premier et tu reçois ta place à réserver.
         </p>
       </motion.div>
     )
@@ -263,7 +264,7 @@ export default function BootcampPage() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-pyramid-orange opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-pyramid-orange" />
           </span>
-          MODE CLUTCH · BOOTCAMP GRADUS
+          SÉLECTIONNÉ PAR LES ÉLÈVES · BOOTCAMP GRADUS
         </motion.p>
 
         <motion.h1
@@ -291,6 +292,8 @@ export default function BootcampPage() {
           </a>
         </motion.div>
 
+        <p className="mx-auto mt-4 max-w-md text-sm font-semibold text-slate-200">✨ Chaque jeudi, les 4 sujets les plus demandés par les élèves sont sélectionnés.</p>
+
         {reassure && <p className="mx-auto mt-4 max-w-md text-xs leading-relaxed text-slate-400">🔒 {reassure}</p>}
 
         <motion.ul initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-2 sm:grid-cols-4">
@@ -309,7 +312,7 @@ export default function BootcampPage() {
       </header>
 
       {/* SESSIONS */}
-      <Section id="sessions" eyebrow="CE DIMANCHE" title="Les sessions" intro={buyable.length ? `Places vendues jusqu'à ${cycle ? cycle.sales_deadline : 'samedi 23 h 59'}. Les chiffres de places sont en temps réel.` : null}>
+      <Section id="sessions" eyebrow="CE DIMANCHE · SÉLECTIONNÉS" title="Les sujets sélectionnés" intro={buyable.length ? `Choisis par les élèves, pas par nous. Places vendues jusqu'à ${cycle ? cycle.sales_deadline : 'samedi 23 h 59'}. Les chiffres de places sont en temps réel.` : null}>
         {sessions === null ? (
           <div className="flex justify-center py-10 text-pyramid-orange">
             <Spinner />
@@ -369,7 +372,7 @@ export default function BootcampPage() {
       </Section>
 
       {/* VOTE */}
-      <Section id="vote" eyebrow="30 SECONDES" title="Vote & Clutch" intro={`Sélection ${nextSelection} à 17 h.`}>
+      <Section id="vote" eyebrow="30 SECONDES" title="Vote & Clutch" intro={`Les sujets les plus demandés sont sélectionnés ${nextSelection} à 17 h.`}>
         <Reveal>
           <VoteForm />
         </Reveal>

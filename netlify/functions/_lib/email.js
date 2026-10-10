@@ -308,7 +308,7 @@ function bootcampTicketEmail({ topic, level, subject, when, price, refundDeadlin
   return mk(
     {
       title: 'Ta place est réservée ✅',
-      paragraphs: [`Paiement reçu. Ton billet pour le Bootcamp Gradus est confirmé.`],
+      paragraphs: [`Paiement reçu. Ton billet pour le Bootcamp Gradus est confirmé.`, 'Ton sujet fait partie des 4 sélectionnés par les élèves cette semaine.'],
       rows: [
         ['Sujet', topic],
         ['Niveau', `${level} · ${subject}`],

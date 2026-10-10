@@ -97,6 +97,8 @@ export default function MerciPage() {
           <p className="mt-3 text-lg text-slate-300">
             <b className="text-slate-50">{session.topic}</b>
             <br />
+            <span className="text-sm font-semibold text-emerald-300">✓ Sujet sélectionné par les élèves</span>
+            <br />
             {session.when}
           </p>
         ) : (
