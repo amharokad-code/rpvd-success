@@ -1,7 +1,7 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
-/* Thème clair « beige » (Gradus, 2026-10-10) : on inverse l'échelle des gris et du blanc/noir
+/* Thème clair « beige » (RPVD, 2026-10-10) : on inverse l'échelle des gris et du blanc/noir
    plutôt que de réécrire chaque classe. slate-50 = encre (titres), slate-950 = crème (fonds).
    Les « blanc/10 » (bordures, fonds translucides) deviennent de l'encre à faible opacité. */
 :root {

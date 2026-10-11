@@ -17,20 +17,20 @@ const DOCS = {
 // (même <title>/<meta description> hérités d'index.html) — mauvais signal SEO.
 const PAGE_META = {
   privacy: {
-    fr: { title: 'Politique de confidentialité — Gradus', description: "Ce que Gradus collecte (le strict minimum : ton courriel), pourquoi, combien de temps, et tes droits selon la Loi 25." },
-    en: { title: 'Privacy Policy — Gradus', description: 'What Gradus collects (the bare minimum: your email), why, for how long, and your rights.' },
+    fr: { title: 'Politique de confidentialité — RPVD', description: "Ce que RPVD collecte (le strict minimum : ton courriel), pourquoi, combien de temps, et tes droits selon la Loi 25." },
+    en: { title: 'Privacy Policy — RPVD', description: 'What RPVD collects (the bare minimum: your email), why, for how long, and your rights.' },
   },
   terms: {
-    fr: { title: "Conditions d'utilisation — Gradus", description: 'Les conditions du Bootcamp Gradus et de l’outil d’analyse : prix, remboursement, règles de la classe.' },
-    en: { title: 'Terms of Service — Gradus', description: 'Terms for the Gradus Bootcamp and the analysis tool: price, refunds, class rules.' },
+    fr: { title: "Conditions d'utilisation — RPVD", description: 'Les conditions du Bootcamp RPVD et de l’outil d’analyse : prix, remboursement, règles de la classe.' },
+    en: { title: 'Terms of Service — RPVD', description: 'Terms for the RPVD Bootcamp and the analysis tool: price, refunds, class rules.' },
   },
   cookies: {
-    fr: { title: 'Politique de cookies — Gradus', description: 'Les cookies et technologies similaires utilisés par Gradus, et comment les gérer.' },
-    en: { title: 'Cookie Policy — Gradus', description: 'The cookies and similar technologies used by Gradus, and how to manage them.' },
+    fr: { title: 'Politique de cookies — RPVD', description: 'Les cookies et technologies similaires utilisés par RPVD, et comment les gérer.' },
+    en: { title: 'Cookie Policy — RPVD', description: 'The cookies and similar technologies used by RPVD, and how to manage them.' },
   },
   refunds: {
-    fr: { title: 'Politique de remboursement — Gradus', description: 'Remboursement du Bootcamp Gradus (intégral jusqu’au samedi 23 h 59) et des abonnements.' },
-    en: { title: 'Refund Policy — Gradus', description: 'Refunds for the Gradus Bootcamp (full until Saturday 11:59 p.m.) and subscriptions.' },
+    fr: { title: 'Politique de remboursement — RPVD', description: 'Remboursement du Bootcamp RPVD (intégral jusqu’au samedi 23 h 59) et des abonnements.' },
+    en: { title: 'Refund Policy — RPVD', description: 'Refunds for the RPVD Bootcamp (full until Saturday 11:59 p.m.) and subscriptions.' },
   },
 }
 

@@ -41,7 +41,7 @@ export default function BetaPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    document.title = 'Bêta Gradus : vote pour la suite'
+    document.title = 'Bêta RPVD : vote pour la suite'
     let alive = true
     ;(async () => {
       try {

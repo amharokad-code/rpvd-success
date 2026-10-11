@@ -5,8 +5,8 @@ import BUSINESS from '../legal/business.json'
 import { CARD, PageShell } from '../components/bootcamp/BootcampUI'
 
 const PAGE_META = {
-  fr: { title: 'Contact légal — Gradus', description: 'Exerce tes droits RGPD ou Loi 25 (accès, effacement, rectification) sur tes données Gradus.' },
-  en: { title: 'Legal Contact — Gradus', description: 'Exercise your GDPR rights (access, erasure, rectification) over your Gradus data.' },
+  fr: { title: 'Contact légal — RPVD', description: 'Exerce tes droits RGPD ou Loi 25 (accès, effacement, rectification) sur tes données RPVD.' },
+  en: { title: 'Legal Contact — RPVD', description: 'Exercise your GDPR rights (access, erasure, rectification) over your RPVD data.' },
 }
 
 function setMetaDescription(content) {
