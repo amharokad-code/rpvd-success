@@ -18,6 +18,7 @@ const { sendEmail, subscriptionActivatedEmail, subscriptionRenewedEmail } = requ
 const { SUBSCRIPTION_PLANS, SUBSCRIPTION_DURATION_DAYS } = require('./_lib/codes');
 const { sendPurchaseEvent } = require('./_lib/meta-capi');
 const { confirmPaidCheckout } = require('./_lib/bootcamp-ops');
+const { confirmCapsuleOrder } = require('./_lib/capsule-orders');
 const { consentGranted, reportBootcampPurchase } = require('./_lib/ad-conversions');
 
 let stripeClient = null;
@@ -162,7 +163,19 @@ exports.handler = async (event) => {
     const stripeEvent = verifyEvent(event);
 
     const object = stripeEvent.data && stripeEvent.data.object;
-    if (stripeEvent.type === 'checkout.session.completed' && object && object.metadata && object.metadata.kind === 'bootcamp') {
+    if (stripeEvent.type === 'checkout.session.completed' && object && object.metadata && object.metadata.kind === 'capsule_order') {
+      // Capsule vidéo / Bootcamp live vendus aux parents (pivot) : commande, code PWA, courriel d'accès.
+      const confirmed = await confirmCapsuleOrder(getServiceClient(), object);
+      if (confirmed.ok) {
+        await reportPurchase({
+          email: (object.customer_details && object.customer_details.email) || null,
+          amountCents: object.amount_total,
+          currency: object.currency,
+          eventId: stripeEvent.id,
+          metadata: object.metadata,
+        });
+      }
+    } else if (stripeEvent.type === 'checkout.session.completed' && object && object.metadata && object.metadata.kind === 'bootcamp') {
       // Billet du Bootcamp (paiement unique de 20 $) : confirmation, inscription Zoom, courriel.
       const confirmed = await confirmPaidCheckout(getServiceClient(), object);
       // Mesure publicitaire (Meta + Snap, API de conversions) : best-effort, seulement si l'acheteur a

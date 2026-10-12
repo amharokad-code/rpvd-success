@@ -72,7 +72,7 @@ function layout({ title, paragraphs = [], codes = [], rows = [], outro = [], but
           ${footer ? `<p style="margin:24px 0 0;font-size:13px;line-height:1.5;color:#6b6d70;">${escapeHtml(footer)}</p>` : ''}
         </td></tr>
       </table>
-      <p style="margin:16px 0 0;font-size:12px;line-height:1.6;color:#4a4b4e;">${escapeHtml(senderLine())}${unsubscribe ? `<br><a href="${escapeHtml(unsubscribe.page)}" style="color:#6b6d70;">Ne plus recevoir les annonces du Bootcamp</a>` : ''}</p>
+      <p style="margin:16px 0 0;font-size:12px;line-height:1.6;color:#4a4b4e;">${escapeHtml(senderLine())}${unsubscribe ? `<br><a href="${escapeHtml(unsubscribe.page)}" style="color:#6b6d70;">${escapeHtml(unsubscribe.label || 'Ne plus recevoir les annonces du Bootcamp')}</a>` : ''}</p>
     </td></tr>
   </table>
 </body>
@@ -483,7 +483,100 @@ async function sendBatch(messages) {
   return results;
 }
 
+// ---- Capsules RPVD (pivot parents) ----------------------------------------------------------
+const CAPSULE_FOOTER = 'Tu reçois ce courriel parce que tu as demandé une capsule sur rpvdsuccess.com.';
+
+function capsuleReadyEmail({ topic, level, url, unsubscribe }) {
+  return mk(
+    {
+      title: 'Ta capsule est prête',
+      paragraphs: [`La capsule RPVD sur « ${topic} » (${level}) est maintenant disponible, sous-titrée.`, 'La méthode est la même pour tous les numéros de ce type : seuls les chiffres et le contexte changent.'],
+      button: { label: 'Voir la capsule', url },
+      footer: CAPSULE_FOOTER,
+      unsubscribe,
+    },
+    `Ta capsule « ${topic} » est prête`,
+  );
+}
+
+function capsuleLastChanceEmail({ topic, examDate, url, unsubscribe }) {
+  return mk(
+    {
+      title: `Examen le ${examDate} : il reste 3 jours`,
+      paragraphs: [`L'examen sur « ${topic} » a lieu le ${examDate}. Si tu veux que ton enfant voie la méthode avant, la capsule est disponible maintenant.`],
+      button: { label: 'Voir la capsule', url },
+      footer: CAPSULE_FOOTER,
+      unsubscribe,
+    },
+    `Examen le ${examDate} : « ${topic} »`,
+  );
+}
+
+function capsuleJ1Email({ topic, url, unsubscribe }) {
+  return mk(
+    {
+      title: 'Examen demain',
+      paragraphs: [`Petit rappel : l'examen sur « ${topic} » est demain. La capsule reste disponible si ton enfant veut revoir la méthode ce soir.`],
+      button: { label: 'Voir la capsule', url },
+      footer: CAPSULE_FOOTER,
+      unsubscribe,
+    },
+    `Examen demain : « ${topic} »`,
+  );
+}
+
+function capsulePostExamEmail({ topic, url, unsubscribe }) {
+  return mk(
+    {
+      title: 'Comment ça s’est passé ?',
+      paragraphs: [`L'examen sur « ${topic} » est passé. Comment ça s'est passé ? Et quel est le prochain examen de ton enfant ?`, 'Réponds directement à ce courriel, ou demande une capsule pour le prochain sujet : on produit dès que trois familles en font la demande.'],
+      button: { label: 'Demander une capsule', url },
+      footer: CAPSULE_FOOTER,
+      unsubscribe,
+    },
+    'Comment ça s’est passé, l’examen ?',
+  );
+}
+
+// Courriel transactionnel (achat) : pas de désabonnement, il exécute le contrat.
+function capsuleAccessEmail({ title, url, pwaCode, appUrl }) {
+  return mk(
+    {
+      title: 'Ton achat est confirmé',
+      paragraphs: [`Voici ton accès à « ${title} ». Garde ce courriel : le lien est personnel et reste valide.`],
+      button: { label: 'Regarder la capsule', url },
+      codes: pwaCode ? [pwaCode] : [],
+      outro: pwaCode ? [`Ton code d'essai de l'application RPVD (30 jours) est ci-dessus. Active-le sur ${appUrl}.`] : [],
+      footer: 'Remboursement : voir la politique de remboursement sur rpvdsuccess.com/legal/refunds.',
+    },
+    `Accès : ${title}`,
+  );
+}
+
+function bootcampAccessEmail({ title, when, meetingUrl, chatUrl, pwaCode, appUrl }) {
+  return mk(
+    {
+      title: 'Ta place au Bootcamp est confirmée',
+      paragraphs: [`${title} — ${when}.`, 'Le lien de la séance en direct est personnel : ne le partage pas.'],
+      button: { label: 'Lien de la séance', url: meetingUrl },
+      codes: pwaCode ? [pwaCode] : [],
+      outro: [
+        ...(chatUrl ? [`Clavardage des questions jusqu'à l'examen : ${chatUrl}`] : []),
+        ...(pwaCode ? [`Ton code d'essai de l'application RPVD (30 jours) est ci-dessus. Active-le sur ${appUrl}.`] : []),
+      ],
+      footer: 'Remboursement : voir la politique de remboursement sur rpvdsuccess.com/legal/refunds.',
+    },
+    `Bootcamp confirmé : ${title}`,
+  );
+}
+
 module.exports = {
+  capsuleReadyEmail,
+  capsuleLastChanceEmail,
+  capsuleJ1Email,
+  capsulePostExamEmail,
+  capsuleAccessEmail,
+  bootcampAccessEmail,
   sendEmail,
   trialCodesEmail,
   premiumCodeEmail,
