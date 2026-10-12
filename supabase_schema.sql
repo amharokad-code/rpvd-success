@@ -1934,3 +1934,64 @@ alter table public.orders add column if not exists stripe_payment_intent text;
 create index if not exists orders_payment_intent_idx on public.orders (stripe_payment_intent);
 
 alter table public.capsules add column if not exists description text;
+
+
+-- =============================================================================
+-- ENGAGEMENT (2026-10-12) : segments, progression, consentement parent, courriels de suivi.
+-- Correspondance avec le cahier : products = capsules ; purchases = orders ; bootcamp_sessions = bootcamps
+-- (la table bootcamp_sessions existante est l'ancien produit hebdomadaire, schema different).
+-- =============================================================================
+alter table public.capsules add column if not exists date_examen date;   -- vraie date d'examen (jamais inventee)
+
+create table if not exists public.capsule_segments (
+  id                         uuid primary key default gen_random_uuid(),
+  capsule_id                 uuid not null references public.capsules (id) on delete cascade,
+  ordre                      int not null check (ordre >= 1),
+  titre                      text not null,
+  video_id                   text not null,          -- « vdo:<id VdoCipher> », jamais renvoye au client
+  duree_sec                  int not null check (duree_sec > 0),
+  exercice_enonce            text,
+  exercice_correction_rpvd   text,                   -- renvoyee seulement apres « J'ai essaye »
+  unique (capsule_id, ordre)
+);
+alter table public.capsule_segments enable row level security;
+
+-- Consentements (Loi 25 / LCAP) enregistres a l'achat. Acces bloque tant que l'attestation parentale est absente.
+alter table public.orders add column if not exists parent_attested_at timestamptz;
+alter table public.orders add column if not exists consentement_courriels boolean not null default false;
+alter table public.orders add column if not exists consentement_horodatage timestamptz;
+
+-- Une progression par achat (un eleve par achat).
+create table if not exists public.watch_progress (
+  order_id        uuid not null references public.orders (id) on delete cascade,
+  segment_id      uuid not null references public.capsule_segments (id) on delete cascade,
+  secondes_vues   int not null default 0 check (secondes_vues >= 0),
+  complete        boolean not null default false,    -- vrai a 90 % vu
+  exercice_tente  boolean not null default false,
+  started_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now(),
+  primary key (order_id, segment_id)
+);
+alter table public.watch_progress enable row level security;
+
+create table if not exists public.email_optouts (
+  email      text primary key check (email = lower(trim(email))),
+  created_at timestamptz not null default now()
+);
+alter table public.email_optouts enable row level security;
+
+create table if not exists public.engagement_events (
+  order_id uuid not null references public.orders (id) on delete cascade,
+  kind     text not null check (kind in ('j1', 'progress', 'j3', 'done', 'bootcamp_invite')),
+  ref      text not null default '',
+  sent_at  timestamptz not null default now(),
+  primary key (order_id, kind, ref)
+);
+alter table public.engagement_events enable row level security;
+
+-- Bootcamp : 25 places maximum par session.
+alter table public.bootcamps drop constraint if exists bootcamps_capacity_max;
+alter table public.bootcamps add constraint bootcamps_capacity_max check (capacity <= 25);
+
+-- Publier une capsule : video+sous-titres OU au moins un segment (verifie par la fonction admin).
+alter table public.capsules drop constraint if exists capsules_publish_needs_media;

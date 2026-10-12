@@ -8,18 +8,30 @@ exports.handler = async (event) => {
   const early = preflight(event);
   if (early) return early;
   try {
-    let id = (event.queryStringParameters || {}).c;
+    const q = event.queryStringParameters || {};
+    let id = q.c;
+    let orderId = q.o;
     try {
       const raw = event.isBase64Encoded ? Buffer.from(event.body || '', 'base64').toString('utf8') : event.body || '';
-      if (raw.trim().startsWith('{')) id = JSON.parse(raw).c || id;
+      if (raw.trim().startsWith('{')) {
+        const parsed = JSON.parse(raw);
+        id = parsed.c || id;
+        orderId = parsed.o || orderId;
+      }
     } catch (_) {
       /* corps ignoré */
     }
-    if (!UUID.test(String(id || ''))) throw new HttpError(400, 'BAD_REQUEST', 'Lien de désabonnement invalide.');
+    if (!UUID.test(String(id || orderId || ''))) throw new HttpError(400, 'BAD_REQUEST', 'Lien de désabonnement invalide.');
 
     const db = getServiceClient();
+    if (orderId && UUID.test(String(orderId))) {
+      const { data: order } = await db.from('orders').select('email').eq('id', orderId).maybeSingle();
+      if (order && order.email) await db.from('email_optouts').upsert({ email: order.email }, { onConflict: 'email', ignoreDuplicates: true });
+      return json(200, { ok: true });
+    }
     const { data } = await db.from('capsule_requests').select('email').eq('id', id).maybeSingle();
     if (data && data.email) {
+      await db.from('email_optouts').upsert({ email: data.email }, { onConflict: 'email', ignoreDuplicates: true });
       const { error } = await db.from('capsule_requests').update({ unsubscribed_at: new Date().toISOString() }).eq('email', data.email).is('unsubscribed_at', null);
       if (error) throw error;
     }

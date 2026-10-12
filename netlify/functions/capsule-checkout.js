@@ -15,6 +15,10 @@ exports.handler = async (event) => {
     const body = parseBody(event);
     const db = getServiceClient();
     const metadata = { kind: 'capsule_order' };
+    // Loi 25 : l'acheteur atteste être le parent/tuteur (ou avoir 14 ans ou plus) ; LCAP : courriels de suivi seulement si coché.
+    if (body.parent_attest !== true) throw new HttpError(400, 'BAD_REQUEST', 'Coche la case d’attestation du parent ou tuteur pour continuer.');
+    metadata.attest = '1';
+    if (body.consent_emails === true) metadata.ce = '1';
     let item;
 
     if (body.kind === 'bootcamp') {

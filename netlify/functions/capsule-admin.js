@@ -4,11 +4,14 @@
 //   overview                                  → demande par sujet, capsules, commandes, bootcamps
 //   upload_url { slug, file: 'video'|'vtt' }  → URL de téléversement signée vers le bucket privé « capsules »
 //   save_capsule { ...champs, publish? }      → crée/met à jour ; publier exige vidéo + sous-titres .vtt
+//   save_segment { capsule_slug, ordre, titre, video_id, duree_sec, exercice_enonce, exercice_correction_rpvd }
+//   metrics                                   → démarrage 24 h, complétion, décrochage, exercices tentés
 //   create_bootcamp { title, topic, starts_at, capacity, meeting_url, chat_url? }
 
 const { HttpError, preflight, parseBody, json, header, handleError } = require('./_lib/http');
 const { getServiceClient } = require('./_lib/supabase');
 const { PRICES, clean, topicKey } = require('./_lib/capsules');
+const { computeMetrics } = require('./_lib/metrics');
 
 async function requireAdmin(event) {
   const m = /^Bearer\s+(\S+)$/i.exec(String(header(event, 'authorization') || '').trim());
@@ -31,7 +34,7 @@ exports.handler = async (event) => {
     if (b.action === 'overview') {
       const [demand, caps, orders, boots, reqs] = await Promise.all([
         db.from('capsule_demand').select('*'),
-        db.from('capsules').select('id,slug,title,type,topic,level,price_cad,published,video_url,subtitles_url,cover_url,created_at').order('created_at', { ascending: false }),
+        db.from('capsules').select('id,slug,title,type,topic,level,price_cad,published,video_url,subtitles_url,cover_url,date_examen,description,created_at').order('created_at', { ascending: false }),
         db.from('orders').select('id,email,product_type,amount,currency,created_at,capsule_id,bootcamp_id').order('created_at', { ascending: false }).limit(200),
         db.from('bootcamps').select('id,title,topic,starts_at,capacity,price_cad,meeting_url,chat_url').order('starts_at', { ascending: false }),
         db.from('capsule_requests').select('id', { count: 'exact', head: true }),
@@ -67,6 +70,7 @@ exports.handler = async (event) => {
         level: clean(b.level, 40),
         price_cad: Number.isInteger(b.price_cad) && b.price_cad > 0 ? b.price_cad : PRICES[type],
         description: clean(b.description, 1200) || null,
+        date_examen: /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(clean(b.date_examen, 10)) ? clean(b.date_examen, 10) : null,
         duration_min: Number.isInteger(b.duration_min) ? b.duration_min : null,
         video_url: clean(b.video_url, 300) || null,
         subtitles_url: clean(b.subtitles_url, 300) || null,
@@ -77,6 +81,14 @@ exports.handler = async (event) => {
       }
       row.topic_key = topicKey(row.topic);
       if (b.publish === true) {
+        const { data: existing } = await db.from('capsules').select('id').eq('slug', row.slug).maybeSingle();
+        const { count: segCount } = existing
+          ? await db.from('capsule_segments').select('id', { count: 'exact', head: true }).eq('capsule_id', existing.id)
+          : { count: 0 };
+        if (segCount > 0) {
+          row.video_url = row.video_url || 'segments';
+          row.subtitles_url = row.subtitles_url || 'vdocipher:captions';
+        }
         if (!row.video_url || !(row.subtitles_url === 'vdocipher:captions' || (row.subtitles_url || '').endsWith('.vtt'))) {
           throw new HttpError(400, 'BAD_REQUEST', 'Publier exige la vidéo et les sous-titres .vtt.');
         }
@@ -90,11 +102,55 @@ exports.handler = async (event) => {
       return json(200, { ok: true });
     }
 
+    if (b.action === 'save_segment') {
+      const { data: cap } = await db.from('capsules').select('id').eq('slug', clean(b.capsule_slug, 80)).maybeSingle();
+      if (!cap) throw new HttpError(400, 'BAD_REQUEST', 'Enregistre d’abord la capsule.');
+      const ordre = Number(b.ordre);
+      const duree = Number(b.duree_sec);
+      const videoId = clean(b.video_id, 120).replace(/^vdo:/, '');
+      if (!Number.isInteger(ordre) || ordre < 1 || !Number.isInteger(duree) || duree < 30 || !videoId || !clean(b.titre, 160)) {
+        throw new HttpError(400, 'BAD_REQUEST', 'Ordre, titre, ID VdoCipher et durée (secondes) sont obligatoires.');
+      }
+      const { error } = await db.from('capsule_segments').upsert(
+        {
+          capsule_id: cap.id,
+          ordre,
+          titre: clean(b.titre, 160),
+          video_id: `vdo:${videoId}`,
+          duree_sec: duree,
+          exercice_enonce: clean(b.exercice_enonce, 4000) || null,
+          exercice_correction_rpvd: clean(b.exercice_correction_rpvd, 8000) || null,
+        },
+        { onConflict: 'capsule_id,ordre' },
+      );
+      if (error) throw error;
+      return json(200, { ok: true });
+    }
+
+    if (b.action === 'metrics') {
+      const [caps, segs, orders, prog] = await Promise.all([
+        db.from('capsules').select('id,slug,title'),
+        db.from('capsule_segments').select('id,capsule_id,ordre,titre'),
+        db.from('orders').select('id,capsule_id,created_at,status').not('capsule_id', 'is', null),
+        db.from('watch_progress').select('order_id,segment_id,complete,exercice_tente,started_at'),
+      ]);
+      for (const r of [caps, segs, orders, prog]) if (r.error) throw r.error;
+      return json(200, { ok: true, metrics: computeMetrics(caps.data, segs.data, orders.data, prog.data) });
+    }
+
+    if (b.action === 'list_segments') {
+      const { data: cap } = await db.from('capsules').select('id').eq('slug', clean(b.capsule_slug, 80)).maybeSingle();
+      if (!cap) return json(200, { ok: true, segments: [] });
+      const { data, error } = await db.from('capsule_segments').select('*').eq('capsule_id', cap.id).order('ordre');
+      if (error) throw error;
+      return json(200, { ok: true, segments: data });
+    }
+
     if (b.action === 'create_bootcamp') {
       const startsAt = new Date(b.starts_at);
       const capacity = Number(b.capacity);
-      if (!clean(b.title, 160) || !clean(b.topic, 160) || Number.isNaN(startsAt.getTime()) || !Number.isInteger(capacity) || capacity < 1) {
-        throw new HttpError(400, 'BAD_REQUEST', 'Titre, sujet, date et capacité sont obligatoires.');
+      if (!clean(b.title, 160) || !clean(b.topic, 160) || Number.isNaN(startsAt.getTime()) || !Number.isInteger(capacity) || capacity < 1 || capacity > 25) {
+        throw new HttpError(400, 'BAD_REQUEST', 'Titre, sujet, date et capacité (1 à 25) sont obligatoires.');
       }
       const { error } = await db.from('bootcamps').insert({
         title: clean(b.title, 160),

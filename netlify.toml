@@ -69,3 +69,7 @@ schedule = "*/10 * * * *"
 # Capsules RPVD : sequence courriel des demandes (1x/jour, 12 h UTC = 8 h au Quebec).
 [functions."capsule-cron"]
 schedule = "0 12 * * *"
+
+# Suivi des eleves : courriels au parent (1x/jour, 13 h UTC = 9 h au Quebec).
+[functions."engagement-cron"]
+schedule = "0 13 * * *"

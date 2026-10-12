@@ -64,7 +64,9 @@
       };
       try {
         var c = JSON.parse(localStorage.getItem('rpvd_cookie_consent') || 'null');
-        if (c && c.marketing) window.rpvdLoadAnalytics();
+        // Aucun suivi publicitaire sur les pages vidéo ni sur le suivi des élèves (mineurs, Loi 25).
+        var priv = /^\/(capsule\/|mes-capsules|suivi|connexion|admin)/.test(location.pathname);
+        if (c && c.marketing && !priv) window.rpvdLoadAnalytics();
       } catch (e) {}
     </script>
   </head>

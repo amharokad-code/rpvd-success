@@ -9,6 +9,7 @@ export default function DesabonnerPage() {
   const v = queryParam('v')
   const b = queryParam('b')
   const c = queryParam('c') // capsules (pivot parents)
+  const o = queryParam('o') // courriels de suivi d'un achat
   const [state, setState] = useState('idle') // idle | busy | done | error
   const [error, setError] = useState(null)
 
@@ -24,7 +25,7 @@ export default function DesabonnerPage() {
     setState('busy')
     setError(null)
     try {
-      await (c ? bootcampCall('capsule-unsubscribe', { c }) : bootcampCall('bootcamp-unsubscribe', v ? { v } : { b }))
+      await (c || o ? bootcampCall('capsule-unsubscribe', c ? { c } : { o }) : bootcampCall('bootcamp-unsubscribe', v ? { v } : { b }))
       setState('done')
     } catch (e) {
       setError(e.message)
@@ -36,7 +37,7 @@ export default function DesabonnerPage() {
     <PageShell current="" width="max-w-xl">
       <h1 className="pt-8 font-display text-4xl font-bold text-slate-50">Ne plus recevoir les annonces</h1>
       <div className={`${CARD} mt-6 p-5 sm:p-6`}>
-        {!v && !b && !c ? (
+        {!v && !b && !c && !o ? (
           <Notice tone="error">Lien incomplet. Utilise le lien « Ne plus recevoir les annonces » de ton courriel.</Notice>
         ) : state === 'done' ? (
           <Notice tone="ok">C'est fait : tu ne recevras plus les annonces du Bootcamp RPVD. Si tu revotes un jour, tu recevras de nouveau le résultat du vote.</Notice>

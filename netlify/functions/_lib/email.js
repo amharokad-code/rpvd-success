@@ -539,6 +539,47 @@ function capsulePostExamEmail({ topic, url, unsubscribe }) {
 }
 
 // Courriel transactionnel (achat) : pas de désabonnement, il exécute le contrat.
+// Courriels de suivi au parent (engagement-cron). L'identité et l'adresse postale viennent du gabarit commun.
+function engagementEmail(kind, { title, completed, total, url, bootcampUrl, plan, examDate, unsubscribe }) {
+  const FOOT = 'Tu reçois ce courriel parce que tu as consenti aux courriels de suivi lors de ton achat.';
+  const planLines = (plan || []).slice(0, 7).map((p) => `${p.day === 0 ? 'Aujourd’hui' : `Jour ${p.day + 1}`} : segment${p.ordres.length > 1 ? 's' : ''} ${p.ordres.join(' et ')}`);
+  const examLine = examDate ? [`Examen le ${new Intl.DateTimeFormat('fr-CA', { timeZone: 'UTC', dateStyle: 'long' }).format(new Date(`${examDate}T00:00:00Z`))}.`] : [];
+  const make = (subject, content) => mk({ footer: FOOT, unsubscribe, ...content }, subject);
+  if (kind === 'j1') {
+    return make('Votre enfant n’a pas encore commencé', {
+      title: 'Votre enfant n’a pas encore commencé',
+      paragraphs: [`La capsule « ${title} » est prête. Le premier segment, « Commence ici », dure quelques minutes seulement et se termine par un petit exercice.`],
+      button: { label: 'Voir le suivi', url },
+    });
+  }
+  if (kind === 'progress') {
+    return make(`Votre enfant a terminé ${completed} segment${completed > 1 ? 's' : ''} sur ${total}`, {
+      title: `Votre enfant a terminé ${completed} segment${completed > 1 ? 's' : ''} sur ${total}`,
+      paragraphs: [`Capsule « ${title} ».`, ...examLine, ...planLines],
+      button: { label: 'Voir le suivi', url },
+    });
+  }
+  if (kind === 'j3') {
+    return make('Examen dans 3 jours : voici le plan restant', {
+      title: 'Examen dans 3 jours',
+      paragraphs: [`Il reste ${total - completed} segment${total - completed > 1 ? 's' : ''} sur ${total} dans « ${title} ».`, ...examLine, ...planLines],
+      button: { label: 'Voir le suivi', url },
+    });
+  }
+  if (kind === 'bootcamp_invite') {
+    return make('Une séance en direct avant l’examen', {
+      title: 'Une séance en direct avant l’examen',
+      paragraphs: [`Votre enfant a terminé ${completed} segment${completed > 1 ? 's' : ''} sur ${total} de « ${title} ». Si un coup de main en direct l’aiderait, le prochain Bootcamp RPVD approche : questions en direct, essai de l’app de 30 jours.`, ...examLine],
+      button: { label: 'Voir le prochain Bootcamp', url: bootcampUrl },
+    });
+  }
+  return make('Capsule terminée', {
+    title: 'Capsule terminée',
+    paragraphs: [`Votre enfant a terminé tous les segments de « ${title} ». Bravo !`, 'Pour aller plus loin avant l’examen, le Bootcamp RPVD en direct permet de poser ses questions.'],
+    button: { label: 'Découvrir le Bootcamp', url: bootcampUrl },
+  });
+}
+
 function loginLinkEmail({ url }) {
   return mk(
     { title: 'Ton lien de connexion', paragraphs: ['Clique pour ouvrir tes capsules. Ce lien ne fonctionne qu’une seule fois.'], button: { label: 'Ouvrir Mes capsules', url }, footer: 'Tu n’as rien demandé ? Ignore ce courriel.' },
@@ -578,6 +619,7 @@ function bootcampAccessEmail({ title, when, meetingUrl, chatUrl, pwaCode, appUrl
 }
 
 module.exports = {
+  engagementEmail,
   loginLinkEmail,
   capsuleReadyEmail,
   capsuleLastChanceEmail,
