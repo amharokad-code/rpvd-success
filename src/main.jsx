@@ -13,6 +13,9 @@ import ReserverPage from './pages/ReserverPage'
 import MerciPage from './pages/MerciPage'
 import RembourserPage from './pages/RembourserPage'
 import DesabonnerPage from './pages/DesabonnerPage'
+import ParentLandingPage from './pages/ParentLandingPage'
+import CapsulePage from './pages/CapsulePage'
+import CapsuleAdminPage from './pages/CapsuleAdminPage'
 import { initAds } from './utils/ads'
 import { installErrorTracking } from './utils/track'
 import AdminInsightsPage from './pages/AdminInsightsPage'
@@ -23,7 +26,7 @@ import './index.css'
 initAds()
 
 // Routage minimal (pas de react-router) :
-//   /          page principale Bootcamp (Académie RPVD)
+//   /          landing parents : capsules vidéo RPVD (pivot 2026-10-12) ; /capsule/:slug ; /admin
 //   /vote      lien court des pubs → Bootcamp, formulaire de vote
 //   /reserver  ?s=<session> → Stripe Checkout ; /merci après paiement ; /rembourser ?t=<jeton> ; /desabonner ?v= ou ?b=
 //   /accueil   présentation de la méthode (ancienne landing)
@@ -49,6 +52,16 @@ function shouldRedirectRootToApp() {
   return authCallback
 }
 
+function MerciCapsule() {
+  return (
+    <div className="mx-auto max-w-xl px-4 py-24 text-center text-slate-200">
+      <h1 className="font-display text-3xl font-bold text-slate-50">Merci, ton paiement est confirmé</h1>
+      <p className="mt-4">Ton accès arrive par courriel dans quelques instants (pense à vérifier les indésirables).</p>
+      <a className="mt-6 inline-block underline" href="/">Retour à l’accueil</a>
+    </div>
+  )
+}
+
 function pickRoute() {
   const path = window.location.pathname.replace(/\/+$/, '') || '/'
   if (path === '/') {
@@ -56,8 +69,11 @@ function pickRoute() {
       window.location.replace(`/app${window.location.search}${window.location.hash}`)
       return null
     }
-    return <BootcampPage />
+    return <ParentLandingPage />
   }
+  if (path.startsWith('/capsule/')) return <CapsulePage />
+  if (path === '/merci-capsule') return <MerciCapsule />
+  if (path === '/admin' || path === '/admin/capsules') return <CapsuleAdminPage />
   if (path === '/bootcamp' || path === '/vote') return <BootcampPage />
   if (path === '/reserver') return <ReserverPage />
   if (path === '/merci') return <MerciPage />
