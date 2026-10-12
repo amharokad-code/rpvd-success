@@ -7,7 +7,7 @@
 
 const { siteUrl } = require('./legal');
 const { sendEmail, capsuleAccessEmail, bootcampAccessEmail } = require('./email');
-const { PWA_CODE_PRODUCTS, PWA_TRIAL_DAYS, capsuleUrl } = require('./capsules');
+const { PWA_CODE_PRODUCTS, PWA_TRIAL_DAYS } = require('./capsules');
 const { TRIAL_CREDITS } = require('./codes');
 
 async function confirmCapsuleOrder(db, session) {
@@ -24,6 +24,7 @@ async function confirmCapsuleOrder(db, session) {
       capsule_id: md.capsule_id || null,
       bootcamp_id: md.bootcamp_id || null,
       stripe_session_id: session.id,
+      stripe_payment_intent: typeof session.payment_intent === 'string' ? session.payment_intent : null,
       amount: session.amount_total || 0,
       currency: session.currency || 'cad',
     })
@@ -66,7 +67,10 @@ async function confirmCapsuleOrder(db, session) {
     } else {
       const { data: cap, error } = await db.from('capsules').select('slug,title').eq('id', md.capsule_id).single();
       if (error) throw error;
-      message = capsuleAccessEmail({ title: cap.title, url: capsuleUrl(cap.slug, order.access_token), pwaCode, appUrl });
+// Lien magique à usage unique (jamais d'URL vidéo ni de jeton réutilisable dans le courriel).
+      const { data: link, error: linkError } = await db.auth.admin.generateLink({ type: 'magiclink', email, options: { redirectTo: `${siteUrl()}/mes-capsules` } });
+      if (linkError) throw linkError;
+      message = capsuleAccessEmail({ title: cap.title, url: link.properties.action_link, pwaCode, appUrl });
     }
     const { sent } = await sendEmail({ to: email, ...message });
     if (!sent) throw new Error('Courriel d\'accès non envoyé');

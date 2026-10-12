@@ -7,29 +7,6 @@ const { HttpError, preflight, parseBody, json, handleError } = require('./_lib/h
 const { getServiceClient } = require('./_lib/supabase');
 const { publicCapsule, clean, PRICES } = require('./_lib/capsules');
 
-const SIGNED_SECONDS = 2 * 3600;
-const OTP_TTL_SECONDS = 300; // le jeton sert à démarrer la lecture : expiration courte
-
-async function vdoOtp(videoId, email) {
-  const secret = process.env.VDOCIPHER_API_SECRET;
-  if (!secret) throw new Error('VDOCIPHER_API_SECRET manquante');
-  const date = new Date().toISOString().slice(0, 10);
-  const annotate = JSON.stringify([
-    // Filigrane dynamique : courriel de l'acheteur + date, en mouvement.
-    { type: 'rtext', text: `${email} · ${date}`, alpha: '0.55', color: '0xFFFFFF', size: '14', interval: '4000' },
-    // Filigrane fixe de marque.
-    { type: 'text', text: 'RPVD', alpha: '0.35', color: '0xFFFFFF', size: '18', x: '3%', y: '5%' },
-  ]);
-  const res = await fetch(`https://dev.vdocipher.com/api/videos/${encodeURIComponent(videoId)}/otp`, {
-    method: 'POST',
-    headers: { Authorization: `Apisecret ${secret}`, 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ ttl: OTP_TTL_SECONDS, annotate }),
-  });
-  if (!res.ok) throw new Error(`VdoCipher HTTP ${res.status}`);
-  const { otp, playbackInfo } = await res.json();
-  return { otp, playbackInfo };
-}
-
 exports.handler = async (event) => {
   const early = preflight(event);
   if (early) return early;
@@ -64,24 +41,6 @@ exports.handler = async (event) => {
 
     if (body.action === 'capsule') return json(200, { ok: true, capsule: publicCapsule(cap) });
 
-    if (body.action === 'access') {
-      const token = clean(body.token, 100);
-      if (!token) throw new HttpError(401, 'UNAUTHORIZED', "Lien d'accès invalide.");
-      const { data: order, error: oe } = await db.from('orders').select('id,email').eq('access_token', token).eq('capsule_id', cap.id).maybeSingle();
-      if (oe) throw oe;
-      if (!order) throw new HttpError(401, 'UNAUTHORIZED', "Lien d'accès invalide.");
-      // VdoCipher (DRM + filigrane dynamique) : video_url = « vdo:<id de la vidéo> ». Jeton OTP court, généré
-      // seulement ici, pour un acheteur vérifié. Aucune URL vidéo brute n'est jamais renvoyée.
-      if (String(cap.video_url).startsWith('vdo:')) {
-        return json(200, { ok: true, capsule: publicCapsule(cap), vdo: await vdoOtp(cap.video_url.slice(4), order.email) });
-      }
-      const sign = async (path) => {
-        const { data, error: se } = await db.storage.from('capsules').createSignedUrl(path, SIGNED_SECONDS);
-        if (se) throw se;
-        return data.signedUrl;
-      };
-      return json(200, { ok: true, capsule: publicCapsule(cap), video_url: await sign(cap.video_url), subtitles_url: await sign(cap.subtitles_url) });
-    }
     throw new HttpError(400, 'BAD_REQUEST', 'Action inconnue.');
   } catch (err) {
     return handleError(err, 'capsule-public');

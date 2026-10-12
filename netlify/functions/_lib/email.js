@@ -539,11 +539,18 @@ function capsulePostExamEmail({ topic, url, unsubscribe }) {
 }
 
 // Courriel transactionnel (achat) : pas de désabonnement, il exécute le contrat.
+function loginLinkEmail({ url }) {
+  return mk(
+    { title: 'Ton lien de connexion', paragraphs: ['Clique pour ouvrir tes capsules. Ce lien ne fonctionne qu’une seule fois.'], button: { label: 'Ouvrir Mes capsules', url }, footer: 'Tu n’as rien demandé ? Ignore ce courriel.' },
+    'Ton lien de connexion RPVD',
+  );
+}
+
 function capsuleAccessEmail({ title, url, pwaCode, appUrl }) {
   return mk(
     {
       title: 'Ton achat est confirmé',
-      paragraphs: [`Voici ton accès à « ${title} ». Garde ce courriel : le lien est personnel et reste valide.`],
+      paragraphs: [`Voici ton accès à « ${title} ». Ce lien de connexion ne fonctionne qu'une seule fois : ensuite, retrouve ta capsule dans « Mes capsules » (rpvdsuccess.com/connexion), autant de fois que tu veux, à vie, sur 2 appareils.`],
       button: { label: 'Regarder la capsule', url },
       codes: pwaCode ? [pwaCode] : [],
       outro: pwaCode ? [`Ton code d'essai de l'application RPVD (30 jours) est ci-dessus. Active-le sur ${appUrl}.`] : [],
@@ -571,6 +578,7 @@ function bootcampAccessEmail({ title, when, meetingUrl, chatUrl, pwaCode, appUrl
 }
 
 module.exports = {
+  loginLinkEmail,
   capsuleReadyEmail,
   capsuleLastChanceEmail,
   capsuleJ1Email,
