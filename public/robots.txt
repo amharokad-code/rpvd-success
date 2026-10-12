@@ -1,4 +1,58 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /capsule/
+Disallow: /mes-capsules
+Disallow: /connexion
+Disallow: /.netlify/
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /capsule/
+Disallow: /mes-capsules
+Disallow: /connexion
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /capsule/
+Disallow: /mes-capsules
+Disallow: /connexion
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /capsule/
+Disallow: /mes-capsules
+Disallow: /connexion
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /capsule/
+Disallow: /mes-capsules
+Disallow: /connexion
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /capsule/
+Disallow: /mes-capsules
+Disallow: /connexion
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /capsule/
+Disallow: /mes-capsules
+Disallow: /connexion
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /capsule/
+Disallow: /mes-capsules
+Disallow: /connexion
 
 Sitemap: https://rpvdsuccess.com/sitemap.xml

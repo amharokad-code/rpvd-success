@@ -16,6 +16,9 @@ import DesabonnerPage from './pages/DesabonnerPage'
 import ParentLandingPage from './pages/ParentLandingPage'
 import CapsulePage from './pages/CapsulePage'
 import CapsulesStorePage from './pages/CapsulesStorePage'
+import CapsuleFichePage from './pages/CapsuleFichePage'
+import MesCapsulesPage from './pages/MesCapsulesPage'
+import ConnexionPage from './pages/ConnexionPage'
 import CapsuleAdminPage from './pages/CapsuleAdminPage'
 import { initAds } from './utils/ads'
 import { installErrorTracking } from './utils/track'
@@ -73,6 +76,10 @@ function pickRoute() {
     return <ParentLandingPage />
   }
   if (path === '/capsules') return <CapsulesStorePage />
+  if (path.startsWith('/capsules/')) return <CapsuleFichePage />
+  if (path === '/demande') return <ParentLandingPage />
+  if (path === '/mes-capsules') return <MesCapsulesPage />
+  if (path === '/connexion') return <ConnexionPage />
   if (path.startsWith('/capsule/')) return <CapsulePage />
   if (path === '/merci-capsule') return <MerciCapsule />
   if (path === '/admin' || path === '/admin/capsules') return <CapsuleAdminPage />

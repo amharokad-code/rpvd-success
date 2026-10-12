@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { bootcampCall } from '../lib/bootcampApi'
 import { CARD, CTA, INPUT, Notice, Spinner } from '../components/bootcamp/BootcampUI'
 
-const EMPTY_CAP = { cover_url: '', slug: '', title: '', type: 'exam', subject_area: '', topic: '', level: '', duration_min: '' }
+const EMPTY_CAP = { description: '', cover_url: '', slug: '', title: '', type: 'exam', subject_area: '', topic: '', level: '', duration_min: '' }
 const EMPTY_BC = { title: '', topic: '', starts_at: '', capacity: 20, meeting_url: '', chat_url: '' }
 
 export default function CapsuleAdminPage() {
@@ -126,6 +126,7 @@ export default function CapsuleAdminPage() {
             <input className={INPUT} placeholder="Sujet (même libellé que les demandes)" {...bind(cap, setCap, 'topic')} />
             <input className={INPUT} placeholder="Niveau" {...bind(cap, setCap, 'level')} />
             <input className={INPUT} type="number" placeholder="Durée (min)" {...bind(cap, setCap, 'duration_min')} />
+            <textarea className={`${INPUT} sm:col-span-2`} rows={3} maxLength={1200} placeholder="Description publique (texte; jamais la démarche)" value={cap.description || ''} onChange={(e) => setCap((o) => ({ ...o, description: e.target.value }))} />
             <label className="text-sm sm:col-span-2">Image de couverture (.jpg / .png){cap.cover_url ? ' — actuelle conservée si vide' : ''}<input type="file" accept="image/jpeg,image/png" className="mt-1 block" onChange={(e) => setFiles((f) => ({ ...f, cover: e.target.files[0] }))} /></label>
             <input className={INPUT} placeholder="ID VdoCipher (recommandé, DRM + filigrane)" value={cap.vdo || ''} onChange={(e) => setCap((o) => ({ ...o, vdo: e.target.value.trim() }))} />
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={Boolean(cap.vdo_captions)} onChange={(e) => setCap((o) => ({ ...o, vdo_captions: e.target.checked }))} />Sous-titres ajoutés dans VdoCipher</label>

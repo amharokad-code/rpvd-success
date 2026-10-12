@@ -1918,3 +1918,19 @@ insert into storage.buckets (id, name, public) values ('capsules', 'capsules', f
 -- Mini magasin (/capsules) : image de couverture (aucun extrait vidéo public). Bucket public en lecture seule.
 alter table public.capsules add column if not exists cover_url text;
 insert into storage.buckets (id, name, public) values ('capsule-covers', 'capsule-covers', true) on conflict (id) do nothing;
+
+-- Revisionnage illimite + securite : appareils autorises (max 2 par courriel), commandes revocables.
+create table if not exists public.capsule_devices (
+  email       text not null check (email = lower(trim(email))),
+  fingerprint text not null check (fingerprint ~ '^[a-f0-9]{64}$'),
+  created_at  timestamptz not null default now(),
+  primary key (email, fingerprint)
+);
+alter table public.capsule_devices enable row level security;
+
+alter table public.orders add column if not exists status text not null default 'active' check (status in ('active', 'revoked'));
+alter table public.orders add column if not exists revoked_at timestamptz;
+alter table public.orders add column if not exists stripe_payment_intent text;
+create index if not exists orders_payment_intent_idx on public.orders (stripe_payment_intent);
+
+alter table public.capsules add column if not exists description text;

@@ -64,6 +64,8 @@ function publicCapsule(c) {
     level: c.level,
     price_cad: c.price_cad,
     duration_min: c.duration_min,
+    description: c.description || null,
+    cover_url: c.cover_url || null,
   };
 }
 

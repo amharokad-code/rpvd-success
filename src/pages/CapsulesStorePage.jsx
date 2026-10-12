@@ -69,7 +69,7 @@ export default function CapsulesStorePage() {
                 <div className="flex flex-1 flex-col p-5">
                   {c.type === 'exam' && <span className="mb-1 text-xs font-bold uppercase tracking-widest text-pyramid-orange">Recommandé</span>}
                   <p className="text-xs uppercase tracking-widest text-slate-400">{c.level} · {c.subject_area}{c.duration_min ? ` · ${c.duration_min} min` : ''}</p>
-                  <h2 className="mt-1 font-display text-xl font-bold text-slate-50">{c.title}</h2>
+                  <h2 className="mt-1 font-display text-xl font-bold text-slate-50"><a href={`/capsules/${c.slug}`}>{c.title}</a></h2>
                   {c.requests > 0 && <p className="mt-1 text-sm text-slate-400">{c.requests} {c.requests === 1 ? 'parent l’a demandée' : 'parents l’ont demandée'}</p>}
                   <p className="mt-3 text-2xl font-bold text-slate-50">{(c.price_cad / 100).toFixed(0)} $ <span className="text-sm font-normal text-slate-400">CAD</span></p>
                   <button type="button" disabled={buying === c.slug} onClick={() => buy(c.slug)} className={`${CTA} mt-4`}>{buying === c.slug ? <Spinner /> : 'Acheter'}</button>

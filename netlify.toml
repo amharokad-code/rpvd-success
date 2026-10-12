@@ -7,9 +7,55 @@ publish = "dist"
 node_bundler = "esbuild"
 included_files = ["netlify/functions/_lib/**"]
 
+# Pages privees : jamais indexees.
+[[headers]]
+for = "/admin*"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/capsule/*"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/mes-capsules"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+for = "/connexion"
+[headers.values]
+X-Robots-Tag = "noindex, nofollow"
+
 [dev]
 command = "npm run dev"
 port = 5173
+
+# Pre-rendu des pages publiques (robots et IA) : voir netlify/functions/seo.js
+[[redirects]]
+from = "/sitemap.xml"
+to = "/.netlify/functions/seo?p=sitemap"
+status = 200
+force = true
+
+[[redirects]]
+from = "/capsules"
+to = "/.netlify/functions/seo?p=list"
+status = 200
+force = true
+
+[[redirects]]
+from = "/capsules/:slug"
+to = "/.netlify/functions/seo?slug=:slug"
+status = 200
+force = true
+
+[[redirects]]
+from = "/demande"
+to = "/.netlify/functions/seo?p=demande"
+status = 200
+force = true
 
 [[redirects]]
 from = "/*"

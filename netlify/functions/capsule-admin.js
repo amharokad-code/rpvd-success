@@ -66,6 +66,7 @@ exports.handler = async (event) => {
         topic: clean(b.topic, 160),
         level: clean(b.level, 40),
         price_cad: Number.isInteger(b.price_cad) && b.price_cad > 0 ? b.price_cad : PRICES[type],
+        description: clean(b.description, 1200) || null,
         duration_min: Number.isInteger(b.duration_min) ? b.duration_min : null,
         video_url: clean(b.video_url, 300) || null,
         subtitles_url: clean(b.subtitles_url, 300) || null,
