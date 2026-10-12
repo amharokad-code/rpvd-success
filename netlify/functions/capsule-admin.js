@@ -31,7 +31,7 @@ exports.handler = async (event) => {
     if (b.action === 'overview') {
       const [demand, caps, orders, boots, reqs] = await Promise.all([
         db.from('capsule_demand').select('*'),
-        db.from('capsules').select('id,slug,title,type,topic,level,price_cad,published,video_url,subtitles_url,created_at').order('created_at', { ascending: false }),
+        db.from('capsules').select('id,slug,title,type,topic,level,price_cad,published,video_url,subtitles_url,cover_url,created_at').order('created_at', { ascending: false }),
         db.from('orders').select('id,email,product_type,amount,currency,created_at,capsule_id,bootcamp_id').order('created_at', { ascending: false }).limit(200),
         db.from('bootcamps').select('id,title,topic,starts_at,capacity,price_cad,meeting_url,chat_url').order('starts_at', { ascending: false }),
         db.from('capsule_requests').select('id', { count: 'exact', head: true }),
@@ -43,6 +43,13 @@ exports.handler = async (event) => {
     if (b.action === 'upload_url') {
       const slug = clean(b.slug, 80);
       if (!/^[a-z0-9-]{3,80}$/.test(slug)) throw new HttpError(400, 'BAD_REQUEST', 'Slug invalide.');
+      if (b.file === 'cover') {
+        const coverPath = `${slug}/cover-${Date.now()}.${b.ext === 'png' ? 'png' : 'jpg'}`;
+        const { data, error } = await db.storage.from('capsule-covers').createSignedUploadUrl(coverPath);
+        if (error) throw error;
+        const publicUrl = db.storage.from('capsule-covers').getPublicUrl(coverPath).data.publicUrl;
+        return json(200, { ok: true, path: coverPath, token: data.token, public_url: publicUrl });
+      }
       const path = b.file === 'vtt' ? `${slug}/subtitles.vtt` : `${slug}/video.mp4`;
       const { data, error } = await db.storage.from('capsules').createSignedUploadUrl(path, { upsert: true });
       if (error) throw error;
@@ -62,13 +69,14 @@ exports.handler = async (event) => {
         duration_min: Number.isInteger(b.duration_min) ? b.duration_min : null,
         video_url: clean(b.video_url, 300) || null,
         subtitles_url: clean(b.subtitles_url, 300) || null,
+        cover_url: /^https:\/\//.test(clean(b.cover_url, 500)) ? clean(b.cover_url, 500) : null,
       };
       if (!/^[a-z0-9-]{3,80}$/.test(row.slug) || !row.title || !row.topic || !row.level || !row.subject_area) {
         throw new HttpError(400, 'BAD_REQUEST', 'Slug, titre, sujet, niveau et matière sont obligatoires.');
       }
       row.topic_key = topicKey(row.topic);
       if (b.publish === true) {
-        if (!row.video_url || !row.subtitles_url || !row.subtitles_url.endsWith('.vtt')) {
+        if (!row.video_url || !(row.subtitles_url === 'vdocipher:captions' || (row.subtitles_url || '').endsWith('.vtt'))) {
           throw new HttpError(400, 'BAD_REQUEST', 'Publier exige la vidéo et les sous-titres .vtt.');
         }
         row.published = true;

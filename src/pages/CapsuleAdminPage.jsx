@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 import { bootcampCall } from '../lib/bootcampApi'
 import { CARD, CTA, INPUT, Notice, Spinner } from '../components/bootcamp/BootcampUI'
 
-const EMPTY_CAP = { slug: '', title: '', type: 'exam', subject_area: '', topic: '', level: '', duration_min: '' }
+const EMPTY_CAP = { cover_url: '', slug: '', title: '', type: 'exam', subject_area: '', topic: '', level: '', duration_min: '' }
 const EMPTY_BC = { title: '', topic: '', starts_at: '', capacity: 20, meeting_url: '', chat_url: '' }
 
 export default function CapsuleAdminPage() {
@@ -47,9 +47,21 @@ export default function CapsuleAdminPage() {
     setMsg(null)
     try {
       const body = { action: 'save_capsule', ...cap, duration_min: cap.duration_min ? Number(cap.duration_min) : null, publish }
-      if (files.video) body.video_url = await upload('video')
+      if (files.cover) {
+        const ext = files.cover.type === 'image/png' ? 'png' : 'jpg'
+        const up = await call({ action: 'upload_url', slug: cap.slug, file: 'cover', ext })
+        const { error } = await supabase.storage.from('capsule-covers').uploadToSignedUrl(up.path, up.token, files.cover)
+        if (error) throw error
+        body.cover_url = up.public_url
+      } else {
+        body.cover_url = cap.cover_url || ''
+      }
+      if (cap.vdo) {
+        body.video_url = `vdo:${cap.vdo}`
+        body.subtitles_url = cap.vdo_captions ? 'vdocipher:captions' : ''
+      } else if (files.video) body.video_url = await upload('video')
       if (files.vtt) body.subtitles_url = await upload('vtt')
-      if (!files.video || !files.vtt) {
+      if (!cap.vdo && (!files.video || !files.vtt)) {
         const existing = data.capsules.find((c) => c.slug === cap.slug)
         body.video_url = body.video_url || (existing && existing.video_url) || ''
         body.subtitles_url = body.subtitles_url || (existing && existing.subtitles_url) || ''
@@ -114,6 +126,9 @@ export default function CapsuleAdminPage() {
             <input className={INPUT} placeholder="Sujet (même libellé que les demandes)" {...bind(cap, setCap, 'topic')} />
             <input className={INPUT} placeholder="Niveau" {...bind(cap, setCap, 'level')} />
             <input className={INPUT} type="number" placeholder="Durée (min)" {...bind(cap, setCap, 'duration_min')} />
+            <label className="text-sm sm:col-span-2">Image de couverture (.jpg / .png){cap.cover_url ? ' — actuelle conservée si vide' : ''}<input type="file" accept="image/jpeg,image/png" className="mt-1 block" onChange={(e) => setFiles((f) => ({ ...f, cover: e.target.files[0] }))} /></label>
+            <input className={INPUT} placeholder="ID VdoCipher (recommandé, DRM + filigrane)" value={cap.vdo || ''} onChange={(e) => setCap((o) => ({ ...o, vdo: e.target.value.trim() }))} />
+            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={Boolean(cap.vdo_captions)} onChange={(e) => setCap((o) => ({ ...o, vdo_captions: e.target.checked }))} />Sous-titres ajoutés dans VdoCipher</label>
             <label className="text-sm">Vidéo (.mp4)<input type="file" accept="video/mp4" className="mt-1 block" onChange={(e) => setFiles((f) => ({ ...f, video: e.target.files[0] }))} /></label>
             <label className="text-sm">Sous-titres (.vtt)<input type="file" accept=".vtt,text/vtt" className="mt-1 block" onChange={(e) => setFiles((f) => ({ ...f, vtt: e.target.files[0] }))} /></label>
             <div className="flex gap-3 sm:col-span-2">

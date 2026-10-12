@@ -39,7 +39,17 @@ export default function CapsulePage() {
         <>
           <h1 className="pt-8 font-display text-4xl font-bold text-slate-50">{cap.title}</h1>
           <p className="mt-2 text-slate-400">{cap.level} · {cap.subject_area}{cap.duration_min ? ` · ${cap.duration_min} min` : ''}</p>
-          {data.video_url ? (
+          {data.vdo ? (
+            <div className={`${CARD} mt-6 overflow-hidden`}>
+              <iframe
+                title={cap.title}
+                className="aspect-video w-full bg-black"
+                src={`https://player.vdocipher.com/v2/?otp=${encodeURIComponent(data.vdo.otp)}&playbackInfo=${encodeURIComponent(data.vdo.playbackInfo)}`}
+                allow="encrypted-media; fullscreen"
+                allowFullScreen
+              />
+            </div>
+          ) : data.video_url ? (
             <div className={`${CARD} mt-6 overflow-hidden`}>
               <video controls controlsList="nodownload" crossOrigin="anonymous" className="aspect-video w-full bg-black" src={data.video_url}>
                 <track kind="subtitles" srcLang="fr" label="Français" src={data.subtitles_url} default />

@@ -28,6 +28,11 @@ RPVD (« nous ») est exploité par ${BUSINESS.operator}, ${BUSINESS.city}. Notr
 - Ton adresse, ton numéro de téléphone ou ton école
 - Ta photo ou ta caméra : pendant les cours en direct, la caméra des élèves est désactivée
 
+## Capsules vidéo RPVD : ce qu'on collecte et pourquoi
+- Demande de capsule : ton prénom, ton courriel, le prénom de ton enfant (facultatif), le niveau, la matière, le sujet, la date de l'examen (facultative) et ta case de consentement. Pour produire les capsules demandées et t'écrire (capsule prête, rappel avant l'examen, suivi). Tu te désabonnes en un clic dans chaque courriel.
+- Achat : ton courriel, le produit, le montant et les références Stripe. Pour te livrer ton accès et tenir nos comptes.
+- Visionnement protégé : ton courriel et la date du jour s'affichent en filigrane, en mouvement, sur la vidéo, pour décourager le partage. Le lecteur est fourni par VdoCipher, qui reçoit un jeton de lecture, pas ton dossier.
+
 ## Bootcamp RPVD : ce qu'on collecte et pourquoi
 - Vote : ton courriel, ton niveau, ta matière et le sujet choisi (plus ta précision si tu choisis « Autre sujet »). Pour compter les votes, t'envoyer le résultat et les annonces de sessions.
 - Consentement : la date à laquelle tu as coché les cases du formulaire, comme preuve de ton consentement.
@@ -126,6 +131,11 @@ RPVD ("we") is operated by ${BUSINESS.operator}, ${BUSINESS.city}. Our rule is s
 - Your age or date of birth
 - Your address, phone number or school
 - Your photo or your camera: during live classes, students' cameras are turned off
+
+## RPVD video capsules: what we collect and why
+- Capsule request: your first name, email, your child's first name (optional), grade, subject, topic, exam date (optional) and your consent tick. To produce the capsules requested and email you (capsule ready, reminder before the exam, follow-up). You unsubscribe in one click from every email.
+- Purchase: your email, the product, the amount and Stripe references. To deliver your access and keep our accounts.
+- Protected viewing: your email and today's date are shown as a moving watermark over the video, to discourage sharing. The player is provided by VdoCipher, which receives a playback token, not your file.
 
 ## RPVD Bootcamp: what we collect and why
 - Vote: your email, grade, subject and chosen topic (plus your detail if you pick "Other topic"). To count votes and send you the result and session announcements.

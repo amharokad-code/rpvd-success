@@ -2,12 +2,11 @@
 // Textes = brouillon à valider (titre, arguments, FAQ). Aucune fausse urgence : seuls les prix réels et la vraie date d'examen.
 import { useEffect, useState } from 'react'
 import { bootcampCall } from '../lib/bootcampApi'
-import { CARD, CTA, INPUT, LegalLinks, Notice, PageShell, Spinner } from '../components/bootcamp/BootcampUI'
+import CapsuleSurvey from '../components/CapsuleSurvey'
+import { CARD, CTA, LegalLinks, Notice, PageShell, Spinner } from '../components/bootcamp/BootcampUI'
 
 const DEMO_VIDEO_URL = import.meta.env.VITE_DEMO_VIDEO_URL || ''
 const money = (cents) => `${(cents / 100).toFixed(0)} $`
-const LEVELS = ['Secondaire 1', 'Secondaire 2', 'Secondaire 3', 'Secondaire 4', 'Secondaire 5', 'Cégep']
-const SUBJECTS = ['Mathématiques', 'Science et technologie', 'Chimie', 'Physique', 'Français', 'Autre']
 
 const PRODUCTS = [
   { id: 'concept', name: 'Capsule Concept', price: 2400, featured: false, points: ['Vidéo sous-titrée', 'La méthode RPVD appliquée à un concept'] },
@@ -27,12 +26,9 @@ const PRODUCTS = [
   },
 ]
 
-const EMPTY = { parent_first_name: '', email: '', child_first_name: '', level: '', subject_area: '', topic: '', exam_date: '', product_wanted: 'exam', consent_email: false, bot_field: '' }
-
 export default function ParentLandingPage() {
   const [catalog, setCatalog] = useState({ capsules: [], bootcamps: [] })
-  const [form, setForm] = useState(EMPTY)
-  const [state, setState] = useState('idle') // idle | busy | done | error
+  const [product, setProduct] = useState('')
   const [error, setError] = useState(null)
   const [buying, setBuying] = useState(null)
 
@@ -40,21 +36,6 @@ export default function ParentLandingPage() {
     document.title = 'RPVD — Des capsules vidéo pour que ton enfant arrive prêt à l’examen'
     bootcampCall('capsule-public', { action: 'catalog' }).then(setCatalog).catch(() => {})
   }, [])
-
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
-
-  async function submit(e) {
-    e.preventDefault()
-    setState('busy')
-    setError(null)
-    try {
-      await bootcampCall('capsule-request', form)
-      setState('done')
-    } catch (err) {
-      setError(err.message)
-      setState('error')
-    }
-  }
 
   async function buy(body, key) {
     setBuying(key)
@@ -66,15 +47,6 @@ export default function ParentLandingPage() {
       setBuying(null)
     }
   }
-
-  const select = (k, options, placeholder) => (
-    <select required value={form[k]} onChange={set(k)} className={INPUT}>
-      <option value="">{placeholder}</option>
-      {options.map((o) => (
-        <option key={o}>{o}</option>
-      ))}
-    </select>
-  )
 
   return (
     <PageShell current="" width="max-w-5xl">
@@ -110,7 +82,7 @@ export default function ParentLandingPage() {
                   <li key={t}>• {t}</li>
                 ))}
               </ul>
-              <a href="#demande" onClick={() => setForm((f) => ({ ...f, product_wanted: p.id }))} className={`${CTA} mt-5`}>Je veux celle-ci</a>
+              <a href="#demande" onClick={() => setProduct(p.id)} className={`${CTA} mt-5`}>Je veux celle-ci</a>
             </div>
           ))}
         </div>
@@ -155,45 +127,9 @@ export default function ParentLandingPage() {
 
       <section className="mt-14" id="demande">
         <h2 className="font-display text-3xl font-bold text-slate-50">Demander une capsule</h2>
-        <p className="mt-2 text-slate-400">Dis-nous le sujet de l’examen. Dès que trois familles demandent le même, on produit la capsule et on t’écrit.</p>
-        <div className={`${CARD} mt-6 p-5 sm:p-6`}>
-          {state === 'done' ? (
-            <Notice tone="ok">Demande reçue. Tu recevras un courriel quand la capsule sera prête. Tu peux te désabonner en un clic dans chaque courriel.</Notice>
-          ) : (
-            <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
-              <input className={INPUT} required placeholder="Ton prénom (parent)" value={form.parent_first_name} onChange={set('parent_first_name')} maxLength={80} />
-              <input className={INPUT} required type="email" placeholder="Ton courriel" value={form.email} onChange={set('email')} maxLength={254} />
-              <input className={INPUT} placeholder="Prénom de ton enfant (facultatif)" value={form.child_first_name} onChange={set('child_first_name')} maxLength={80} />
-              {select('level', LEVELS, 'Niveau')}
-              {select('subject_area', SUBJECTS, 'Matière')}
-              <input className={INPUT} required placeholder="Sujet de l’examen (ex. : trigonométrie)" value={form.topic} onChange={set('topic')} maxLength={160} />
-              <label className="text-sm text-slate-300">
-                Date de l’examen (si connue)
-                <input className={`${INPUT} mt-1`} type="date" value={form.exam_date} onChange={set('exam_date')} />
-              </label>
-              <label className="text-sm text-slate-300">
-                Produit souhaité
-                <select className={`${INPUT} mt-1`} value={form.product_wanted} onChange={set('product_wanted')}>
-                  <option value="concept">Capsule Concept — 24 $</option>
-                  <option value="exam">Capsule Examen — 29 $</option>
-                  <option value="bootcamp">Bootcamp RPVD en direct — 99 $</option>
-                </select>
-              </label>
-              <input tabIndex={-1} autoComplete="off" aria-hidden className="hidden" value={form.bot_field} onChange={set('bot_field')} name="website" />
-              <label className="flex items-start gap-3 text-sm text-slate-300 sm:col-span-2">
-                <input type="checkbox" required checked={form.consent_email} onChange={set('consent_email')} className="mt-1 h-5 w-5" />
-                <span>
-                  J’accepte de recevoir des courriels de RPVD au sujet de ma demande (capsule prête, rappel avant l’examen, suivi). Je peux me désabonner en tout temps.{' '}
-                  <a className="underline" href="/legal/privacy">Politique de confidentialité</a>
-                </span>
-              </label>
-              {error && <div className="sm:col-span-2"><Notice tone="error">{error}</Notice></div>}
-              <button type="submit" disabled={state === 'busy'} className={`${CTA} sm:col-span-2`}>
-                {state === 'busy' ? <Spinner /> : 'Envoyer ma demande'}
-              </button>
-            </form>
-          )}
-        </div>
+        <p className="mt-2 text-slate-400">Quelques clics. Dès que trois familles demandent le même sujet, on produit la capsule et on t’écrit.</p>
+        <div className="mt-6"><CapsuleSurvey preselect={product} /></div>
+        <p className="mt-4 text-sm"><a className="underline" href="/capsules">Voir les capsules déjà prêtes</a></p>
       </section>
 
       <section className="mt-14">

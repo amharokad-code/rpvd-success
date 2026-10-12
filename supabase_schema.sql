@@ -1914,3 +1914,7 @@ grant select on public.capsule_demand to service_role;
 
 -- Stockage privé des vidéos et sous-titres (livrés par URL signée courte, jamais publique).
 insert into storage.buckets (id, name, public) values ('capsules', 'capsules', false) on conflict (id) do nothing;
+
+-- Mini magasin (/capsules) : image de couverture (aucun extrait vidéo public). Bucket public en lecture seule.
+alter table public.capsules add column if not exists cover_url text;
+insert into storage.buckets (id, name, public) values ('capsule-covers', 'capsule-covers', true) on conflict (id) do nothing;
