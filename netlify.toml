@@ -19,3 +19,7 @@ status = 200
 # Bootcamp RPVD : sélection du jeudi, liens Zoom T-60 min, places libérées, suivi (voir la fonction).
 [functions."bootcamp-cron"]
 schedule = "*/10 * * * *"
+
+# Capsules RPVD : sequence courriel des demandes (1x/jour, 12 h UTC = 8 h au Quebec).
+[functions."capsule-cron"]
+schedule = "0 12 * * *"
