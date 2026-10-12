@@ -1813,3 +1813,102 @@ alter table public.analytics_events add column if not exists source text;
 alter table public.analytics_events add column if not exists props jsonb not null default '{}'::jsonb;
 create index if not exists analytics_events_sid_created_idx on public.analytics_events (sid, created_at);
 create index if not exists analytics_events_created_idx on public.analytics_events (created_at desc);
+
+
+-- =============================================================================
+-- PIVOT CAPSULES (2026-10-12) : capsules vidéo RPVD vendues aux parents (idempotent, RLS activé,
+-- aucune politique = accès uniquement via la clé service des Netlify Functions).
+-- =============================================================================
+create table if not exists public.capsule_requests (
+  id                uuid primary key default gen_random_uuid(),
+  parent_first_name text not null check (char_length(parent_first_name) between 1 and 80),
+  email             text not null check (email = lower(trim(email))),
+  child_first_name  text check (child_first_name is null or char_length(child_first_name) <= 80),
+  level             text not null,
+  subject_area      text not null,
+  topic             text not null check (char_length(topic) between 2 and 160),
+  topic_key         text not null,   -- topic normalisé (minuscules, sans accents) : sert au décompte
+  exam_date         date,
+  product_wanted    text not null default 'exam' check (product_wanted in ('concept', 'exam', 'bootcamp')),
+  consent_email     boolean not null check (consent_email = true),   -- LCAP : obligatoire
+  status            text not null default 'open' check (status in ('open', 'notified', 'purchased', 'closed')),
+  created_at        timestamptz not null default now(),
+  unsubscribed_at   timestamptz
+);
+create index if not exists capsule_requests_topic_key_idx on public.capsule_requests (topic_key);
+create index if not exists capsule_requests_email_idx on public.capsule_requests (email);
+alter table public.capsule_requests enable row level security;
+
+create table if not exists public.capsules (
+  id           uuid primary key default gen_random_uuid(),
+  slug         text not null unique check (slug ~ '^[a-z0-9-]{3,80}$'),
+  title        text not null,
+  type         text not null check (type in ('concept', 'exam')),
+  subject_area text not null,
+  topic        text not null,
+  topic_key    text not null,
+  level        text not null,
+  price_cad    int not null check (price_cad > 0),    -- en cents (2400 = 24 $)
+  video_url    text,                                   -- privée : jamais renvoyée par l'API publique
+  subtitles_url text,                                  -- .vtt, obligatoire pour publier
+  duration_min int,
+  published    boolean not null default false,
+  published_at timestamptz,
+  created_at   timestamptz not null default now(),
+  constraint capsules_publish_needs_media check (not published or (video_url is not null and subtitles_url is not null))
+);
+alter table public.capsules enable row level security;
+
+create table if not exists public.bootcamps (
+  id          uuid primary key default gen_random_uuid(),
+  title       text not null,
+  topic       text not null,
+  starts_at   timestamptz not null,
+  capacity    int not null check (capacity > 0),
+  meeting_url text,        -- privé
+  chat_url    text,        -- groupe WhatsApp / Discord, privé
+  price_cad   int not null default 9900 check (price_cad > 0),
+  created_at  timestamptz not null default now()
+);
+alter table public.bootcamps enable row level security;
+
+create table if not exists public.orders (
+  id                uuid primary key default gen_random_uuid(),
+  email             text not null,
+  product_type      text not null check (product_type in ('concept', 'exam', 'bootcamp')),
+  capsule_id        uuid references public.capsules (id) on delete set null,
+  bootcamp_id       uuid references public.bootcamps (id) on delete set null,
+  stripe_session_id text not null unique,                -- idempotence du webhook
+  amount            int not null,
+  currency          text not null default 'cad',
+  pwa_code_id       uuid references public.activation_codes (id) on delete set null,
+  access_token      text not null unique default encode(gen_random_bytes(24), 'hex'),
+  created_at        timestamptz not null default now()
+);
+create index if not exists orders_email_idx on public.orders (email);
+alter table public.orders enable row level security;
+
+create table if not exists public.email_events (
+  id         uuid primary key default gen_random_uuid(),
+  request_id uuid not null references public.capsule_requests (id) on delete cascade,
+  kind       text not null check (kind in ('ready', 'j3', 'j1', 'post_exam')),
+  sent_at    timestamptz not null default now(),
+  unique (request_id, kind)     -- empêche les doublons
+);
+alter table public.email_events enable row level security;
+
+-- Vue admin : demandes par topic (règle : >= 3 demandes = on produit la capsule).
+create or replace view public.capsule_demand as
+select topic_key,
+       min(topic)         as topic,
+       min(level)         as level,
+       min(subject_area)  as subject_area,
+       count(*)           as requests,
+       count(*) >= 3      as ready_to_produce,
+       max(created_at)    as last_request_at
+  from public.capsule_requests
+ where unsubscribed_at is null or true
+ group by topic_key
+ order by count(*) desc;
+revoke all on public.capsule_demand from public, anon, authenticated;
+grant select on public.capsule_demand to service_role;
