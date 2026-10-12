@@ -1,11 +1,12 @@
 // Sondage de demande de capsule : un écran par question, auto-avance au clic, barre de progression.
 // Courriel + prénom + consentement UNIQUEMENT à l'écran final. Sauvegarde locale à chaque étape ;
 // l'insertion dans capsule_requests se fait à la soumission finale (fonction capsule-request).
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { bootcampCall } from '../lib/bootcampApi'
 import { CARD, CTA, INPUT, Notice, Spinner } from './bootcamp/BootcampUI'
 
 const KEY = 'rpvd_capsule_survey_v1'
+const TURNSTILE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
 const SUBJECTS = ['Mathématiques', 'Science et technologie', 'Chimie', 'Physique', 'Français', 'Autre']
 const LEVELS = ['Secondaire 1', 'Secondaire 2', 'Secondaire 3', 'Secondaire 4', 'Secondaire 5', 'Cégep']
 const TOPICS = {
@@ -37,6 +38,27 @@ export default function CapsuleSurvey({ preselect }) {
   const [other, setOther] = useState(false)
   const [status, setStatus] = useState('idle') // idle | busy | done
   const [error, setError] = useState(null)
+  const [captcha, setCaptcha] = useState('')
+  const captchaBox = useRef(null)
+
+  // Cloudflare Turnstile (anti-robots), chargé seulement à l'écran final et si la clé publique est configurée.
+  useEffect(() => {
+    if (!TURNSTILE_KEY || STEPS[step] !== 'final' || !captchaBox.current) return undefined
+    let widget
+    const mount = () => {
+      if (!window.turnstile || !captchaBox.current) return
+      widget = window.turnstile.render(captchaBox.current, { sitekey: TURNSTILE_KEY, callback: setCaptcha, 'expired-callback': () => setCaptcha('') })
+    }
+    if (window.turnstile) mount()
+    else {
+      const s = document.createElement('script')
+      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+      s.async = true
+      s.onload = mount
+      document.head.appendChild(s)
+    }
+    return () => { if (widget !== undefined && window.turnstile) window.turnstile.remove(widget) }
+  }, [step])
 
   useEffect(() => {
     try { localStorage.setItem(KEY, JSON.stringify({ answers: { ...answers, email: '', consent_email: false }, step })) } catch { /* ignoré */ }
@@ -53,7 +75,7 @@ export default function CapsuleSurvey({ preselect }) {
     setStatus('busy')
     setError(null)
     try {
-      await bootcampCall('capsule-request', { ...answers, product_wanted: answers.product_wanted || 'exam' })
+      await bootcampCall('capsule-request', { ...answers, product_wanted: answers.product_wanted || 'exam', turnstile_token: captcha })
       try { localStorage.removeItem(KEY) } catch { /* ignoré */ }
       setStatus('done')
     } catch (err) {
@@ -136,8 +158,9 @@ export default function CapsuleSurvey({ preselect }) {
               <input type="checkbox" required checked={answers.consent_email} onChange={(e) => answer({ consent_email: e.target.checked }, false)} className="mt-1 h-5 w-5" />
               <span>J’accepte de recevoir des courriels de RPVD au sujet de ma demande (capsule prête, rappel avant l’examen, suivi). Je peux me désabonner en tout temps. <a className="underline" href="/legal/privacy">Confidentialité</a></span>
             </label>
+            {TURNSTILE_KEY && <div ref={captchaBox} />}
             {error && <Notice tone="error">{error}</Notice>}
-            <button type="submit" disabled={status === 'busy'} className={CTA}>{status === 'busy' ? <Spinner /> : 'Recevoir ma capsule'}</button>
+            <button type="submit" disabled={status === 'busy' || (Boolean(TURNSTILE_KEY) && !captcha)} className={CTA}>{status === 'busy' ? <Spinner /> : 'Recevoir ma capsule'}</button>
           </form>
         )}
       </div>

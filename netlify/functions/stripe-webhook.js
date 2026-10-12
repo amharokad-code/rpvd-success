@@ -184,6 +184,12 @@ exports.handler = async (event) => {
       if (confirmed && confirmed.ok) await reportBootcampPurchase(object);
     } else if (stripeEvent.type === 'checkout.session.completed') {
       await handleCheckoutCompleted(stripeEvent);
+    } else if (stripeEvent.type === 'charge.dispute.created' || stripeEvent.type === 'charge.refunded') {
+      // Contestation bancaire ou remboursement : l'accès aux capsules de ce paiement est révoqué.
+      const pi = object && object.payment_intent;
+      if (typeof pi === 'string') {
+        await getServiceClient().from('orders').update({ status: 'revoked', revoked_at: new Date().toISOString() }).eq('stripe_payment_intent', pi);
+      }
     } else if (stripeEvent.type === 'invoice.paid') {
       await handleInvoicePaid(stripeEvent);
     } else if (stripeEvent.type === 'customer.subscription.deleted') {

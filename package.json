@@ -10,7 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "dev:functions": "node scripts/dev-functions.cjs",
-    "check:zoom": "node scripts/check-zoom.cjs"
+    "check:zoom": "node scripts/check-zoom.cjs",
+    "audit:dist": "node scripts/audit-dist.cjs"
   },
   "keywords": [],
   "author": "",

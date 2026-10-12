@@ -33,6 +33,17 @@ exports.handler = async (event) => {
 
     await assertRateLimit(`capsule-request:ip:${sha256(getIp(event))}`, 10, 3600);
 
+    // Cloudflare Turnstile : obligatoire dès que TURNSTILE_SECRET_KEY est configurée.
+    if (process.env.TURNSTILE_SECRET_KEY) {
+      const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ secret: process.env.TURNSTILE_SECRET_KEY, response: clean(b.turnstile_token, 2048), remoteip: getIp(event) }),
+      });
+      const verdict = await res.json().catch(() => ({}));
+      if (!verdict.success) throw new HttpError(400, 'BAD_REQUEST', 'Vérification anti-robot échouée. Réessaie.');
+    }
+
     const { error } = await getServiceClient().from('capsule_requests').insert({
       parent_first_name: parent,
       email,
