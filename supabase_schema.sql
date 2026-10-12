@@ -1907,8 +1907,10 @@ select topic_key,
        count(*) >= 3      as ready_to_produce,
        max(created_at)    as last_request_at
   from public.capsule_requests
- where unsubscribed_at is null or true
  group by topic_key
  order by count(*) desc;
 revoke all on public.capsule_demand from public, anon, authenticated;
 grant select on public.capsule_demand to service_role;
+
+-- Stockage privé des vidéos et sous-titres (livrés par URL signée courte, jamais publique).
+insert into storage.buckets (id, name, public) values ('capsules', 'capsules', false) on conflict (id) do nothing;
