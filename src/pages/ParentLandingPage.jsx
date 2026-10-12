@@ -2,6 +2,7 @@
 // Textes = brouillon à valider (titre, arguments, FAQ). Aucune fausse urgence : seuls les prix réels et la vraie date d'examen.
 import { useEffect, useState } from 'react'
 import { bootcampCall } from '../lib/bootcampApi'
+import BuyBox from '../components/BuyBox'
 import CapsuleSurvey from '../components/CapsuleSurvey'
 import { CARD, CTA, LegalLinks, Notice, PageShell, Spinner } from '../components/bootcamp/BootcampUI'
 
@@ -102,9 +103,7 @@ export default function ParentLandingPage() {
                 <h3 className="mt-1 font-display text-lg font-bold text-slate-50">{c.title}</h3>
                 <p className="mt-1 text-slate-300">{money(c.price_cad)} CAD{c.duration_min ? ` · ${c.duration_min} min` : ''}</p>
                 <div className="mt-4 flex gap-3">
-                  <button type="button" disabled={buying === c.slug} onClick={() => buy({ kind: 'capsule', slug: c.slug }, c.slug)} className={CTA}>
-                    {buying === c.slug ? <Spinner /> : 'Acheter'}
-                  </button>
+                  <a href={`/capsules/${c.slug}`} className={CTA}>Voir et acheter</a>
                   <a href={`/capsule/${c.slug}`} className="inline-flex items-center text-sm underline">Détails</a>
                 </div>
               </div>
@@ -116,9 +115,7 @@ export default function ParentLandingPage() {
                 <p className="mt-1 text-slate-300">
                   {new Intl.DateTimeFormat('fr-CA', { timeZone: 'America/Toronto', dateStyle: 'full', timeStyle: 'short' }).format(new Date(b.starts_at))} · {money(b.price_cad)} CAD
                 </p>
-                <button type="button" disabled={buying === b.id} onClick={() => buy({ kind: 'bootcamp', id: b.id }, b.id)} className={`${CTA} mt-4`}>
-                  {buying === b.id ? <Spinner /> : 'Réserver ma place'}
-                </button>
+                <BuyBox label="Réserver ma place" busy={buying === b.id} onBuy={(c) => buy({ kind: 'bootcamp', id: b.id, ...c }, b.id)} />
               </div>
             ))}
           </div>

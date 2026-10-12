@@ -2,7 +2,8 @@
 // Le même contenu est pré-rendu côté serveur pour les robots (netlify/functions/seo.js).
 import { useEffect, useState } from 'react'
 import { bootcampCall } from '../lib/bootcampApi'
-import { CARD, CTA, LegalLinks, Notice, PageShell, Spinner } from '../components/bootcamp/BootcampUI'
+import BuyBox from '../components/BuyBox'
+import { CARD, LegalLinks, Notice, PageShell, Spinner } from '../components/bootcamp/BootcampUI'
 
 export default function CapsuleFichePage() {
   const slug = decodeURIComponent(window.location.pathname.split('/')[2] || '')
@@ -16,10 +17,10 @@ export default function CapsuleFichePage() {
       .catch((e) => setError(e.message))
   }, [slug])
 
-  async function buy() {
+  async function buy(consents) {
     setBusy(true)
     try {
-      const { url } = await bootcampCall('capsule-checkout', { kind: 'capsule', slug })
+      const { url } = await bootcampCall('capsule-checkout', { kind: 'capsule', slug, ...consents })
       window.location.href = url
     } catch (e) {
       setError(e.message)
@@ -41,7 +42,7 @@ export default function CapsuleFichePage() {
           <div className={`${CARD} mt-6 p-6`}>
             <p className="text-lg font-semibold text-slate-50">Regarde-la autant de fois que tu veux, à vie.</p>
             <p className="mt-2 text-3xl font-bold text-slate-50">{(cap.price_cad / 100).toFixed(0)} $ <span className="text-sm font-normal text-slate-400">CAD, paiement unique</span></p>
-            <button type="button" onClick={buy} disabled={busy} className={`${CTA} mt-4`}>{busy ? <Spinner /> : 'Acheter la capsule'}</button>
+            <BuyBox label="Acheter la capsule" busy={busy} onBuy={buy} />
             <p className="mt-3 text-sm text-slate-400">Voir la <a className="underline" href="/legal/refunds">politique de remboursement</a>. Déjà acheté ? <a className="underline" href="/connexion">Mes capsules</a></p>
           </div>
         </>

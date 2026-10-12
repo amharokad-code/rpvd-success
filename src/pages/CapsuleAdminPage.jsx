@@ -4,7 +4,8 @@ import { supabase } from '../lib/supabase'
 import { bootcampCall } from '../lib/bootcampApi'
 import { CARD, CTA, INPUT, Notice, Spinner } from '../components/bootcamp/BootcampUI'
 
-const EMPTY_CAP = { description: '', cover_url: '', slug: '', title: '', type: 'exam', subject_area: '', topic: '', level: '', duration_min: '' }
+const EMPTY_SEG = { ordre: 1, titre: '', video_id: '', duree_sec: 360, exercice_enonce: '', exercice_correction_rpvd: '' }
+const EMPTY_CAP = { date_examen: '', description: '', cover_url: '', slug: '', title: '', type: 'exam', subject_area: '', topic: '', level: '', duration_min: '' }
 const EMPTY_BC = { title: '', topic: '', starts_at: '', capacity: 20, meeting_url: '', chat_url: '' }
 
 export default function CapsuleAdminPage() {
@@ -16,6 +17,9 @@ export default function CapsuleAdminPage() {
   const [cap, setCap] = useState(EMPTY_CAP)
   const [files, setFiles] = useState({ video: null, vtt: null })
   const [bc, setBc] = useState(EMPTY_BC)
+  const [seg, setSeg] = useState(EMPTY_SEG)
+  const [segs, setSegs] = useState([])
+  const [metrics, setMetrics] = useState(null)
 
   useEffect(() => {
     document.title = 'Admin — RPVD'
@@ -74,6 +78,32 @@ export default function CapsuleAdminPage() {
     }
   }
 
+  async function loadSegments(slug) {
+    if (!slug) return
+    const d = await call({ action: 'list_segments', capsule_slug: slug }).catch(() => ({ segments: [] }))
+    setSegs(d.segments)
+  }
+
+  async function saveSegment(e) {
+    e.preventDefault()
+    try {
+      await call({ action: 'save_segment', capsule_slug: cap.slug, ...seg, ordre: Number(seg.ordre), duree_sec: Number(seg.duree_sec) })
+      setMsg({ tone: 'ok', text: 'Segment enregistré.' })
+      setSeg({ ...EMPTY_SEG, ordre: Number(seg.ordre) + 1 })
+      loadSegments(cap.slug)
+    } catch (err) {
+      setMsg({ tone: 'error', text: err.message })
+    }
+  }
+
+  async function loadMetrics() {
+    try {
+      setMetrics((await call({ action: 'metrics' })).metrics)
+    } catch (err) {
+      setMsg({ tone: 'error', text: err.message })
+    }
+  }
+
   async function createBootcamp(e) {
     e.preventDefault()
     try {
@@ -126,6 +156,7 @@ export default function CapsuleAdminPage() {
             <input className={INPUT} placeholder="Sujet (même libellé que les demandes)" {...bind(cap, setCap, 'topic')} />
             <input className={INPUT} placeholder="Niveau" {...bind(cap, setCap, 'level')} />
             <input className={INPUT} type="number" placeholder="Durée (min)" {...bind(cap, setCap, 'duration_min')} />
+            <label className="text-sm sm:col-span-2">Date d’examen de l’école (vraie date; facultatif)<input type="date" className={`${INPUT} mt-1`} value={cap.date_examen || ''} onChange={(e) => setCap((o) => ({ ...o, date_examen: e.target.value }))} /></label>
             <textarea className={`${INPUT} sm:col-span-2`} rows={3} maxLength={1200} placeholder="Description publique (texte; jamais la démarche)" value={cap.description || ''} onChange={(e) => setCap((o) => ({ ...o, description: e.target.value }))} />
             <label className="text-sm sm:col-span-2">Image de couverture (.jpg / .png){cap.cover_url ? ' — actuelle conservée si vide' : ''}<input type="file" accept="image/jpeg,image/png" className="mt-1 block" onChange={(e) => setFiles((f) => ({ ...f, cover: e.target.files[0] }))} /></label>
             <input className={INPUT} placeholder="ID VdoCipher (recommandé, DRM + filigrane)" value={cap.vdo || ''} onChange={(e) => setCap((o) => ({ ...o, vdo: e.target.value.trim() }))} />
@@ -140,10 +171,42 @@ export default function CapsuleAdminPage() {
             <ul className="text-sm text-slate-300 sm:col-span-2">
               {data.capsules.map((c) => (
                 <li key={c.id}>
-                  <button type="button" className="underline" onClick={() => setCap({ ...EMPTY_CAP, ...c, duration_min: '' })}>{c.slug}</button> — {c.title} — {c.published ? 'publiée' : 'brouillon'}
+                  <button type="button" className="underline" onClick={() => { setCap({ ...EMPTY_CAP, ...c, duration_min: '' }); loadSegments(c.slug) }}>{c.slug}</button> — {c.title} — {c.published ? 'publiée' : 'brouillon'}
                 </li>
               ))}
             </ul>
+          </section>
+
+          <form onSubmit={saveSegment} className={`${CARD} grid gap-3 p-5 sm:grid-cols-2`}>
+            <h2 className="font-display text-xl font-bold sm:col-span-2">Segments de « {cap.slug || 'choisis une capsule ci-dessus'} » (5 à 8 min, un seul type de numéro)</h2>
+            <input className={INPUT} type="number" min="1" required placeholder="Ordre (1 = Commence ici)" value={seg.ordre} onChange={(e) => setSeg({ ...seg, ordre: e.target.value })} />
+            <input className={INPUT} required placeholder="Titre du segment" value={seg.titre} onChange={(e) => setSeg({ ...seg, titre: e.target.value })} />
+            <input className={INPUT} required placeholder="ID VdoCipher de ce segment" value={seg.video_id} onChange={(e) => setSeg({ ...seg, video_id: e.target.value })} />
+            <input className={INPUT} type="number" min="30" required placeholder="Durée en secondes" value={seg.duree_sec} onChange={(e) => setSeg({ ...seg, duree_sec: e.target.value })} />
+            <textarea className={`${INPUT} sm:col-span-2`} rows={3} placeholder="Mini-exercice (un numéro)" value={seg.exercice_enonce} onChange={(e) => setSeg({ ...seg, exercice_enonce: e.target.value })} />
+            <textarea className={`${INPUT} sm:col-span-2`} rows={4} placeholder="Correction au format RPVD" value={seg.exercice_correction_rpvd} onChange={(e) => setSeg({ ...seg, exercice_correction_rpvd: e.target.value })} />
+            <button className={`${CTA} sm:col-span-2`} disabled={!cap.slug}>Enregistrer le segment</button>
+            <ul className="text-sm text-slate-300 sm:col-span-2">
+              {segs.map((s) => <li key={s.id}><button type="button" className="underline" onClick={() => setSeg({ ordre: s.ordre, titre: s.titre, video_id: s.video_id.replace(/^vdo:/, ''), duree_sec: s.duree_sec, exercice_enonce: s.exercice_enonce || '', exercice_correction_rpvd: s.exercice_correction_rpvd || '' })}>{s.ordre}. {s.titre}</button> ({s.duree_sec} s)</li>)}
+            </ul>
+          </form>
+
+          <section className={`${CARD} p-5`}>
+            <h2 className="font-display text-xl font-bold">Mesures d’engagement</h2>
+            <button type="button" className={`${CTA} mt-3`} onClick={loadMetrics}>Calculer</button>
+            {metrics && metrics.length === 0 && <p className="mt-3 text-sm text-slate-400">Aucune capsule avec segments et achats pour l’instant.</p>}
+            {metrics && metrics.length > 0 && (
+              <table className="mt-3 w-full text-left text-sm">
+                <thead><tr className="text-slate-400"><th>Capsule</th><th>Achats</th><th>Départ ≤ 24 h</th><th>Complétion</th><th>Décroche au seg.</th><th>Exercices tentés</th></tr></thead>
+                <tbody>
+                  {metrics.map((m) => (
+                    <tr key={m.slug} className="border-t border-white/10">
+                      <td className="py-2">{m.title}</td><td>{m.purchases}</td><td>{m.start_24h_pct ?? '—'} %</td><td>{m.completion_pct ?? '—'} %</td><td>{m.drop_off_segment ?? '—'}</td><td>{m.exercises_tried_pct ?? '—'} %</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </section>
 
           <section className={`${CARD} p-5`}>

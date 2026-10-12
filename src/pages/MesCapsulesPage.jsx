@@ -46,6 +46,7 @@ export default function MesCapsulesPage() {
               <div className="p-5">
                 <p className="text-xs uppercase tracking-widest text-slate-400">{c.level} · {c.subject_area}</p>
                 <h2 className="mt-1 font-display text-xl font-bold text-slate-50">{c.title}</h2>
+                {c.segments_total > 0 && <p className="mt-1 text-sm text-slate-300">{c.segments_completed} segment{c.segments_completed > 1 ? 's' : ''} sur {c.segments_total} terminé{c.segments_completed > 1 ? 's' : ''}</p>}
                 <p className="mt-1 text-sm text-slate-400">Revoir avant l’examen</p>
                 <a href={`/capsule/${c.slug}`} className={`${CTA} mt-4`}>Regarder</a>
               </div>
@@ -54,7 +55,7 @@ export default function MesCapsulesPage() {
           {list.length === 0 && !error && <p className="text-slate-300">Aucune capsule achetée avec ce courriel. <a className="underline" href="/capsules">Voir les capsules</a></p>}
         </div>
       )}
-      <p className="mt-8 text-sm"><a className="underline" href="/capsules">Autres capsules</a></p>
+      <p className="mt-8 text-sm"><a className="underline" href="/capsules">Autres capsules</a> · <a className="underline" href="/suivi">Suivi (parent)</a></p>
     </PageShell>
   )
 }

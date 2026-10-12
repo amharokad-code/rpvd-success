@@ -31,6 +31,7 @@ RPVD (« nous ») est exploité par ${BUSINESS.operator}, ${BUSINESS.city}. Notr
 ## Capsules vidéo RPVD : ce qu'on collecte et pourquoi
 - Demande de capsule : ton prénom, ton courriel, le prénom de ton enfant (facultatif), le niveau, la matière, le sujet, la date de l'examen (facultative) et ta case de consentement. Pour produire les capsules demandées et t'écrire (capsule prête, rappel avant l'examen, suivi). Tu te désabonnes en un clic dans chaque courriel.
 - Achat : ton courriel, le produit, le montant et les références Stripe. Pour te livrer ton accès et tenir nos comptes.
+- Suivi pédagogique : pour chaque segment vidéo, le temps visionné, la complétion (90 % vu) et si l'exercice a été tenté. Ces données concernent souvent un mineur : elles servent uniquement à l'aider à terminer la capsule et à informer le parent qui a acheté. Aucune donnée publicitaire n'est collectée sur les pages vidéo ni de suivi. Le parent ou tuteur atteste son rôle à l'achat (obligatoire avant l'accès). Les courriels de suivi au parent (progression, rappel avant l'examen) n'existent que si la case facultative est cochée, avec lien de désabonnement dans chaque courriel.
 - Visionnement protégé : ton courriel et la date du jour s'affichent en filigrane, en mouvement, sur la vidéo, pour décourager le partage. Le lecteur est fourni par VdoCipher, qui reçoit un jeton de lecture, pas ton dossier.
 
 ## Bootcamp RPVD : ce qu'on collecte et pourquoi
@@ -135,6 +136,7 @@ RPVD ("we") is operated by ${BUSINESS.operator}, ${BUSINESS.city}. Our rule is s
 ## RPVD video capsules: what we collect and why
 - Capsule request: your first name, email, your child's first name (optional), grade, subject, topic, exam date (optional) and your consent tick. To produce the capsules requested and email you (capsule ready, reminder before the exam, follow-up). You unsubscribe in one click from every email.
 - Purchase: your email, the product, the amount and Stripe references. To deliver your access and keep our accounts.
+- Learning follow-up: for each video segment, watch time, completion (90% watched) and whether the exercise was attempted. This often concerns a minor: it is used only to help them finish the capsule and to inform the parent who bought it. No advertising data is collected on video or follow-up pages. The parent or guardian confirms their role at purchase (required before access). Follow-up emails to the parent (progress, pre-exam reminder) exist only if the optional box is ticked, with an unsubscribe link in every email.
 - Protected viewing: your email and today's date are shown as a moving watermark over the video, to discourage sharing. The player is provided by VdoCipher, which receives a playback token, not your file.
 
 ## RPVD Bootcamp: what we collect and why
