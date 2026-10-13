@@ -1,6 +1,29 @@
 # RPVD Success — État du projet (résumé de transfert)
 
-Dernière mise à jour : 2026-10-05 (fin de journée)
+Dernière mise à jour : 2026-10-13 (pivot capsules : voir §-4)
+
+## -4. ⚠️ PIVOT CAPSULES POUR PARENTS (2026-10-12/13, prioritaire sur tout ce qui suit)
+
+Le business vend maintenant des **capsules vidéo RPVD aux parents** (client = parent, message = tranquillité d'esprit ; l'élève voit des résultats par la méthode, sans promesse de notes). La PWA devient un bonus de fidélisation. Concept **gelé jusqu'au 1er janvier 2027**. Trois produits, CAD, paiement unique : Capsule Concept 24 $, Capsule Examen 29 $ (phare, + essai PWA 30 jours), Bootcamp en direct 99 $ (25 places max, + essai PWA).
+
+**Deux briefings à donner à Claude (à jour au 2026-10-13) :**
+- `docs/BRIEFING_TECHNIQUE.md` : business, stack, tout ce qui est construit, modèle de données, limites non vérifiées, ce que l'utilisateur doit faire, prochaines étapes.
+- `docs/BRIEFING_MARKETING.md` : positionnement (tranquillité parent, résultats élève), règles non négociables (aucune fausse urgence ni promesse de notes, LPC, LCAP, Loi 25, éthique Halal), parcours sondage + magasin, canaux (organique, Meta, cold call et cold email B2B vers les établissements, réseau chaud E.M.A.), objections, livrables.
+Les documents de `campagne/` et `call-playbook.js` datent de l'ancien Bootcamp à 20 $ : à réorienter vers les capsules.
+
+**État (branche `claude/task-hfqwss`, commits non poussés, RIEN déployé, jamais testé en conditions réelles) :** code écrit, `npm run build` et 102 tests verts, `npm run audit:dist` propre, `npm audit` à 0. Construit : landing parents `/`, sondage multi-étapes, mini magasin `/capsules`, fiches publiques pré-rendues `/capsules/:slug` (JSON-LD), `robots.txt`/`llms.txt`/sitemap dynamique (`seo.js`), achat Stripe CAD avec attestation parentale (Loi 25) et consentement courriels facultatif (LCAP), webhook (commande, code PWA, lien magique, révocation sur litige/remboursement), VdoCipher (DRM, filigrane courriel + date), `/connexion` + `/mes-capsules` (accès à vie, 2 appareils), parcours par segments (« Commence ici », exercice + correction RPVD, complété à 90 %, compte à rebours vers la vraie date d'examen, plan suggéré), `/suivi` (parent, lecture seule), courriels quotidiens (`capsule-cron`, `engagement-cron`), `/admin` (ADMIN_EMAILS, segments, mesures). Détail : `README.md` et `docs/BRIEFING_TECHNIQUE.md`.
+
+**Nouvelles tables (à rejouer dans Supabase : `supabase_schema.sql`) :** `capsule_requests`, `capsules`, `capsule_segments`, `orders`, `watch_progress`, `bootcamps` (≤ 25), `email_events`, `engagement_events`, `email_optouts`, `capsule_devices`, vue `capsule_demand`, buckets `capsules` (privé) et `capsule-covers` (public).
+
+**Nouvelles variables d'environnement :** `ADMIN_EMAILS`, `VDOCIPHER_API_SECRET`, `TURNSTILE_SECRET_KEY`, `VITE_TURNSTILE_SITE_KEY`, `VITE_DEMO_VIDEO_URL`, `CAPSULE_J1_ENABLED` (facultative).
+
+**En attente / bloquant (utilisateur) :**
+1. Rotation des clés exposées (Supabase `service_role`, Gemini, Stripe secrète + secret de webhook, jeton Netlify) et 2FA sur Stripe, Supabase, Netlify, Google, VdoCipher, GitHub, Resend ; SPF/DKIM/DMARC ; sauvegardes Supabase ; session 90 jours ; redirect `/mes-capsules` dans Supabase Auth. Webhook Stripe : ajouter `charge.dispute.created` et `charge.refunded` ; désactiver la destination parasite (fonction Supabase Edge, 100 % d'erreur).
+2. Tarification de lancement **non confirmée** : Concept 24 $ puis 37 $, Examen 37 $ puis 50 $ (le code facture aujourd'hui 24 $ / 29 $), fin 2027-01-01T00:00:00-05:00, sans prix barré ni compte à rebours. Il faut aussi trancher « taxes incluses » ou « + taxes ». Étape 1 du cahier faite (repérage des prix : `_lib/capsules.js`, `capsule-checkout.js`, pages landing/fiche/magasin/sondage/admin, `seo.js`, `llms.txt`) ; rien modifié. Plan : `src/config/pricing.js` + copie serveur, prix actif choisi au checkout via `price_data`, aucun produit Stripe créé.
+3. Contenu : vidéo démo 3-5 min, 1re capsule Examen SN4 (segments dans VdoCipher, sous-titres), gabarit de couverture Canva, textes finaux de la landing (brouillons), liste des 30 premiers parents (réseau E.M.A.), politique de remboursement des capsules (la page actuelle ne couvre que l'ancien Bootcamp 20 $), `postalAddress`, détails du bootcamp (dates, capacité, outil live, groupe de clavardage).
+4. Déploiement : confirmer le BON site Netlify (le cahier citait `rpvd-success-v2`, bloqué selon §3 ; le site actif est `rpvdsuccess.netlify.app`), puis test réel complet (achat 4242 → segment 1 → exercice → courriel parent).
+
+**Limites non vérifiées :** API `VdoPlayer` et sous-titres automatiques VdoCipher non validés avec la doc actuelle ; filigrane fixe = texte « RPVD », pas un logo ; compteur « X parents l'ont demandée » jamais vu à l'écran ; liens magiques parfois consommés par les scanners de courriel (`/connexion` en renvoie un nouveau) ; un remboursement ne révoque pas le code PWA déjà envoyé ; aucune capture d'écran ne peut être bloquée totalement sur le web.
 
 ## -3. ABONNEMENTS MENSUELS (2026-10-07, prioritaire sur §0)
 Basic et Pro sont maintenant **mensuels** (plus tous les 3 mois). Price ID Stripe : Basic `price_1UO34bAJoPaz3YerVcSe3bSu` (CAD 9 / EUR 6 / GBP 5 / USD 6,50), Pro `price_1UO32WAJoPaz3Yer0GBAYOfX` (CAD 18 / EUR 4 / GBP 3,50 / USD 4,50 : **montants non-CAD de Pro à vérifier dans Stripe, plus bas que Basic**). Code : `_lib/codes.js` (priceId, amounts, `SUBSCRIPTION_DURATION_DAYS = 30`), `src/lib/pricing.js` (miroir, `PLAN_DURATION_MONTHS = 1`), textes `src/i18n/copy.js`, `src/legal/content.js`, courriels d'abonnement. Crédits par cycle inchangés (50 / 120, maintenant par mois). Aucune variable Netlify à changer (Price ID dans le code).
