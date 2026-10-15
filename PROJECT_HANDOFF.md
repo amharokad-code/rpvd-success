@@ -85,7 +85,7 @@ PWA éducative : l'élève prend une photo de son exercice, l'app (React + Gemin
 
 | Compte | Site | Statut |
 |---|---|---|
-| `amharokad@gmail.com` | `incandescent-hamster-05d62b.netlify.app` | ❌ Bloqué (ancien) |
+| (ancien compte Netlify, courriel retiré) | `incandescent-hamster-05d62b.netlify.app` | ❌ Bloqué (ancien) |
 | `rpvdsuccess@gmail.com` | `rpvd-success-v2.netlify.app` | ❌ Bloqué (« Account credit usage exceeded ») |
 | `badamhton@gmail.com` | **`rpvdsuccess.netlify.app`** | ✅ **Site actuellement en ligne, à utiliser** |
 
