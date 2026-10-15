@@ -69,8 +69,8 @@ export default function ParentLandingPage() {
       <header className="grid items-start gap-8 pt-4 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 lg:pt-10">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-pyramid-orange">Pour les parents</p>
-          <h1 className="mt-3 font-display text-4xl font-bold leading-[1.05] text-slate-50 sm:text-5xl lg:text-6xl">
-            Ton enfant arrive à l’examen en sachant quoi faire. Toi, tu dors tranquille.
+          <h1 className="mt-3 font-display text-5xl font-bold leading-[1.02] text-slate-50 sm:text-6xl lg:text-7xl">
+            Il sait quoi faire. Tu dors tranquille.
           </h1>
           <p className="mt-5 max-w-xl text-lg text-slate-300">
             Des capsules vidéo sous-titrées : une même démarche pour tous les numéros d’un type d’examen. Seuls les chiffres changent.
