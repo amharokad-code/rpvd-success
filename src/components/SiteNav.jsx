@@ -27,7 +27,7 @@ export default function SiteNav({ current, className = '' }) {
             key={l.id}
             href={l.href}
             aria-current={active ? 'page' : undefined}
-            className={`focus-ring rounded-full px-3 py-2 text-sm font-semibold transition sm:px-4 ${
+            className={`focus-ring whitespace-nowrap rounded-full px-2 py-2 text-[13px] font-semibold transition sm:px-4 sm:text-sm ${
               active
                 ? 'bg-white/10 text-slate-50'
                 : isApp

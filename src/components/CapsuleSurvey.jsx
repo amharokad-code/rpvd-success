@@ -62,7 +62,7 @@ export default function CapsuleSurvey() {
     let widget
     const mount = () => {
       if (!window.turnstile || !captchaBox.current) return
-      widget = window.turnstile.render(captchaBox.current, { sitekey: TURNSTILE_KEY, callback: setCaptcha, 'expired-callback': () => setCaptcha('') })
+      widget = window.turnstile.render(captchaBox.current, { sitekey: TURNSTILE_KEY, appearance: 'interaction-only', callback: setCaptcha, 'expired-callback': () => setCaptcha('') })
     }
     if (window.turnstile) mount()
     else {

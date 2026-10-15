@@ -4,13 +4,8 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 import LegalPage from './pages/LegalPage'
 import LegalContactPage from './pages/LegalContactPage'
-import BootcampPage from './pages/BootcampPage'
-import AccueilPage from './pages/AccueilPage'
-import BootcampAdminPage from './pages/BootcampAdminPage'
 import BetaPage from './pages/BetaPage'
 import BetaAdminPage from './pages/BetaAdminPage'
-import ReserverPage from './pages/ReserverPage'
-import MerciPage from './pages/MerciPage'
 import RembourserPage from './pages/RembourserPage'
 import DesabonnerPage from './pages/DesabonnerPage'
 import ParentLandingPage from './pages/ParentLandingPage'
@@ -33,10 +28,9 @@ initAds()
 
 // Routage minimal (pas de react-router) :
 //   /          landing parents : capsules vidéo RPVD (pivot 2026-10-12) ; /capsule/:slug ; /admin
-//   /vote      lien court des pubs → Bootcamp, formulaire de vote
-//   /reserver  ?s=<session> → Stripe Checkout ; /merci après paiement ; /rembourser ?t=<jeton> ; /desabonner ?v= ou ?b=
-//   /accueil   présentation de la méthode (ancienne landing)
-//   /admin/bootcamp  décompte des votes + envoi des courriels (jeton requis)
+//   /capsules, /capsules/:slug, /connexion, /mes-capsules, /capsule/:slug, /suivi, /demo, /admin
+//   /rembourser ?t=<jeton> (billets de l'ancien Bootcamp) ; /desabonner ?v= ?b= ?c= ?o=
+//   (anciennes pages /bootcamp /vote /reserver /merci /accueil /admin/bootcamp : redirigées vers /)
 //   /beta      bêta fermée : votes des testeurs (compte is_beta)
 //   /app       l'outil d'analyse (connexion par lien magique, puis tableau de bord)
 //   /legal/*   pages statiques indépendantes
@@ -87,17 +81,13 @@ function pickRoute() {
   if (path.startsWith('/capsule/')) return <CapsulePage />
   if (path === '/merci-capsule') return <MerciCapsule />
   if (path === '/admin' || path === '/admin/capsules') return <CapsuleAdminPage />
-  if (path === '/bootcamp' || path === '/vote') return <BootcampPage />
-  if (path === '/reserver') return <ReserverPage />
-  if (path === '/merci') return <MerciPage />
   if (path === '/rembourser') return <RembourserPage />
   if (path === '/desabonner') return <DesabonnerPage />
-  if (path === '/accueil') {
-    // Ancienne présentation (Bootcamp à 20 $) : l'accueil, c'est maintenant « / ».
+  // Anciennes pages du Bootcamp hebdomadaire (retirées au pivot capsules) : les vieux liens mènent à l'accueil.
+  if (['/accueil', '/bootcamp', '/vote', '/reserver', '/merci', '/admin/bootcamp'].includes(path)) {
     window.location.replace('/')
     return null
   }
-  if (path === '/admin/bootcamp') return <BootcampAdminPage />
   if (path === '/beta') return <BetaPage />
   if (path === '/admin/beta') return <BetaAdminPage />
   if (path === '/admin/insights') return <AdminInsightsPage />

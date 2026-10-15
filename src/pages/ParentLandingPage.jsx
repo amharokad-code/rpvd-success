@@ -66,24 +66,24 @@ export default function ParentLandingPage() {
   return (
     <PageShell current="" width="max-w-6xl">
       {/* Premier écran : promesse + sondage (la démo gratuite) */}
-      <header className="grid items-start gap-8 pt-4 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 lg:pt-10">
+      <header className="grid items-start gap-6 pt-0 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 lg:pt-10">
         <div>
           <p className="text-xs font-bold uppercase tracking-widest text-pyramid-orange">Pour les parents</p>
-          <h1 className="mt-3 font-display text-5xl font-bold leading-[1.02] text-slate-50 sm:text-6xl lg:text-7xl">
+          <h1 className="mt-3 font-display text-4xl font-bold leading-[1.04] text-slate-50 sm:text-6xl lg:text-7xl">
             Il sait quoi faire. Tu dors tranquille.
           </h1>
-          <p className="mt-5 max-w-xl text-lg text-slate-300">
+          <p className="mt-4 max-w-xl text-base text-slate-300 sm:mt-5 sm:text-lg">
             Des capsules vidéo sous-titrées : une même démarche pour tous les numéros d’un type d’examen. Seuls les chiffres changent.
           </p>
-          <ul className="mt-6 space-y-2 text-slate-200">
+          <ul className="mt-6 hidden space-y-2 text-slate-200 sm:block">
             <li>✓ Démo gratuite en 30 secondes</li>
             <li>✓ Sous-titrée, à revoir à vie</li>
             <li>✓ Suivi de la progression pour le parent</li>
           </ul>
         </div>
         <section id="demande" className={`${CARD} scroll-mt-24 p-5 shadow-[0_24px_60px_-24px_rgba(60,40,20,0.35)] sm:p-6`} aria-label="Démo gratuite">
-          <p className="text-xs font-bold uppercase tracking-widest text-pyramid-orange">Démo gratuite</p>
-          <h2 className="mb-3 mt-1 font-display text-2xl font-bold text-slate-50">Reçois ta démo en 30 secondes</h2>
+          <p className="text-xs font-bold uppercase tracking-widest text-pyramid-orange">Démo gratuite · 30 secondes</p>
+          <h2 className="mb-3 mt-1 font-display text-2xl font-bold text-slate-50">Choisis ton sujet</h2>
           <CapsuleSurvey />
         </section>
       </header>
