@@ -13,9 +13,9 @@ export const PRICING = {
   bootcamp: { launchPrice: 9900, regularPrice: null },
 }
 
-// Mention des taxes (TPS/TVQ) affichée près du prix. À renseigner selon la configuration réelle (ex. « + taxes »
-// ou « taxes incluses ») : tant que c'est null, rien n'est affiché plutôt qu'une mention inexacte.
-export const TAX_NOTE = null
+// Mention près du prix. Aucune taxe n'est perçue pour l'instant (décision des fondateurs, 2026-10-15) : le prix affiché
+// est le prix payé. À changer si l'inscription aux taxes change (ex. « + taxes »).
+export const TAX_NOTE = 'Le prix affiché est le prix payé.'
 
 // Phrase unique pour les pages qui montrent plusieurs produits (affichée une seule fois, factuellement).
 export function launchSummary(now = new Date()) {

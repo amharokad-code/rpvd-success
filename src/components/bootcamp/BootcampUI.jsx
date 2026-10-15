@@ -92,9 +92,9 @@ export function Spinner() {
 export function LegalLinks() {
   return (
     <p className="mt-20 flex flex-wrap justify-center gap-x-1 text-center text-xs text-slate-500">
-      <a href="/" className="inline-block px-2 py-2.5 hover:underline">Bootcamp</a>
-      <a href="/accueil" className="inline-block px-2 py-2.5 hover:underline">Accueil</a>
-      <a href="/app" className="inline-block px-2 py-2.5 hover:underline">Analyser</a>
+      <a href="/" className="inline-block px-2 py-2.5 hover:underline">Accueil</a>
+      <a href="/capsules" className="inline-block px-2 py-2.5 hover:underline">Capsules</a>
+      <a href="/app" className="inline-block px-2 py-2.5 hover:underline">App RPVD</a>
       <a href="/legal/terms" className="inline-block px-2 py-2.5 hover:underline">Conditions</a>
       <a href="/legal/privacy" className="inline-block px-2 py-2.5 hover:underline">Confidentialité</a>
       <a href="/legal/refunds" className="inline-block px-2 py-2.5 hover:underline">Remboursements</a>

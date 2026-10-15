@@ -19,6 +19,7 @@ import CapsulesStorePage from './pages/CapsulesStorePage'
 import CapsuleFichePage from './pages/CapsuleFichePage'
 import MesCapsulesPage from './pages/MesCapsulesPage'
 import ConnexionPage from './pages/ConnexionPage'
+import DemoPage from './pages/DemoPage'
 import SuiviPage from './pages/SuiviPage'
 import CapsuleAdminPage from './pages/CapsuleAdminPage'
 import { initAds } from './utils/ads'
@@ -82,6 +83,7 @@ function pickRoute() {
   if (path === '/mes-capsules') return <MesCapsulesPage />
   if (path === '/connexion') return <ConnexionPage />
   if (path === '/suivi') return <SuiviPage />
+  if (path === '/demo') return <DemoPage />
   if (path.startsWith('/capsule/')) return <CapsulePage />
   if (path === '/merci-capsule') return <MerciCapsule />
   if (path === '/admin' || path === '/admin/capsules') return <CapsuleAdminPage />
@@ -90,7 +92,11 @@ function pickRoute() {
   if (path === '/merci') return <MerciPage />
   if (path === '/rembourser') return <RembourserPage />
   if (path === '/desabonner') return <DesabonnerPage />
-  if (path === '/accueil') return <AccueilPage />
+  if (path === '/accueil') {
+    // Ancienne présentation (Bootcamp à 20 $) : l'accueil, c'est maintenant « / ».
+    window.location.replace('/')
+    return null
+  }
   if (path === '/admin/bootcamp') return <BootcampAdminPage />
   if (path === '/beta') return <BetaPage />
   if (path === '/admin/beta') return <BetaAdminPage />

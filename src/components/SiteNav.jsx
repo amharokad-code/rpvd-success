@@ -1,12 +1,13 @@
-// Navigation globale entre les 3 pages du site : Bootcamp (page principale, "/"), Accueil
-// (présentation de la méthode, "/accueil") et Analyser (l'outil, "/app").
+// Navigation globale (pivot capsules) : Accueil (démo gratuite, "/"), Capsules (magasin), Mes capsules (connexion
+// de l'acheteur) et l'app RPVD (bonus de fidélisation, "/app").
 // Pilule flottante en verre, identique sur toutes les pages publiques.
 import Logo from './Logo'
 
 const LINKS = [
-  { id: 'bootcamp', href: '/', label: 'Bootcamp' },
-  { id: 'accueil', href: '/accueil', label: 'Accueil' },
-  { id: 'app', href: '/app', label: 'Analyser' },
+  { id: 'accueil', href: '/', label: 'Accueil' },
+  { id: 'capsules', href: '/capsules', label: 'Capsules' },
+  { id: 'mes', href: '/connexion', label: 'Mes capsules' },
+  { id: 'app', href: '/app', label: 'App' },
 ]
 
 export default function SiteNav({ current, className = '' }) {

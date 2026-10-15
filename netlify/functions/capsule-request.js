@@ -1,13 +1,29 @@
 'use strict';
-// POST /.netlify/functions/capsule-request : demande de capsule d'un parent.
-// LCAP : consent_email === true obligatoire (case non pré-cochée côté page). Aucun courriel sans cela.
+// POST /.netlify/functions/capsule-request : demande de capsule d'un parent (sondage ultra court).
+// Requis : courriel, consentement (LCAP, case non pré-cochée), matière, niveau, sujet. Tout le reste est facultatif.
+// Récompense : la démo gratuite (page /demo + courriel avec le lien, seulement si la démo est configurée).
+// Deuxième appel possible : { update_id, exam_date?, product_wanted? } pour compléter la demande après coup.
 
 const { HttpError, preflight, parseBody, json, getIp, sha256, handleError } = require('./_lib/http');
 const { getServiceClient } = require('./_lib/supabase');
 const { assertRateLimit } = require('./_lib/ratelimit');
-const { EMAIL_PATTERN, topicKey, clean } = require('./_lib/capsules');
+const { sendEmail, capsuleDemoEmail } = require('./_lib/email');
+const { unsubscribeHeaders, siteUrl } = require('./_lib/legal');
+const { EMAIL_PATTERN, UUID, topicKey, clean, unsubscribeLinksFor } = require('./_lib/capsules');
 
 const PRODUCTS = ['concept', 'exam', 'bootcamp'];
+const DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+async function verifyTurnstile(token, ip) {
+  if (!process.env.TURNSTILE_SECRET_KEY) return;
+  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ secret: process.env.TURNSTILE_SECRET_KEY, response: clean(token, 2048), remoteip: ip }),
+  });
+  const verdict = await res.json().catch(() => ({}));
+  if (!verdict.success) throw new HttpError(400, 'BAD_REQUEST', 'Vérification anti-robot échouée. Réessaie.');
+}
 
 exports.handler = async (event) => {
   const early = preflight(event);
@@ -15,49 +31,75 @@ exports.handler = async (event) => {
   try {
     const b = parseBody(event);
     if (clean(b.bot_field, 50)) return json(200, { ok: true }); // anti-bot
+    const db = getServiceClient();
+    const ip = getIp(event);
+    const demoReady = Boolean(process.env.VITE_DEMO_VIDEO_URL);
+
+    // Compléter une demande existante (date d'examen / produit), dans les 24 h suivant sa création.
+    if (b.update_id) {
+      if (!UUID.test(String(b.update_id))) throw new HttpError(400, 'BAD_REQUEST', 'Demande inconnue.');
+      await assertRateLimit(`capsule-update:ip:${sha256(ip)}`, 20, 3600);
+      const patch = {};
+      const examDate = clean(b.exam_date, 10);
+      if (examDate) {
+        if (!DATE.test(examDate)) throw new HttpError(400, 'BAD_REQUEST', "Date d'examen invalide.");
+        patch.exam_date = examDate;
+      }
+      if (b.product_wanted) {
+        if (!PRODUCTS.includes(b.product_wanted)) throw new HttpError(400, 'BAD_REQUEST', 'Produit invalide.');
+        patch.product_wanted = b.product_wanted;
+      }
+      if (Object.keys(patch).length) {
+        const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+        const { error } = await db.from('capsule_requests').update(patch).eq('id', b.update_id).gte('created_at', since);
+        if (error) throw error;
+      }
+      return json(200, { ok: true });
+    }
 
     const email = clean(b.email, 254).toLowerCase();
-    const parent = clean(b.parent_first_name, 80);
-    const child = clean(b.child_first_name, 80);
     const level = clean(b.level, 40);
     const subject = clean(b.subject_area, 60);
     const topic = clean(b.topic, 160);
-    const product = clean(b.product_wanted, 20) || 'exam';
-    const examDate = clean(b.exam_date, 10);
-
     if (!EMAIL_PATTERN.test(email)) throw new HttpError(400, 'BAD_REQUEST', 'Courriel invalide.');
-    if (b.consent_email !== true) throw new HttpError(400, 'BAD_REQUEST', 'Coche la case de consentement pour envoyer ta demande.');
-    if (!parent || !level || !subject || topic.length < 2) throw new HttpError(400, 'BAD_REQUEST', 'Remplis les champs obligatoires.');
-    if (!PRODUCTS.includes(product)) throw new HttpError(400, 'BAD_REQUEST', 'Produit invalide.');
-    if (examDate && !/^\d{4}-\d{2}-\d{2}$/.test(examDate)) throw new HttpError(400, 'BAD_REQUEST', "Date d'examen invalide.");
+    if (b.consent_email !== true) throw new HttpError(400, 'BAD_REQUEST', 'Coche la case pour recevoir ta démo.');
+    if (!level || !subject || topic.length < 2) throw new HttpError(400, 'BAD_REQUEST', 'Choisis la matière, le niveau et le sujet.');
 
-    await assertRateLimit(`capsule-request:ip:${sha256(getIp(event))}`, 10, 3600);
+    await assertRateLimit(`capsule-request:ip:${sha256(ip)}`, 10, 3600);
+    await verifyTurnstile(b.turnstile_token, ip);
 
-    // Cloudflare Turnstile : obligatoire dès que TURNSTILE_SECRET_KEY est configurée.
-    if (process.env.TURNSTILE_SECRET_KEY) {
-      const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ secret: process.env.TURNSTILE_SECRET_KEY, response: clean(b.turnstile_token, 2048), remoteip: getIp(event) }),
-      });
-      const verdict = await res.json().catch(() => ({}));
-      if (!verdict.success) throw new HttpError(400, 'BAD_REQUEST', 'Vérification anti-robot échouée. Réessaie.');
+    const key = topicKey(topic);
+    // Une famille ne compte qu'une fois par sujet (la règle « 3 demandes » reste honnête).
+    const { data: existing, error: lookupError } = await db.from('capsule_requests').select('id').eq('email', email).eq('topic_key', key).limit(1);
+    if (lookupError) throw lookupError;
+    let id = existing && existing[0] ? existing[0].id : null;
+
+    if (!id) {
+      const { data: row, error } = await db
+        .from('capsule_requests')
+        .insert({
+          parent_first_name: clean(b.parent_first_name, 80) || null,
+          email,
+          level,
+          subject_area: subject,
+          topic,
+          topic_key: key,
+          exam_date: DATE.test(clean(b.exam_date, 10)) ? clean(b.exam_date, 10) : null,
+          product_wanted: PRODUCTS.includes(b.product_wanted) ? b.product_wanted : 'exam',
+          consent_email: true,
+        })
+        .select('id')
+        .single();
+      if (error) throw error;
+      id = row.id;
+
+      // Démo gratuite par courriel (best-effort, jamais bloquant). Seulement si la démo existe.
+      if (demoReady) {
+        const links = unsubscribeLinksFor(id);
+        await sendEmail({ to: email, ...capsuleDemoEmail({ topic, url: `${siteUrl()}/demo`, unsubscribe: links }), headers: unsubscribeHeaders(links) });
+      }
     }
-
-    const { error } = await getServiceClient().from('capsule_requests').insert({
-      parent_first_name: parent,
-      email,
-      child_first_name: child || null,
-      level,
-      subject_area: subject,
-      topic,
-      topic_key: topicKey(topic),
-      exam_date: examDate || null,
-      product_wanted: product,
-      consent_email: true,
-    });
-    if (error) throw error;
-    return json(200, { ok: true });
+    return json(200, { ok: true, id, demo: demoReady });
   } catch (err) {
     return handleError(err, 'capsule-request');
   }

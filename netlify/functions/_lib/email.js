@@ -580,6 +580,22 @@ function engagementEmail(kind, { title, completed, total, url, bootcampUrl, plan
   });
 }
 
+function capsuleDemoEmail({ topic, url, unsubscribe }) {
+  return mk(
+    {
+      title: 'Ta démo gratuite est prête',
+      paragraphs: [
+        'Merci ! Voici la démo gratuite : en quelques minutes, tu vois comment la méthode RPVD fonctionne sur un vrai numéro.',
+        `On a bien noté ta demande pour « ${topic} ». Dès que trois familles demandent le même sujet, on tourne la capsule et on t'écrit.`,
+      ],
+      button: { label: 'Regarder la démo', url },
+      footer: 'Tu reçois ce courriel parce que tu as rempli le sondage sur rpvdsuccess.com.',
+      unsubscribe,
+    },
+    'Ta démo gratuite RPVD',
+  );
+}
+
 function loginLinkEmail({ url }) {
   return mk(
     { title: 'Ton lien de connexion', paragraphs: ['Clique pour ouvrir tes capsules. Ce lien ne fonctionne qu’une seule fois.'], button: { label: 'Ouvrir Mes capsules', url }, footer: 'Tu n’as rien demandé ? Ignore ce courriel.' },
@@ -619,6 +635,7 @@ function bootcampAccessEmail({ title, when, meetingUrl, chatUrl, pwaCode, appUrl
 }
 
 module.exports = {
+  capsuleDemoEmail,
   engagementEmail,
   loginLinkEmail,
   capsuleReadyEmail,

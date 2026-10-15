@@ -1,12 +1,15 @@
-// Sondage de demande de capsule : un écran par question, auto-avance au clic, barre de progression.
-// Courriel + prénom + consentement UNIQUEMENT à l'écran final. Sauvegarde locale à chaque étape ;
-// l'insertion dans capsule_requests se fait à la soumission finale (fonction capsule-request).
+// Sondage ULTRA court : 3 écrans, environ 3 touches + le courriel.
+//   1. matière + niveau (deux rangées de boutons, avance toute seule dès que les deux sont choisis)
+//   2. sujet (boutons selon la matière, ou « Autre » en texte libre ; avance au clic)
+//   3. courriel + case de consentement (LCAP, non cochée) → la démo gratuite s'affiche tout de suite
+// Pas de prénom, pas de date, pas de produit : ces détails sont facultatifs et viennent APRÈS (voir DemoReward).
+// Sauvegarde locale à chaque étape (sans courriel). Turnstile à l'écran final si la clé publique est configurée.
 import { useEffect, useRef, useState } from 'react'
 import { bootcampCall } from '../lib/bootcampApi'
-import { currentPrice, formatPrice } from '../config/pricing.mjs'
-import { CARD, CTA, INPUT, Notice, Spinner } from './bootcamp/BootcampUI'
+import { CTA, INPUT, Notice, Spinner } from './bootcamp/BootcampUI'
+import DemoReward from './DemoReward'
 
-const KEY = 'rpvd_capsule_survey_v1'
+const KEY = 'rpvd_capsule_survey_v2'
 const TURNSTILE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
 const SUBJECTS = ['Mathématiques', 'Science et technologie', 'Chimie', 'Physique', 'Français', 'Autre']
 const LEVELS = ['Secondaire 1', 'Secondaire 2', 'Secondaire 3', 'Secondaire 4', 'Secondaire 5', 'Cégep']
@@ -18,33 +21,44 @@ const TOPICS = {
   Français: ['Accord du participe passé', 'Analyse de texte', 'Rédaction'],
   Autre: [],
 }
-const PRODUCTS = [
-  ['concept', `Capsule Concept — ${formatPrice(currentPrice('concept'))}`],
-  ['exam', `Capsule Examen — ${formatPrice(currentPrice('exam'))} (recommandé)`],
-  ['bootcamp', `Bootcamp en direct — ${formatPrice(currentPrice('bootcamp'))}`],
-]
-const STEPS = ['subject_area', 'level', 'topic', 'exam_date', 'product_wanted', 'final']
-const EMPTY = { subject_area: '', level: '', topic: '', exam_date: '', product_wanted: '', parent_first_name: '', email: '', consent_email: false, bot_field: '' }
+const EMPTY = { subject_area: '', level: '', topic: '', email: '', consent_email: false, bot_field: '' }
+const STEPS = ['start', 'topic', 'email']
 
 function load() {
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) || 'null')
-    if (saved && typeof saved === 'object') return { answers: { ...EMPTY, ...saved.answers, consent_email: false }, step: Math.min(saved.step || 0, STEPS.length - 1) }
+    if (saved && typeof saved === 'object') return { answers: { ...EMPTY, ...saved.answers, email: '', consent_email: false }, step: STEPS.includes(saved.step) ? saved.step : 'start' }
   } catch { /* stockage indisponible */ }
-  return { answers: EMPTY, step: 0 }
+  return { answers: EMPTY, step: 'start' }
 }
 
-export default function CapsuleSurvey({ preselect }) {
+const Chip = ({ active, onClick, children }) => (
+  <button
+    type="button"
+    aria-pressed={active}
+    onClick={onClick}
+    className={`min-h-[48px] rounded-2xl border px-4 py-2 text-left text-base font-semibold transition ${active ? 'border-pyramid-orange bg-pyramid-orange/20 text-slate-50' : 'border-white/15 bg-white/[0.04] text-slate-100 hover:border-pyramid-orange/70'}`}
+  >
+    {children}
+  </button>
+)
+
+export default function CapsuleSurvey() {
   const [{ answers, step }, setState] = useState(load)
   const [other, setOther] = useState(false)
   const [status, setStatus] = useState('idle') // idle | busy | done
   const [error, setError] = useState(null)
   const [captcha, setCaptcha] = useState('')
+  const [requestId, setRequestId] = useState(null)
   const captchaBox = useRef(null)
 
-  // Cloudflare Turnstile (anti-robots), chargé seulement à l'écran final et si la clé publique est configurée.
   useEffect(() => {
-    if (!TURNSTILE_KEY || STEPS[step] !== 'final' || !captchaBox.current) return undefined
+    try { localStorage.setItem(KEY, JSON.stringify({ answers: { ...answers, email: '', consent_email: false }, step })) } catch { /* ignoré */ }
+  }, [answers, step])
+
+  // Cloudflare Turnstile : chargé seulement à l'écran du courriel, et seulement si la clé publique existe.
+  useEffect(() => {
+    if (!TURNSTILE_KEY || step !== 'email' || !captchaBox.current) return undefined
     let widget
     const mount = () => {
       if (!window.turnstile || !captchaBox.current) return
@@ -61,22 +75,24 @@ export default function CapsuleSurvey({ preselect }) {
     return () => { if (widget !== undefined && window.turnstile) window.turnstile.remove(widget) }
   }, [step])
 
-  useEffect(() => {
-    try { localStorage.setItem(KEY, JSON.stringify({ answers: { ...answers, email: '', consent_email: false }, step })) } catch { /* ignoré */ }
-  }, [answers, step])
-  useEffect(() => {
-    if (preselect) setState((s) => ({ ...s, answers: { ...s.answers, product_wanted: preselect } }))
-  }, [preselect])
+  const patch = (p, nextStep) => setState((s) => ({ answers: { ...s.answers, ...p }, step: nextStep || s.step }))
+  const go = (nextStep) => setState((s) => ({ ...s, step: nextStep }))
 
-  const answer = (patch, advance = true) => setState((s) => ({ answers: { ...s.answers, ...patch }, step: advance ? Math.min(s.step + 1, STEPS.length - 1) : s.step }))
-  const back = () => setState((s) => ({ ...s, step: Math.max(0, s.step - 1) }))
+  function pickStart(p) {
+    const next = { ...answers, ...p }
+    // Dès que matière ET niveau sont choisis, on passe au sujet (si la matière change, le sujet est remis à zéro).
+    const resetTopic = p.subject_area && p.subject_area !== answers.subject_area ? { topic: '' } : {}
+    setOther(false)
+    patch({ ...p, ...resetTopic }, next.subject_area && next.level ? 'topic' : 'start')
+  }
 
   async function submit(e) {
     e.preventDefault()
     setStatus('busy')
     setError(null)
     try {
-      await bootcampCall('capsule-request', { ...answers, product_wanted: answers.product_wanted || 'exam', turnstile_token: captcha })
+      const r = await bootcampCall('capsule-request', { ...answers, turnstile_token: captcha })
+      setRequestId(r.id || null)
       try { localStorage.removeItem(KEY) } catch { /* ignoré */ }
       setStatus('done')
     } catch (err) {
@@ -85,86 +101,66 @@ export default function CapsuleSurvey({ preselect }) {
     }
   }
 
-  const Btn = ({ children, onClick }) => (
-    <button type="button" onClick={onClick} className="min-h-[56px] rounded-2xl border border-white/15 bg-white/[0.04] px-5 py-3 text-left text-lg font-semibold text-slate-100 transition hover:border-pyramid-orange/70">
-      {children}
-    </button>
-  )
+  if (status === 'done') return <DemoReward requestId={requestId} topic={answers.topic} />
 
-  if (status === 'done') {
-    return <Notice tone="ok">Parfait, on prépare « {answers.topic} ». Tu recevras un courriel dès que la capsule est prête. Tu peux te désabonner en un clic dans chaque courriel.</Notice>
-  }
-
-  const current = STEPS[step]
+  const stepIndex = STEPS.indexOf(step) + 1
   const topics = TOPICS[answers.subject_area] || []
 
   return (
-    <div className={`${CARD} p-5 sm:p-6`}>
-      <div className="h-2 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-valuemin={0} aria-valuemax={STEPS.length} aria-valuenow={step + 1}>
-        <div className="h-full rounded-full bg-pyramid-orange transition-all" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
+    <div>
+      <div className="h-2 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-valuemin={0} aria-valuemax={3} aria-valuenow={stepIndex}>
+        <div className="h-full rounded-full bg-pyramid-orange transition-all" style={{ width: `${(stepIndex / 3) * 100}%` }} />
       </div>
-      {step > 0 && <button type="button" onClick={back} className="mt-3 text-sm text-slate-400 underline">← Retour</button>}
+      {step !== 'start' && (
+        <button type="button" onClick={() => go(step === 'email' ? 'topic' : 'start')} className="mt-3 text-sm text-slate-400 underline">← Retour</button>
+      )}
 
-      <div className="mt-4">
-        {current === 'subject_area' && (
-          <>
-            <h3 className="font-display text-2xl font-bold text-slate-50">En quelle matière ton enfant a-t-il besoin d’aide ?</h3>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">{SUBJECTS.map((s) => <Btn key={s} onClick={() => { setOther(false); answer({ subject_area: s, topic: '' }) }}>{s}</Btn>)}</div>
-          </>
-        )}
-        {current === 'level' && (
-          <>
-            <h3 className="font-display text-2xl font-bold text-slate-50">Quel est son niveau ?</h3>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">{LEVELS.map((l) => <Btn key={l} onClick={() => answer({ level: l })}>{l}</Btn>)}</div>
-          </>
-        )}
-        {current === 'topic' && (
-          <>
-            <h3 className="font-display text-2xl font-bold text-slate-50">Quel sujet ?</h3>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              {topics.map((t) => <Btn key={t} onClick={() => { setOther(false); answer({ topic: t }) }}>{t}</Btn>)}
-              <Btn onClick={() => setOther(true)}>Autre</Btn>
-            </div>
-            {(other || topics.length === 0) && (
-              <form className="mt-3 flex gap-3" onSubmit={(e) => { e.preventDefault(); if (answers.topic.trim().length >= 2) answer({}) }}>
-                <input className={INPUT} autoFocus placeholder="Écris le sujet" maxLength={160} value={answers.topic} onChange={(e) => answer({ topic: e.target.value }, false)} />
-                <button className={CTA} disabled={answers.topic.trim().length < 2}>OK</button>
-              </form>
-            )}
-          </>
-        )}
-        {current === 'exam_date' && (
-          <>
-            <h3 className="font-display text-2xl font-bold text-slate-50">Quand est le prochain examen ? <span className="text-base font-normal text-slate-400">(facultatif)</span></h3>
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <input type="date" className={`${INPUT} max-w-xs`} value={answers.exam_date} onChange={(e) => answer({ exam_date: e.target.value }, false)} />
-              <button type="button" className={CTA} onClick={() => answer({})}>Continuer</button>
-              <Btn onClick={() => answer({ exam_date: '' })}>Je ne sais pas</Btn>
-            </div>
-          </>
-        )}
-        {current === 'product_wanted' && (
-          <>
-            <h3 className="font-display text-2xl font-bold text-slate-50">Quelle capsule veux-tu ?</h3>
-            <div className="mt-4 grid gap-3">{PRODUCTS.map(([id, label]) => <Btn key={id} onClick={() => answer({ product_wanted: id })}>{label}</Btn>)}</div>
-          </>
-        )}
-        {current === 'final' && (
-          <form onSubmit={submit} className="grid gap-4">
-            <h3 className="font-display text-2xl font-bold text-slate-50">Parfait, on prépare « {answers.topic || 'ta capsule'} ». Où te l’envoie-t-on ?</h3>
-            <input className={INPUT} required placeholder="Ton prénom" maxLength={80} value={answers.parent_first_name} onChange={(e) => answer({ parent_first_name: e.target.value }, false)} />
-            <input className={INPUT} required type="email" placeholder="Ton courriel" maxLength={254} value={answers.email} onChange={(e) => answer({ email: e.target.value }, false)} />
-            <input tabIndex={-1} autoComplete="off" aria-hidden className="hidden" name="website" value={answers.bot_field} onChange={(e) => answer({ bot_field: e.target.value }, false)} />
-            <label className="flex items-start gap-3 text-sm text-slate-300">
-              <input type="checkbox" required checked={answers.consent_email} onChange={(e) => answer({ consent_email: e.target.checked }, false)} className="mt-1 h-5 w-5" />
-              <span>J’accepte de recevoir des courriels de RPVD au sujet de ma demande (capsule prête, rappel avant l’examen, suivi). Je peux me désabonner en tout temps. <a className="underline" href="/legal/privacy">Confidentialité</a></span>
-            </label>
-            {TURNSTILE_KEY && <div ref={captchaBox} />}
-            {error && <Notice tone="error">{error}</Notice>}
-            <button type="submit" disabled={status === 'busy' || (Boolean(TURNSTILE_KEY) && !captcha)} className={CTA}>{status === 'busy' ? <Spinner /> : 'Recevoir ma capsule'}</button>
-          </form>
-        )}
-      </div>
+      {step === 'start' && (
+        <div className="mt-4 space-y-4">
+          <div>
+            <p className="font-display text-xl font-bold text-slate-50">Quelle matière ?</p>
+            <div className="mt-2 grid grid-cols-2 gap-2">{SUBJECTS.map((s) => <Chip key={s} active={answers.subject_area === s} onClick={() => pickStart({ subject_area: s })}>{s}</Chip>)}</div>
+          </div>
+          <div>
+            <p className="font-display text-xl font-bold text-slate-50">Quel niveau ?</p>
+            <div className="mt-2 grid grid-cols-3 gap-2">{LEVELS.map((l) => <Chip key={l} active={answers.level === l} onClick={() => pickStart({ level: l })}>{l.replace('Secondaire ', 'Sec ')}</Chip>)}</div>
+          </div>
+        </div>
+      )}
+
+      {step === 'topic' && (
+        <div className="mt-4">
+          <p className="font-display text-xl font-bold text-slate-50">Quel sujet ?</p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {topics.map((t) => <Chip key={t} active={answers.topic === t} onClick={() => { setOther(false); patch({ topic: t }, 'email') }}>{t}</Chip>)}
+            <Chip active={other} onClick={() => setOther(true)}>Autre</Chip>
+          </div>
+          {(other || topics.length === 0) && (
+            <form className="mt-3 flex gap-3" onSubmit={(e) => { e.preventDefault(); if (answers.topic.trim().length >= 2) go('email') }}>
+              <input className={INPUT} autoFocus placeholder="Écris le sujet" maxLength={160} value={answers.topic} onChange={(e) => patch({ topic: e.target.value })} />
+              <button className={CTA} disabled={answers.topic.trim().length < 2}>OK</button>
+            </form>
+          )}
+        </div>
+      )}
+
+      {step === 'email' && (
+        <form onSubmit={submit} className="mt-4 grid gap-3">
+          <p className="font-display text-xl font-bold text-slate-50">Où t’envoie-t-on ta démo gratuite ?</p>
+          <p className="-mt-1 text-sm text-slate-400">Sujet : {answers.topic} · {answers.subject_area}, {answers.level}</p>
+          <input className={INPUT} required type="email" autoFocus autoComplete="email" inputMode="email" placeholder="Ton courriel" maxLength={254} value={answers.email} onChange={(e) => patch({ email: e.target.value })} />
+          <input tabIndex={-1} autoComplete="off" aria-hidden className="hidden" name="website" value={answers.bot_field} onChange={(e) => patch({ bot_field: e.target.value })} />
+          <label className="flex items-start gap-3 text-sm text-slate-300">
+            <input type="checkbox" required checked={answers.consent_email} onChange={(e) => patch({ consent_email: e.target.checked })} className="mt-1 h-5 w-5 shrink-0" />
+            <span>J’accepte de recevoir des courriels de RPVD au sujet de ma demande (démo, capsule prête). Je peux me désabonner en tout temps. <a className="underline" href="/legal/privacy">Confidentialité</a></span>
+          </label>
+          {TURNSTILE_KEY && <div ref={captchaBox} />}
+          {error && <Notice tone="error">{error}</Notice>}
+          <button type="submit" disabled={status === 'busy' || (Boolean(TURNSTILE_KEY) && !captcha)} className={CTA}>
+            {status === 'busy' ? <Spinner /> : 'Recevoir ma démo gratuite'}
+          </button>
+        </form>
+      )}
     </div>
   )
 }

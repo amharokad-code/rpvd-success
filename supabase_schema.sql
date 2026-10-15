@@ -1995,3 +1995,9 @@ alter table public.bootcamps add constraint bootcamps_capacity_max check (capaci
 
 -- Publier une capsule : video+sous-titres OU au moins un segment (verifie par la fonction admin).
 alter table public.capsules drop constraint if exists capsules_publish_needs_media;
+
+-- Sondage ultra court : le prenom du parent n'est plus demande (facultatif).
+alter table public.capsule_requests alter column parent_first_name drop not null;
+alter table public.capsule_requests drop constraint if exists capsule_requests_parent_first_name_check;
+alter table public.capsule_requests add constraint capsule_requests_parent_first_name_check
+  check (parent_first_name is null or char_length(parent_first_name) between 1 and 80);

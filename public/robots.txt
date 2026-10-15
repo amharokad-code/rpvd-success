@@ -4,6 +4,7 @@ Disallow: /admin
 Disallow: /capsule/
 Disallow: /mes-capsules
 Disallow: /connexion
+Disallow: /demo
 Disallow: /.netlify/
 
 User-agent: GPTBot
@@ -12,6 +13,7 @@ Disallow: /admin
 Disallow: /capsule/
 Disallow: /mes-capsules
 Disallow: /connexion
+Disallow: /demo
 
 User-agent: OAI-SearchBot
 Allow: /
@@ -19,6 +21,7 @@ Disallow: /admin
 Disallow: /capsule/
 Disallow: /mes-capsules
 Disallow: /connexion
+Disallow: /demo
 
 User-agent: ChatGPT-User
 Allow: /
@@ -26,6 +29,7 @@ Disallow: /admin
 Disallow: /capsule/
 Disallow: /mes-capsules
 Disallow: /connexion
+Disallow: /demo
 
 User-agent: ClaudeBot
 Allow: /
@@ -33,6 +37,7 @@ Disallow: /admin
 Disallow: /capsule/
 Disallow: /mes-capsules
 Disallow: /connexion
+Disallow: /demo
 
 User-agent: Claude-SearchBot
 Allow: /
@@ -40,6 +45,7 @@ Disallow: /admin
 Disallow: /capsule/
 Disallow: /mes-capsules
 Disallow: /connexion
+Disallow: /demo
 
 User-agent: PerplexityBot
 Allow: /
@@ -47,6 +53,7 @@ Disallow: /admin
 Disallow: /capsule/
 Disallow: /mes-capsules
 Disallow: /connexion
+Disallow: /demo
 
 User-agent: Google-Extended
 Allow: /
@@ -54,5 +61,6 @@ Disallow: /admin
 Disallow: /capsule/
 Disallow: /mes-capsules
 Disallow: /connexion
+Disallow: /demo
 
 Sitemap: https://rpvdsuccess.com/sitemap.xml
