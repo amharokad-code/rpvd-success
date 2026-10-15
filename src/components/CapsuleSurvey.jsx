@@ -10,7 +10,8 @@ import { CTA, INPUT, Notice, Spinner } from './bootcamp/BootcampUI'
 import DemoReward from './DemoReward'
 
 const KEY = 'rpvd_capsule_survey_v2'
-const TURNSTILE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY || ''
+// Nettoyé : une clé collée avec des chevrons ou des espaces reste valide.
+const TURNSTILE_KEY = String(import.meta.env.VITE_TURNSTILE_SITE_KEY || '').replace(/[^0-9A-Za-z_-]/g, '')
 const SUBJECTS = ['Mathématiques', 'Science et technologie', 'Chimie', 'Physique', 'Français', 'Autre']
 const LEVELS = ['Secondaire 1', 'Secondaire 2', 'Secondaire 3', 'Secondaire 4', 'Secondaire 5', 'Cégep']
 const TOPICS = {

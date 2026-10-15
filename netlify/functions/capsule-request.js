@@ -15,11 +15,12 @@ const PRODUCTS = ['concept', 'exam', 'bootcamp'];
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 async function verifyTurnstile(token, ip) {
-  if (!process.env.TURNSTILE_SECRET_KEY) return;
+  const turnstileSecret = String(process.env.TURNSTILE_SECRET_KEY || '').replace(/[^0-9A-Za-z_-]/g, '');
+  if (!turnstileSecret) return;
   const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ secret: process.env.TURNSTILE_SECRET_KEY, response: clean(token, 2048), remoteip: ip }),
+    body: new URLSearchParams({ secret: turnstileSecret, response: clean(token, 2048), remoteip: ip }),
   });
   const verdict = await res.json().catch(() => ({}));
   if (!verdict.success) throw new HttpError(400, 'BAD_REQUEST', 'Vérification anti-robot échouée. Réessaie.');
