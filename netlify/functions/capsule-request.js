@@ -99,7 +99,10 @@ exports.handler = async (event) => {
         await sendEmail({ to: email, ...capsuleDemoEmail({ topic, url: `${siteUrl()}/demo`, unsubscribe: links }), headers: unsubscribeHeaders(links) });
       }
     }
-    return json(200, { ok: true, id, demo: demoReady });
+    // Où en est ce sujet ? (honnête : « en préparation » seulement quand 3 familles l'ont demandé, ou déjà disponible)
+    const { count } = await db.from('capsule_requests').select('id', { count: 'exact', head: true }).eq('topic_key', key);
+    const { data: ready } = await db.from('capsules').select('slug').eq('topic_key', key).eq('published', true).limit(1);
+    return json(200, { ok: true, id, demo: demoReady, count: count || 1, needed: 3, ready_slug: ready && ready[0] ? ready[0].slug : null });
   } catch (err) {
     return handleError(err, 'capsule-request');
   }

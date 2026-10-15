@@ -50,6 +50,7 @@ export default function CapsuleSurvey() {
   const [error, setError] = useState(null)
   const [captcha, setCaptcha] = useState('')
   const [requestId, setRequestId] = useState(null)
+  const [info, setInfo] = useState(null)
   const captchaBox = useRef(null)
 
   useEffect(() => {
@@ -93,6 +94,7 @@ export default function CapsuleSurvey() {
     try {
       const r = await bootcampCall('capsule-request', { ...answers, turnstile_token: captcha })
       setRequestId(r.id || null)
+      setInfo({ count: r.count, needed: r.needed, readySlug: r.ready_slug })
       try { localStorage.removeItem(KEY) } catch { /* ignoré */ }
       setStatus('done')
     } catch (err) {
@@ -101,7 +103,7 @@ export default function CapsuleSurvey() {
     }
   }
 
-  if (status === 'done') return <DemoReward requestId={requestId} topic={answers.topic} />
+  if (status === 'done') return <DemoReward requestId={requestId} topic={answers.topic} info={info} />
 
   const stepIndex = STEPS.indexOf(step) + 1
   const topics = TOPICS[answers.subject_area] || []

@@ -6,7 +6,17 @@ import { CTA, INPUT, Notice } from './bootcamp/BootcampUI'
 
 const DEMO_VIDEO_URL = import.meta.env.VITE_DEMO_VIDEO_URL || ''
 
-export default function DemoReward({ requestId, topic }) {
+// Message honnête sur l'état de la capsule : « en préparation » seulement quand 3 familles l'ont demandée.
+function statusMessage(topic, info) {
+  if (!topic) return null
+  if (info && info.readySlug) return { text: `Bonne nouvelle : la capsule « ${topic} » est déjà disponible.`, href: `/capsules/${info.readySlug}`, link: 'La voir maintenant' }
+  if (info && info.count >= info.needed) return { text: `Ta capsule « ${topic} » est en préparation. On t’écrit dès qu’elle est prête.` }
+  if (info) return { text: `Ta demande « ${topic} » est notée : ${info.count} famille${info.count > 1 ? 's' : ''} sur ${info.needed}. On prépare la capsule dès que trois familles la demandent, et on t’écrit.` }
+  return { text: `Ta demande « ${topic} » est notée. On t’écrit dès que la capsule est prête.` }
+}
+
+export default function DemoReward({ requestId, topic, info }) {
+  const status = statusMessage(topic, info)
   const [date, setDate] = useState('')
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState(null)
@@ -27,7 +37,11 @@ export default function DemoReward({ requestId, topic }) {
       <div>
         <p className="text-xs font-bold uppercase tracking-widest text-pyramid-orange">C’est fait ✓</p>
         <h3 className="mt-1 font-display text-2xl font-bold text-slate-50">Voici ta démo gratuite</h3>
-        {topic && <p className="mt-1 text-slate-300">On a noté ta demande : « {topic} ». On t’écrit dès que la capsule est prête.</p>}
+        {status && (
+          <p className="mt-1 text-slate-300">
+            {status.text} {status.href && <a className="font-semibold underline" href={status.href}>{status.link}</a>}
+          </p>
+        )}
       </div>
       {DEMO_VIDEO_URL ? (
         <video controls preload="metadata" playsInline className="aspect-video w-full rounded-2xl bg-black" src={DEMO_VIDEO_URL} />
