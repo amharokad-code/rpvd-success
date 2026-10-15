@@ -7,6 +7,7 @@
 const { getServiceClient } = require('./_lib/supabase');
 const { siteUrl } = require('./_lib/legal');
 const { escapeHtml } = require('./_lib/email');
+const { pricing, priceFor } = require('./_lib/capsules');
 
 const money = (cents) => `${(cents / 100).toFixed(0)} $`;
 const e = escapeHtml;
@@ -71,11 +72,11 @@ exports.handler = async (event) => {
         teaches: cap.topic,
         ...(cap.cover_url ? { image: cap.cover_url } : {}),
         provider: { '@type': 'Organization', name: 'RPVD', url: base },
-        offers: { '@type': 'Offer', price: (cap.price_cad / 100).toFixed(2), priceCurrency: 'CAD', availability: 'https://schema.org/InStock', url },
+        offers: { '@type': 'Offer', price: (priceFor(cap.type) / 100).toFixed(2), priceCurrency: 'CAD', availability: 'https://schema.org/InStock', url, ...(pricing.isLaunchPeriod() && pricing.PRICING[cap.type].regularPrice != null ? { priceValidUntil: '2026-12-31' } : {}) },
       };
       const body = `<main style="max-width:720px;margin:0 auto;padding:24px;font-family:sans-serif"><nav><a href="/capsules">Capsules</a></nav>
 <h1>${e(cap.title)}</h1><p>${e(cap.level)} · ${e(cap.subject_area)}${cap.duration_min ? ` · ${cap.duration_min} min` : ''}</p>
-<p>${e(description)}</p><p><strong>${money(cap.price_cad)} CAD</strong>, paiement unique. Vidéo sous-titrée, accès à vie.</p></main>`;
+<p>${e(description)}</p><p><strong>${money(priceFor(cap.type))} CAD</strong>, paiement unique.${pricing.launchNotice(cap.type) ? ` ${e(pricing.launchNotice(cap.type))}.` : ''} Vidéo sous-titrée, accès à vie.</p></main>`;
       return page(200, layoutShell(html, { title: `${cap.title} — Capsule RPVD`, description, canonical: url, jsonld, body }));
     }
 
@@ -86,7 +87,7 @@ exports.handler = async (event) => {
 
     // /capsules : liste
     const { data: caps } = await db.from('capsules').select('slug,title,type,subject_area,level,price_cad').eq('published', true).order('published_at', { ascending: false });
-    const items = (caps || []).map((c) => `<li><a href="/capsules/${e(c.slug)}">${e(c.title)}</a> — ${e(c.level)}, ${e(c.subject_area)} — ${money(c.price_cad)} CAD</li>`).join('');
+    const items = (caps || []).map((c) => `<li><a href="/capsules/${e(c.slug)}">${e(c.title)}</a> — ${e(c.level)}, ${e(c.subject_area)} — ${money(priceFor(c.type))} CAD</li>`).join('');
     const body = `<main style="max-width:720px;margin:0 auto;padding:24px;font-family:sans-serif"><h1>Capsules RPVD</h1><p>Capsules vidéo sous-titrées pour réussir les examens de maths et de sciences (secondaire et cégep, Québec).</p><ul>${items}</ul><p><a href="/demande">Votre sujet n’y est pas ? Demandez-le.</a></p></main>`;
     return page(200, layoutShell(html, { title: 'Capsules RPVD — prêtes maintenant', description: 'Capsules vidéo sous-titrées qui enseignent une marche à suivre réutilisable pour les examens de maths et de sciences (Québec).', canonical: `${base}/capsules`, body }));
   } catch (err) {

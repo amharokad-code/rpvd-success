@@ -42,6 +42,8 @@ export default function CapsuleFichePage() {
           <div className={`${CARD} mt-6 p-6`}>
             <p className="text-lg font-semibold text-slate-50">Regarde-la autant de fois que tu veux, à vie.</p>
             <p className="mt-2 text-3xl font-bold text-slate-50">{(cap.price_cad / 100).toFixed(0)} $ <span className="text-sm font-normal text-slate-400">CAD, paiement unique</span></p>
+            {cap.launch_notice && <p className="mt-1 text-sm text-slate-300">{cap.launch_notice}</p>}
+            {cap.tax_note && <p className="text-sm text-slate-400">{cap.tax_note}</p>}
             <BuyBox label="Acheter la capsule" busy={busy} onBuy={buy} />
             <p className="mt-3 text-sm text-slate-400">Voir la <a className="underline" href="/legal/refunds">politique de remboursement</a>. Déjà acheté ? <a className="underline" href="/connexion">Mes capsules</a></p>
           </div>

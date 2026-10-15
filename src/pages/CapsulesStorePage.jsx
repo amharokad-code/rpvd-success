@@ -2,6 +2,7 @@
 // page de visionnage protégée que le reste). Examen mis en avant. Compteur de demandes = vrai chiffre.
 import { useEffect, useMemo, useState } from 'react'
 import { bootcampCall } from '../lib/bootcampApi'
+import { launchSummary } from '../config/pricing.mjs'
 import { CARD, CTA, LegalLinks, Notice, PageShell, Spinner } from '../components/bootcamp/BootcampUI'
 
 const ALL = 'Tous'
@@ -47,6 +48,7 @@ export default function CapsulesStorePage() {
     <PageShell current="" width="max-w-5xl">
       <h1 className="pt-6 font-display text-4xl font-bold text-slate-50">Capsules prêtes maintenant</h1>
       <p className="mt-2 text-slate-300">Paiement unique en dollars canadiens, accès par courriel juste après. <a className="underline" href="/legal/refunds">Politique de remboursement</a>.</p>
+      {launchSummary() && <p className="mt-1 text-slate-300">{launchSummary()}</p>}
       {error && <div className="mt-4"><Notice tone="error">{error}</Notice></div>}
       {!caps ? (
         <div className="mt-8"><Spinner /></div>

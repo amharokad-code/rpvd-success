@@ -3,6 +3,7 @@
 // l'insertion dans capsule_requests se fait à la soumission finale (fonction capsule-request).
 import { useEffect, useRef, useState } from 'react'
 import { bootcampCall } from '../lib/bootcampApi'
+import { currentPrice, formatPrice } from '../config/pricing.mjs'
 import { CARD, CTA, INPUT, Notice, Spinner } from './bootcamp/BootcampUI'
 
 const KEY = 'rpvd_capsule_survey_v1'
@@ -18,9 +19,9 @@ const TOPICS = {
   Autre: [],
 }
 const PRODUCTS = [
-  ['concept', 'Capsule Concept — 24 $'],
-  ['exam', 'Capsule Examen — 29 $ (recommandé)'],
-  ['bootcamp', 'Bootcamp en direct — 99 $'],
+  ['concept', `Capsule Concept — ${formatPrice(currentPrice('concept'))}`],
+  ['exam', `Capsule Examen — ${formatPrice(currentPrice('exam'))} (recommandé)`],
+  ['bootcamp', `Bootcamp en direct — ${formatPrice(currentPrice('bootcamp'))}`],
 ]
 const STEPS = ['subject_area', 'level', 'topic', 'exam_date', 'product_wanted', 'final']
 const EMPTY = { subject_area: '', level: '', topic: '', exam_date: '', product_wanted: '', parent_first_name: '', email: '', consent_email: false, bot_field: '' }

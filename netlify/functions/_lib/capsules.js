@@ -4,7 +4,9 @@
 const { siteUrl } = require('./legal');
 
 // Prix en cents CAD (paiement unique). Source unique côté serveur.
-const PRICES = { concept: 2400, exam: 2900, bootcamp: 9900 };
+// Les prix viennent d'un seul fichier (src/config/pricing.mjs) : prix de lancement puis prix régulier selon la date.
+const pricing = require('../../../src/config/pricing.mjs');
+const priceFor = (type) => pricing.currentPrice(type);
 const PWA_CODE_PRODUCTS = ['exam', 'bootcamp']; // produits qui incluent l'essai PWA 30 jours
 const PWA_TRIAL_DAYS = 30;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -62,11 +64,13 @@ function publicCapsule(c) {
     subject_area: c.subject_area,
     topic: c.topic,
     level: c.level,
-    price_cad: c.price_cad,
+    price_cad: priceFor(c.type), // prix actuel (lancement ou régulier), jamais la colonne de la base
+    launch_notice: pricing.launchNotice(c.type),
+    tax_note: pricing.TAX_NOTE,
     duration_min: c.duration_min,
     description: c.description || null,
     cover_url: c.cover_url || null,
   };
 }
 
-module.exports = { PRICES, PWA_CODE_PRODUCTS, PWA_TRIAL_DAYS, EMAIL_PATTERN, UUID, topicKey, clean, todayQuebec, daysUntil, formatDateFr, capsuleUrl, unsubscribeLinksFor, publicCapsule };
+module.exports = { pricing, priceFor, PWA_CODE_PRODUCTS, PWA_TRIAL_DAYS, EMAIL_PATTERN, UUID, topicKey, clean, todayQuebec, daysUntil, formatDateFr, capsuleUrl, unsubscribeLinksFor, publicCapsule };

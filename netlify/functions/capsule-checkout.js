@@ -6,7 +6,7 @@ const { HttpError, preflight, parseBody, json, handleError } = require('./_lib/h
 const { getServiceClient } = require('./_lib/supabase');
 const { getStripe } = require('./_lib/stripe-client');
 const { siteUrl } = require('./_lib/legal');
-const { clean, UUID } = require('./_lib/capsules');
+const { clean, UUID, priceFor } = require('./_lib/capsules');
 
 exports.handler = async (event) => {
   const early = preflight(event);
@@ -28,7 +28,7 @@ exports.handler = async (event) => {
       if (!bc || new Date(bc.starts_at) < new Date()) throw new HttpError(404, 'BAD_REQUEST', 'Bootcamp introuvable.');
       const { count } = await db.from('orders').select('id', { count: 'exact', head: true }).eq('bootcamp_id', bc.id);
       if ((count || 0) >= bc.capacity) throw new HttpError(409, 'BAD_REQUEST', 'Ce bootcamp est complet.');
-      item = { name: `Bootcamp RPVD : ${bc.title}`, amount: bc.price_cad };
+      item = { name: `Bootcamp RPVD : ${bc.title}`, amount: priceFor('bootcamp') };
       metadata.product_type = 'bootcamp';
       metadata.bootcamp_id = bc.id;
     } else {
@@ -36,7 +36,7 @@ exports.handler = async (event) => {
       const { data: cap, error } = await db.from('capsules').select('*').eq('slug', slug).eq('published', true).maybeSingle();
       if (error) throw error;
       if (!cap) throw new HttpError(404, 'BAD_REQUEST', 'Capsule introuvable.');
-      item = { name: `Capsule RPVD : ${cap.title}`, amount: cap.price_cad };
+      item = { name: `Capsule RPVD : ${cap.title}`, amount: priceFor(cap.type) };
       metadata.product_type = cap.type;
       metadata.capsule_id = cap.id;
       metadata.slug = cap.slug;

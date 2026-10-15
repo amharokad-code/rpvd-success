@@ -4,24 +4,25 @@ import { useEffect, useState } from 'react'
 import { bootcampCall } from '../lib/bootcampApi'
 import BuyBox from '../components/BuyBox'
 import CapsuleSurvey from '../components/CapsuleSurvey'
+import { TAX_NOTE, currentPrice, launchSummary } from '../config/pricing.mjs'
 import { CARD, CTA, LegalLinks, Notice, PageShell, Spinner } from '../components/bootcamp/BootcampUI'
 
 const DEMO_VIDEO_URL = import.meta.env.VITE_DEMO_VIDEO_URL || ''
 const money = (cents) => `${(cents / 100).toFixed(0)} $`
 
 const PRODUCTS = [
-  { id: 'concept', name: 'Capsule Concept', price: 2400, featured: false, points: ['Vidéo sous-titrée', 'La méthode RPVD appliquée à un concept'] },
+  { id: 'concept', name: 'Capsule Concept', price: currentPrice('concept'), featured: false, points: ['Vidéo sous-titrée', 'La méthode RPVD appliquée à un concept'] },
   {
     id: 'exam',
     name: 'Capsule Examen',
-    price: 2900,
+    price: currentPrice('exam'),
     featured: true,
     points: ['Vidéo sous-titrée, plus complète', 'La méthode RPVD sur un type d’examen', 'Code d’essai de l’application RPVD : 30 jours'],
   },
   {
     id: 'bootcamp',
     name: 'Bootcamp RPVD en direct',
-    price: 9900,
+    price: currentPrice('bootcamp'),
     featured: false,
     points: ['Séance en direct avec questions en direct', 'Code d’essai de l’application RPVD : 30 jours', 'Clavardage de questions jusqu’à l’examen'],
   },
@@ -71,7 +72,8 @@ export default function ParentLandingPage() {
 
       <section className="mt-14" id="produits">
         <h2 className="font-display text-3xl font-bold text-slate-50">Trois façons d’aider ton enfant</h2>
-        <p className="mt-2 text-slate-400">Paiement unique, en dollars canadiens. Pas d’abonnement.</p>
+        <p className="mt-2 text-slate-400">Paiement unique, en dollars canadiens. Pas d’abonnement.{TAX_NOTE ? ` ${TAX_NOTE}.` : ''}</p>
+        {launchSummary() && <p className="mt-1 text-slate-300">{launchSummary()}</p>}
         <div className="mt-6 grid gap-5 md:grid-cols-3">
           {PRODUCTS.map((p) => (
             <div key={p.id} className={`${CARD} flex flex-col p-6 ${p.featured ? 'border-pyramid-orange/70' : ''}`}>

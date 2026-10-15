@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { bootcampCall } from '../lib/bootcampApi'
+import { currentPrice, formatPrice } from '../config/pricing.mjs'
 import { CARD, CTA, INPUT, Notice, Spinner } from '../components/bootcamp/BootcampUI'
 
 const EMPTY_SEG = { ordre: 1, titre: '', video_id: '', duree_sec: 360, exercice_enonce: '', exercice_correction_rpvd: '' }
@@ -151,7 +152,7 @@ export default function CapsuleAdminPage() {
             <h2 className="font-display text-xl font-bold sm:col-span-2">Capsule : créer / publier</h2>
             <input className={INPUT} placeholder="slug (ex. exam-sn4-trigo)" {...bind(cap, setCap, 'slug')} />
             <input className={INPUT} placeholder="Titre" {...bind(cap, setCap, 'title')} />
-            <select className={INPUT} {...bind(cap, setCap, 'type')}><option value="exam">Examen (29 $)</option><option value="concept">Concept (24 $)</option></select>
+            <select className={INPUT} {...bind(cap, setCap, 'type')}><option value="exam">{`Examen (${formatPrice(currentPrice('exam'))})`}</option><option value="concept">{`Concept (${formatPrice(currentPrice('concept'))})`}</option></select>
             <input className={INPUT} placeholder="Matière" {...bind(cap, setCap, 'subject_area')} />
             <input className={INPUT} placeholder="Sujet (même libellé que les demandes)" {...bind(cap, setCap, 'topic')} />
             <input className={INPUT} placeholder="Niveau" {...bind(cap, setCap, 'level')} />
@@ -224,7 +225,7 @@ export default function CapsuleAdminPage() {
           </section>
 
           <form onSubmit={createBootcamp} className={`${CARD} grid gap-3 p-5 sm:grid-cols-2`}>
-            <h2 className="font-display text-xl font-bold sm:col-span-2">Créer un bootcamp (99 $)</h2>
+            <h2 className="font-display text-xl font-bold sm:col-span-2">Créer un bootcamp ({formatPrice(currentPrice('bootcamp'))})</h2>
             <input className={INPUT} required placeholder="Titre" {...bind(bc, setBc, 'title')} />
             <input className={INPUT} required placeholder="Sujet" {...bind(bc, setBc, 'topic')} />
             <input className={INPUT} required type="datetime-local" {...bind(bc, setBc, 'starts_at')} />

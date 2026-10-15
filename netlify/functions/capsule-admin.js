@@ -10,7 +10,7 @@
 
 const { HttpError, preflight, parseBody, json, header, handleError } = require('./_lib/http');
 const { getServiceClient } = require('./_lib/supabase');
-const { PRICES, clean, topicKey } = require('./_lib/capsules');
+const { priceFor, clean, topicKey } = require('./_lib/capsules');
 const { computeMetrics } = require('./_lib/metrics');
 
 async function requireAdmin(event) {
@@ -68,7 +68,7 @@ exports.handler = async (event) => {
         subject_area: clean(b.subject_area, 60),
         topic: clean(b.topic, 160),
         level: clean(b.level, 40),
-        price_cad: Number.isInteger(b.price_cad) && b.price_cad > 0 ? b.price_cad : PRICES[type],
+        price_cad: Number.isInteger(b.price_cad) && b.price_cad > 0 ? b.price_cad : priceFor(type),
         description: clean(b.description, 1200) || null,
         date_examen: /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(clean(b.date_examen, 10)) ? clean(b.date_examen, 10) : null,
         duration_min: Number.isInteger(b.duration_min) ? b.duration_min : null,
@@ -159,7 +159,7 @@ exports.handler = async (event) => {
         capacity,
         meeting_url: clean(b.meeting_url, 500) || null,
         chat_url: clean(b.chat_url, 500) || null,
-        price_cad: PRICES.bootcamp,
+        price_cad: priceFor('bootcamp'),
       });
       if (error) throw error;
       return json(200, { ok: true });

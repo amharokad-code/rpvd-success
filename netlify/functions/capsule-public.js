@@ -5,7 +5,7 @@
 
 const { HttpError, preflight, parseBody, json, handleError } = require('./_lib/http');
 const { getServiceClient } = require('./_lib/supabase');
-const { publicCapsule, clean, PRICES } = require('./_lib/capsules');
+const { publicCapsule, clean, pricing, priceFor } = require('./_lib/capsules');
 
 exports.handler = async (event) => {
   const early = preflight(event);
@@ -29,8 +29,8 @@ exports.handler = async (event) => {
         if (e3) throw e3;
         for (const r of reqs || []) counts[r.topic_key] = (counts[r.topic_key] || 0) + 1;
       }
-      const capsules = (caps || []).map(({ topic_key: key, ...c }) => ({ ...c, requests: counts[key] || 0 }));
-      return json(200, { ok: true, capsules, bootcamps: boots || [], prices: PRICES });
+      const capsules = (caps || []).map(({ topic_key: key, ...c }) => ({ ...c, price_cad: priceFor(c.type), launch_notice: pricing.launchNotice(c.type), requests: counts[key] || 0 }));
+      return json(200, { ok: true, capsules, bootcamps: (boots || []).map((b) => ({ ...b, price_cad: priceFor('bootcamp') })), prices: { concept: priceFor('concept'), exam: priceFor('exam'), bootcamp: priceFor('bootcamp') }, tax_note: pricing.TAX_NOTE });
     }
 
     const slug = clean(body.slug, 80);
