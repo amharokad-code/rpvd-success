@@ -10,7 +10,7 @@
 
 const { HttpError, preflight, parseBody, json, header, handleError } = require('./_lib/http');
 const { getServiceClient } = require('./_lib/supabase');
-const { priceFor, clean, topicKey } = require('./_lib/capsules');
+const { priceFor, clean, scopedTopicKey } = require('./_lib/capsules');
 const { computeMetrics } = require('./_lib/metrics');
 
 async function requireAdmin(event) {
@@ -79,7 +79,7 @@ exports.handler = async (event) => {
       if (!/^[a-z0-9-]{3,80}$/.test(row.slug) || !row.title || !row.topic || !row.level || !row.subject_area) {
         throw new HttpError(400, 'BAD_REQUEST', 'Slug, titre, sujet, niveau et matière sont obligatoires.');
       }
-      row.topic_key = topicKey(row.topic);
+      row.topic_key = scopedTopicKey(row.subject_area, row.level, row.topic);
       if (b.publish === true) {
         const { data: existing } = await db.from('capsules').select('id').eq('slug', row.slug).maybeSingle();
         const { count: segCount } = existing

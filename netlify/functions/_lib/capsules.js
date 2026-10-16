@@ -22,6 +22,11 @@ function topicKey(topic) {
     .trim();
 }
 
+// Un sujet n'a de sens que dans sa matière et son niveau (« Algèbre » de Sec 3 n'est pas celui de Sec 4).
+function scopedTopicKey(subject, level, topic) {
+  return topicKey(`${subject} ${level} ${topic}`);
+}
+
 function clean(value, max) {
   return typeof value === 'string' ? value.trim().slice(0, max) : '';
 }
@@ -73,4 +78,4 @@ function publicCapsule(c) {
   };
 }
 
-module.exports = { pricing, priceFor, PWA_CODE_PRODUCTS, PWA_TRIAL_DAYS, EMAIL_PATTERN, UUID, topicKey, clean, todayQuebec, daysUntil, formatDateFr, capsuleUrl, unsubscribeLinksFor, publicCapsule };
+module.exports = { pricing, priceFor, PWA_CODE_PRODUCTS, PWA_TRIAL_DAYS, EMAIL_PATTERN, UUID, topicKey, scopedTopicKey, clean, todayQuebec, daysUntil, formatDateFr, capsuleUrl, unsubscribeLinksFor, publicCapsule };

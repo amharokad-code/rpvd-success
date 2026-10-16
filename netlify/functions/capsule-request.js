@@ -9,7 +9,8 @@ const { getServiceClient } = require('./_lib/supabase');
 const { assertRateLimit } = require('./_lib/ratelimit');
 const { sendEmail, capsuleDemoEmail } = require('./_lib/email');
 const { unsubscribeHeaders, siteUrl } = require('./_lib/legal');
-const { EMAIL_PATTERN, UUID, topicKey, clean, unsubscribeLinksFor } = require('./_lib/capsules');
+const { EMAIL_PATTERN, UUID, clean, unsubscribeLinksFor } = require('./_lib/capsules');
+const { resolveTopicKey } = require('./_lib/topic-cluster');
 
 const PRODUCTS = ['concept', 'exam', 'bootcamp'];
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -69,7 +70,13 @@ exports.handler = async (event) => {
     await assertRateLimit(`capsule-request:ip:${sha256(ip)}`, 10, 3600);
     await verifyTurnstile(b.turnstile_token, ip);
 
-    const key = topicKey(topic);
+    // Le sujet est écrit librement : on le rattache à un sujet déjà connu de la même matière et du même niveau
+    // (demandes + capsules publiées) quand c'est le même contenu d'examen. Sinon, nouvelle clé.
+    const [{ data: known }, { data: published }] = await Promise.all([
+      db.from('capsule_requests').select('topic,topic_key').eq('subject_area', subject).eq('level', level).order('created_at', { ascending: false }).limit(200),
+      db.from('capsules').select('topic,topic_key').eq('subject_area', subject).eq('level', level).eq('published', true).limit(40),
+    ]);
+    const key = await resolveTopicKey({ subject, level, topic, candidates: [...(published || []), ...(known || [])] });
     // Une famille ne compte qu'une fois par sujet (la règle « 3 demandes » reste honnête).
     const { data: existing, error: lookupError } = await db.from('capsule_requests').select('id').eq('email', email).eq('topic_key', key).limit(1);
     if (lookupError) throw lookupError;
@@ -86,7 +93,7 @@ exports.handler = async (event) => {
           topic,
           topic_key: key,
           exam_date: DATE.test(clean(b.exam_date, 10)) ? clean(b.exam_date, 10) : null,
-          product_wanted: PRODUCTS.includes(b.product_wanted) ? b.product_wanted : 'exam',
+          product_wanted: PRODUCTS.includes(b.product_wanted) ? b.product_wanted : 'exam', // choisi par le parent à l'écran 3 du sondage
           consent_email: true,
         })
         .select('id')
