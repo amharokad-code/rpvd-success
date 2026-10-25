@@ -141,9 +141,15 @@ export default function EmaSeancesPage() {
 
   return (
     <div className="min-h-screen" style={{ background: '#f8f2e6', color: INK }}>
-      <header className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-5">
-        <img src="/ema/etoile.jpg" alt="" width="44" height="44" className="rounded-full" />
-        <span className="text-xl font-extrabold tracking-tight">E.M.A. Tutorat</span>
+      <header className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-5">
+        <a href="/" className="flex items-center gap-3">
+          <img src="/ema/etoile.jpg" alt="" width="44" height="44" className="rounded-full" />
+          <span className="text-xl font-extrabold tracking-tight">E.M.A. Tutorat</span>
+        </a>
+        <nav aria-label="Sections" className="flex gap-4 text-sm font-semibold">
+          <a className="underline-offset-4 hover:underline" href="#packs">Packs vidéo</a>
+          <a className="underline-offset-4 hover:underline" href="#direct">Tutorat en direct</a>
+        </nav>
       </header>
 
       <main className="mx-auto max-w-3xl px-4 pb-16">
@@ -167,7 +173,7 @@ export default function EmaSeancesPage() {
         )}
         {error && <p role="alert" className="mt-6 rounded-xl border border-red-300 bg-red-50 p-4 text-red-900">{error}</p>}
 
-        <section className="mt-10">
+        <section id="packs" className="mt-10 scroll-mt-4">
           <h2 className="text-2xl font-bold">Packs vidéo</h2>
           <p className="mt-2 text-[#43524e]">Des capsules à revoir quand tu veux : une démarche visuelle par type de question. Paiement unique, accès par courriel.</p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -187,7 +193,7 @@ export default function EmaSeancesPage() {
           </p>
         </section>
 
-        <section className="mt-12 space-y-8">
+        <section id="direct" className="mt-12 scroll-mt-4 space-y-8">
           <h2 className="-mb-4 text-2xl font-bold">Tutorat en direct</h2>
           {!data && <p>Chargement…</p>}
           {data && sections.length === 0 && (
