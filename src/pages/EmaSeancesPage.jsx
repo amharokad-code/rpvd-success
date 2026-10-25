@@ -1,11 +1,11 @@
-// Site E.M.A. Tutorat (ematutorat.com) : séances en direct décidées par le fondateur. Aucun sondage :
+// Site RPVD Tutorat (rpvdsuccess.com/seances) : packs vidéo + séances en direct décidées par le fondateur. Aucun sondage :
 // l'élève voit ce qui se passe aujourd'hui / cette semaine, entre en un clic (prénom + courriel),
 // assiste, puis paie à la sortie (19 $, prix affiché avant l'entrée). Marque propre : étoile verte, fond crème.
 import { useEffect, useMemo, useState } from 'react'
 import { bootcampCall } from '../lib/bootcampApi'
 import { currentPrice, formatPrice, launchSummary } from '../config/pricing.mjs'
 
-const GREEN = '#2f8f7e'
+const GREEN = '#c2641a' // orange RPVD (nom historique de la constante conservé)
 const INK = '#1f2d2a'
 
 const TZ = 'America/Toronto'
@@ -112,7 +112,7 @@ export default function EmaSeancesPage() {
   const paid = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('paiement') === 'ok'
 
   useEffect(() => {
-    document.title = 'E.M.A. Tutorat — Séances de révision en direct, Sec 3 à 5'
+    document.title = 'RPVD Tutorat — Séances de révision en direct, Sec 3 à 5'
     bootcampCall('seances-public', {}).then(setData).catch((e) => { setError(e.message); setData({ seances: [], price_cents: 1900 }) })
   }, [])
 
@@ -143,8 +143,8 @@ export default function EmaSeancesPage() {
     <div className="min-h-screen" style={{ background: '#f8f2e6', color: INK }}>
       <header className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-4 py-5">
         <a href="/" className="flex items-center gap-3">
-          <img src="/ema/etoile.jpg" alt="" width="44" height="44" className="rounded-full" />
-          <span className="text-xl font-extrabold tracking-tight">E.M.A. Tutorat</span>
+          <img src="/icons/icon-192.png" alt="" width="44" height="44" className="rounded-xl" />
+          <span className="text-xl font-extrabold tracking-tight">RPVD Tutorat</span>
         </a>
         <nav aria-label="Sections" className="flex gap-4 text-sm font-semibold">
           <a className="underline-offset-4 hover:underline" href="#packs">Packs vidéo</a>
@@ -156,7 +156,7 @@ export default function EmaSeancesPage() {
         <section className="pt-4">
           <h1 className="text-4xl font-extrabold leading-tight">Comprendre la démarche, pas juste la matière.</h1>
           <p className="mt-4 text-lg text-[#43524e]">
-            Beaucoup d’élèves comprennent en classe, puis se perdent à l’examen. Chez E.M.A., on enseigne la démarche : en packs vidéo à revoir quand tu veux, ou en tutorat en direct, un seul sujet par séance, en petit groupe.
+            Beaucoup d’élèves comprennent en classe, puis se perdent à l’examen. Chez RPVD Tutorat, on enseigne la démarche : en packs vidéo à revoir quand tu veux, ou en tutorat en direct, un seul sujet par séance, en petit groupe.
           </p>
           <p className="mt-2 text-lg text-[#43524e]">Sec 3 à 5 : maths, sciences, chimie, physique, français.</p>
         </section>

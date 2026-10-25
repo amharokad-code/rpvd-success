@@ -47,7 +47,7 @@ ${link}
     // Alerte fondateur (best-effort) : sert de liste d'inscrits.
     await sendEmail({
       to: process.env.EMA_NOTIFY_EMAIL || BUSINESS.email,
-      subject: `Nouvelle entrée E.M.A. : ${prenom}`,
+      subject: `Nouvelle entrée RPVD Tutorat : ${prenom}`,
       html: `<p>${escapeHtml(prenom)} (${escapeHtml(email)}) entre dans <strong>${escapeHtml(seance.sujet)}</strong>, ${escapeHtml(when)}.</p>`,
       text: `${prenom} (${email}) entre dans ${seance.sujet}, ${when}.`,
     });

@@ -147,7 +147,7 @@ async function handleInvoicePaid(stripeEvent) {
   }
 }
 
-// Paiement d'une séance E.M.A. : ne lève jamais (un courriel raté ne doit pas faire réessayer Stripe).
+// Paiement d'une séance RPVD Tutorat : ne lève jamais (un courriel raté ne doit pas faire réessayer Stripe).
 async function handleEmaSeancePaid(session) {
   try {
     const { findSeance, escapeHtml, whenLabel } = require('./_lib/seances');
@@ -155,7 +155,7 @@ async function handleEmaSeancePaid(session) {
     const seance = findSeance(session.metadata.seance_id);
     const email = session.customer_details && session.customer_details.email;
     const amount = `${((session.amount_total || 0) / 100).toFixed(2)} $ ${String(session.currency || 'cad').toUpperCase()}`;
-    const titre = seance ? `${seance.matiere} ${seance.niveau} : ${seance.sujet}` : 'séance E.M.A.';
+    const titre = seance ? `${seance.matiere} ${seance.niveau} : ${seance.sujet}` : 'séance RPVD Tutorat';
     await sendEmail({
       to: process.env.EMA_NOTIFY_EMAIL || BUSINESS.email,
       subject: `Paiement reçu : ${amount}`,
@@ -211,7 +211,7 @@ exports.handler = async (event) => {
       // parfois le même événement : `ok` n'est renvoyé qu'une fois). Ne lève jamais.
       if (confirmed && confirmed.ok) await reportBootcampPurchase(object);
     } else if (stripeEvent.type === 'checkout.session.completed' && object && object.metadata && object.metadata.kind === 'ema_seance') {
-      // Séance en direct E.M.A. payée : alerte au fondateur + reçu à l'élève (aucune base de données).
+      // Séance en direct RPVD Tutorat payée : alerte au fondateur + reçu à l'élève (aucune base de données).
       await handleEmaSeancePaid(object);
     } else if (stripeEvent.type === 'checkout.session.completed') {
       await handleCheckoutCompleted(stripeEvent);

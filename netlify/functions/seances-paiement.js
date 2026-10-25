@@ -1,5 +1,5 @@
 'use strict';
-// POST { id, attest } → { url } Stripe Checkout (CAD, paiement unique) pour payer une séance E.M.A.
+// POST { id, attest } → { url } Stripe Checkout (CAD, paiement unique) pour payer une séance RPVD Tutorat
 // Le prix vient du serveur ; le prix affiché est le prix facturé.
 
 const { HttpError, preflight, parseBody, json, handleError } = require('./_lib/http');
@@ -26,7 +26,7 @@ exports.handler = async (event) => {
           price_data: {
             currency: CURRENCY,
             unit_amount: PRICE_CENTS,
-            product_data: { name: `E.M.A. Tutorat : ${seance.matiere} ${seance.niveau}, ${seance.sujet}` },
+            product_data: { name: `RPVD Tutorat : ${seance.matiere} ${seance.niveau}, ${seance.sujet}` },
           },
         },
       ],
