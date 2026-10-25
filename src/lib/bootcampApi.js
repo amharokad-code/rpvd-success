@@ -20,6 +20,17 @@ const DEMO_SESSIONS = [
   refund_deadline: 'samedi 10 octobre à 23 h 59',
 }))
 function demoResponse(fn, body) {
+  if (fn === 'seances-public') {
+    const day = 86400000
+    const at = (offset, hour) => { const d = new Date(Date.now() + offset * day); d.setHours(hour, 0, 0, 0); return d.toISOString() }
+    return {
+      price_cents: 1900,
+      seances: [
+        { id: 'demo-1', matiere: 'Mathématiques', niveau: 'Sec 4', sujet: 'Équations du 2e degré', starts_at: at(0, 23), duree_min: 60, status: 'upcoming' },
+        { id: 'demo-2', matiere: 'Sciences', niveau: 'Sec 4', sujet: 'Stœchiométrie', starts_at: at(3, 19), duree_min: 60, status: 'upcoming' },
+      ],
+    }
+  }
   if (fn === 'bootcamp-public' && body.action === 'sessions') {
     return { sessions: DEMO_SESSIONS, cycle: { next_selection_at: '2026-10-08T21:00:00Z', sales_deadline: 'samedi 10 octobre à 23 h 59' } }
   }

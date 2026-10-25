@@ -20,6 +20,7 @@ import CapsuleAdminPage from './pages/CapsuleAdminPage'
 import { initAds } from './utils/ads'
 import { installErrorTracking } from './utils/track'
 import AdminInsightsPage from './pages/AdminInsightsPage'
+import EmaSeancesPage from './pages/EmaSeancesPage'
 import './index.css'
 
 // Mesure publicitaire : capture des paramètres de campagne (sessionStorage) et pixels Meta/Snap,
@@ -62,8 +63,15 @@ function MerciCapsule() {
   )
 }
 
+// ematutorat.com (même site, autre marque) : séances en direct E.M.A. ; `/seances` permet de les voir
+// aussi sur le site principal (aperçu avant la bascule du domaine).
+function isEmaHost() {
+  return /(^|\.)ematutorat\.com$/i.test(window.location.hostname)
+}
+
 function pickRoute() {
   const path = window.location.pathname.replace(/\/+$/, '') || '/'
+  if (path === '/seances' || (path === '/' && isEmaHost() && !shouldRedirectRootToApp())) return <EmaSeancesPage />
   if (path === '/') {
     if (shouldRedirectRootToApp()) {
       window.location.replace(`/app${window.location.search}${window.location.hash}`)

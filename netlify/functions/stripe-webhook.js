@@ -147,6 +147,34 @@ async function handleInvoicePaid(stripeEvent) {
   }
 }
 
+// Paiement d'une séance E.M.A. : ne lève jamais (un courriel raté ne doit pas faire réessayer Stripe).
+async function handleEmaSeancePaid(session) {
+  try {
+    const { findSeance, escapeHtml, whenLabel } = require('./_lib/seances');
+    const { BUSINESS, senderLine } = require('./_lib/legal');
+    const seance = findSeance(session.metadata.seance_id);
+    const email = session.customer_details && session.customer_details.email;
+    const amount = `${((session.amount_total || 0) / 100).toFixed(2)} $ ${String(session.currency || 'cad').toUpperCase()}`;
+    const titre = seance ? `${seance.matiere} ${seance.niveau} : ${seance.sujet}` : 'séance E.M.A.';
+    await sendEmail({
+      to: process.env.EMA_NOTIFY_EMAIL || BUSINESS.email,
+      subject: `Paiement reçu : ${amount}`,
+      html: `<p>Paiement de <strong>${escapeHtml(amount)}</strong> reçu pour ${escapeHtml(titre)}${email ? ` (${escapeHtml(email)})` : ''}.</p>`,
+      text: `Paiement de ${amount} reçu pour ${titre}${email ? ` (${email})` : ''}.`,
+    });
+    if (email) {
+      await sendEmail({
+        to: email,
+        subject: 'Merci, ton paiement est confirmé',
+        html: `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;line-height:1.6"><h2>Merci !</h2><p>Ton paiement de <strong>${escapeHtml(amount)}</strong> pour « ${escapeHtml(titre)} »${seance ? ` (${escapeHtml(whenLabel(seance))})` : ''} est confirmé. Paiement unique, aucun abonnement.</p><p style="font-size:12px;color:#777">${escapeHtml(senderLine())}</p></div>`,
+        text: `Merci ! Ton paiement de ${amount} pour « ${titre} » est confirmé. Paiement unique, aucun abonnement.`,
+      });
+    }
+  } catch (err) {
+    console.error('[stripe-webhook] ema_seance:', err && err.message);
+  }
+}
+
 async function handleSubscriptionDeleted(stripeEvent) {
   const subscription = stripeEvent.data.object;
   await rpc('cancel_subscription', {
@@ -182,6 +210,9 @@ exports.handler = async (event) => {
       // coché la case de consentement, et seulement à la 1re confirmation du billet (Stripe réessaie
       // parfois le même événement : `ok` n'est renvoyé qu'une fois). Ne lève jamais.
       if (confirmed && confirmed.ok) await reportBootcampPurchase(object);
+    } else if (stripeEvent.type === 'checkout.session.completed' && object && object.metadata && object.metadata.kind === 'ema_seance') {
+      // Séance en direct E.M.A. payée : alerte au fondateur + reçu à l'élève (aucune base de données).
+      await handleEmaSeancePaid(object);
     } else if (stripeEvent.type === 'checkout.session.completed') {
       await handleCheckoutCompleted(stripeEvent);
     } else if (stripeEvent.type === 'charge.dispute.created' || stripeEvent.type === 'charge.refunded') {
