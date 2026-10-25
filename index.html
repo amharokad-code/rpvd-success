@@ -51,16 +51,18 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
+      // ID de mesure selon le domaine : ematutorat.com → propriété E.M.A. Tutorat ; sinon RPVD Success.
+      var GA_ID = /(^|\.)ematutorat\.com$/i.test(location.hostname) ? 'G-8L44XV345R' : 'G-5B2CZETWYS';
       window.rpvdLoadAnalytics = function () {
         if (window.__rpvdGaLoaded) return;
         window.__rpvdGaLoaded = true;
         gtag('consent', 'update', { analytics_storage: 'granted', ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' });
         var s = document.createElement('script');
         s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-5B2CZETWYS';
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
         document.head.appendChild(s);
         gtag('js', new Date());
-        gtag('config', 'G-5B2CZETWYS');
+        gtag('config', GA_ID);
       };
       try {
         var c = JSON.parse(localStorage.getItem('rpvd_cookie_consent') || 'null');
